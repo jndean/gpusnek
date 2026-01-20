@@ -45,7 +45,7 @@ void mp_stack_ctrl_init(void) {
 }
 
 void mp_stack_set_top(void *top) {
-    MP_STATE_THREAD(stack_top) = top;
+    MP_STATE_THREAD(stack_top) = (char *)top;
 }
 
 mp_uint_t mp_stack_usage(void) {

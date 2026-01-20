@@ -196,7 +196,7 @@ mp_obj_t mp_make_function_from_proto_fun(mp_proto_fun_t proto_fun, const mp_modu
     #endif
 
     // the proto-function is a mp_raw_code_t
-    const mp_raw_code_t *rc = proto_fun;
+    const mp_raw_code_t *rc = (const mp_raw_code_t *)proto_fun;
 
     // make the function, depending on the raw code kind
     mp_obj_t fun;
@@ -221,7 +221,7 @@ mp_obj_t mp_make_function_from_proto_fun(mp_proto_fun_t proto_fun, const mp_modu
         default:
             // rc->kind should always be set and BYTECODE is the only remaining case
             assert(rc->kind == MP_CODE_BYTECODE);
-            fun = mp_obj_new_fun_bc(def_args, rc->fun_data, context, rc->children);
+            fun = mp_obj_new_fun_bc(def_args, (const byte *)rc->fun_data, context, rc->children);
             // check for generator functions and if so change the type of the object
             if (rc->is_generator) {
                 ((mp_obj_base_t *)MP_OBJ_TO_PTR(fun))->type = &mp_type_gen_wrap;

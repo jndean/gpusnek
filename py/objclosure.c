@@ -37,7 +37,7 @@ typedef struct _mp_obj_closure_t {
 } mp_obj_closure_t;
 
 static mp_obj_t closure_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
-    mp_obj_closure_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_closure_t *self = (mp_obj_closure_t *)MP_OBJ_TO_PTR(self_in);
 
     // need to concatenate closed-over-vars and args
 

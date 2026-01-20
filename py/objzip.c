@@ -49,11 +49,11 @@ static mp_obj_t zip_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_
 
 static mp_obj_t zip_iternext(mp_obj_t self_in) {
     mp_check_self(mp_obj_is_type(self_in, &mp_type_zip));
-    mp_obj_zip_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_zip_t *self = (mp_obj_zip_t *)MP_OBJ_TO_PTR(self_in);
     if (self->n_iters == 0) {
         return MP_OBJ_STOP_ITERATION;
     }
-    mp_obj_tuple_t *tuple = MP_OBJ_TO_PTR(mp_obj_new_tuple(self->n_iters, NULL));
+    mp_obj_tuple_t *tuple = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(mp_obj_new_tuple(self->n_iters, NULL));
 
     for (size_t i = 0; i < self->n_iters; i++) {
         mp_obj_t next = mp_iternext(self->iters[i]);

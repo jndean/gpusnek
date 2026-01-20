@@ -146,7 +146,7 @@ static mp_obj_t eval_exec_helper(size_t n_args, const mp_obj_t *args, mp_parse_i
             if (!mp_obj_is_type(args[i], &mp_type_dict)) {
                 mp_raise_TypeError(NULL);
             }
-            locals = MP_OBJ_TO_PTR(args[i]);
+            locals = (mp_obj_dict_t *)MP_OBJ_TO_PTR(args[i]);
             if (i == 1) {
                 globals = locals;
             }
@@ -171,7 +171,7 @@ static mp_obj_t eval_exec_helper(size_t n_args, const mp_obj_t *args, mp_parse_i
         mp_buffer_info_t bufinfo;
         mp_get_buffer_raise(args[0], &bufinfo, MP_BUFFER_READ);
 
-        lex = mp_lexer_new_from_str_len(MP_QSTR__lt_string_gt_, bufinfo.buf, bufinfo.len, 0);
+        lex = mp_lexer_new_from_str_len(MP_QSTR__lt_string_gt_, (const char *)bufinfo.buf, bufinfo.len, 0);
     }
 
     return mp_parse_compile_execute(lex, parse_input_kind, globals, locals);

@@ -61,8 +61,8 @@ static bool strictly_equal(mp_obj_t a, mp_obj_t b) {
         return false;
     }
     if (a_type == &mp_type_tuple) {
-        mp_obj_tuple_t *a_tuple = MP_OBJ_TO_PTR(a);
-        mp_obj_tuple_t *b_tuple = MP_OBJ_TO_PTR(b);
+        mp_obj_tuple_t *a_tuple = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(a);
+        mp_obj_tuple_t *b_tuple = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(b);
         if (a_tuple->len != b_tuple->len) {
             return false;
         }

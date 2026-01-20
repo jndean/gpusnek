@@ -161,7 +161,7 @@ bool mp_seq_cmp_objs(mp_uint_t op, const mp_obj_t *items1, size_t len1, const mp
         }
 
         // Otherwise, application of relation op gives the answer
-        return mp_binary_op(op, items1[i], items2[i]) == mp_const_true;
+        return mp_binary_op((mp_binary_op_t)op, items1[i], items2[i]) == mp_const_true;
     }
 
     // If we had tie in the last element...

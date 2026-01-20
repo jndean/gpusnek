@@ -71,7 +71,7 @@ const uint8_t *mp_reader_try_read_rom(mp_reader_t *reader, size_t len) {
     if (reader->readbyte != mp_reader_mem_readbyte) {
         return NULL;
     }
-    mp_reader_mem_t *m = reader->data;
+    mp_reader_mem_t *m = (mp_reader_mem_t *)reader->data;
     if (m->free_len != MP_READER_IS_ROM) {
         return NULL;
     }
