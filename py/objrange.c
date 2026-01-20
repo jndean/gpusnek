@@ -39,7 +39,7 @@ typedef struct _mp_obj_range_it_t {
 } mp_obj_range_it_t;
 
 static mp_obj_t range_it_iternext(mp_obj_t o_in) {
-    mp_obj_range_it_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_range_it_t *o = (mp_obj_range_it_t *)MP_OBJ_TO_PTR(o_in);
     if ((o->step > 0 && o->cur < o->stop) || (o->step < 0 && o->cur > o->stop)) {
         mp_int_t cur = o->cur;
         o->cur += o->step;
@@ -78,7 +78,7 @@ typedef struct _mp_obj_range_t {
 
 static void range_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     (void)kind;
-    mp_obj_range_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_range_t *self = (mp_obj_range_t *)MP_OBJ_TO_PTR(self_in);
     mp_printf(print, "range(" INT_FMT ", " INT_FMT "", self->start, self->stop);
     if (self->step == 1) {
         mp_print_str(print, ")");
@@ -126,7 +126,7 @@ static mp_int_t range_len(mp_obj_range_t *self) {
 }
 
 static mp_obj_t range_unary_op(mp_unary_op_t op, mp_obj_t self_in) {
-    mp_obj_range_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_range_t *self = (mp_obj_range_t *)MP_OBJ_TO_PTR(self_in);
     mp_int_t len = range_len(self);
     switch (op) {
         case MP_UNARY_OP_BOOL:
@@ -143,8 +143,8 @@ static mp_obj_t range_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs
     if (!mp_obj_is_type(rhs_in, &mp_type_range) || op != MP_BINARY_OP_EQUAL) {
         return MP_OBJ_NULL; // op not supported
     }
-    mp_obj_range_t *lhs = MP_OBJ_TO_PTR(lhs_in);
-    mp_obj_range_t *rhs = MP_OBJ_TO_PTR(rhs_in);
+    mp_obj_range_t *lhs = (mp_obj_range_t *)MP_OBJ_TO_PTR(lhs_in);
+    mp_obj_range_t *rhs = (mp_obj_range_t *)MP_OBJ_TO_PTR(rhs_in);
     mp_int_t lhs_len = range_len(lhs);
     mp_int_t rhs_len = range_len(rhs);
     return mp_obj_new_bool(
@@ -159,7 +159,7 @@ static mp_obj_t range_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs
 static mp_obj_t range_subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
     if (value == MP_OBJ_SENTINEL) {
         // load
-        mp_obj_range_t *self = MP_OBJ_TO_PTR(self_in);
+        mp_obj_range_t *self = (mp_obj_range_t *)MP_OBJ_TO_PTR(self_in);
         mp_int_t len = range_len(self);
         #if MICROPY_PY_BUILTINS_SLICE
         if (mp_obj_is_type(index, &mp_type_slice)) {
@@ -180,7 +180,7 @@ static mp_obj_t range_subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
 }
 
 static mp_obj_t range_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
-    mp_obj_range_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_range_t *o = (mp_obj_range_t *)MP_OBJ_TO_PTR(o_in);
     return mp_obj_new_range_iterator(o->start, o->stop, o->step, iter_buf);
 }
 
@@ -191,7 +191,7 @@ static void range_attr(mp_obj_t o_in, qstr attr, mp_obj_t *dest) {
         // not load attribute
         return;
     }
-    mp_obj_range_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_range_t *o = (mp_obj_range_t *)MP_OBJ_TO_PTR(o_in);
     if (attr == MP_QSTR_start) {
         dest[0] = mp_obj_new_int(o->start);
     } else if (attr == MP_QSTR_stop) {
