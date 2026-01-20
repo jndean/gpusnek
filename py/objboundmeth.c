@@ -38,7 +38,7 @@ typedef struct _mp_obj_bound_meth_t {
 #if MICROPY_ERROR_REPORTING == MICROPY_ERROR_REPORTING_DETAILED
 static void bound_meth_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     (void)kind;
-    mp_obj_bound_meth_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_bound_meth_t *o = (mp_obj_bound_meth_t *)MP_OBJ_TO_PTR(o_in);
     mp_printf(print, "<bound_method %p ", o);
     mp_obj_print_helper(print, o->self, PRINT_REPR);
     mp_print_str(print, ".");
@@ -62,7 +62,7 @@ mp_obj_t mp_call_method_self_n_kw(mp_obj_t meth, mp_obj_t self, size_t n_args, s
     }
     if (args2 == NULL) {
         // (fallback to) use stack to allocate temporary args array
-        args2 = alloca(sizeof(mp_obj_t) * (1 + n_total));
+        args2 = (mp_obj_t *)alloca(sizeof(mp_obj_t) * (1 + n_total));
     }
     #endif
     args2[0] = self;
@@ -79,12 +79,12 @@ mp_obj_t mp_call_method_self_n_kw(mp_obj_t meth, mp_obj_t self, size_t n_args, s
 }
 
 static mp_obj_t bound_meth_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
-    mp_obj_bound_meth_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_bound_meth_t *self = (mp_obj_bound_meth_t *)MP_OBJ_TO_PTR(self_in);
     return mp_call_method_self_n_kw(self->meth, self->self, n_args, n_kw, args);
 }
 
 static mp_obj_t bound_meth_unary_op(mp_unary_op_t op, mp_obj_t self_in) {
-    mp_obj_bound_meth_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_bound_meth_t *self = (mp_obj_bound_meth_t *)MP_OBJ_TO_PTR(self_in);
     switch (op) {
         case MP_UNARY_OP_HASH:
             return MP_OBJ_NEW_SMALL_INT((mp_uint_t)self->self ^ (mp_uint_t)self->meth);
@@ -100,8 +100,8 @@ static mp_obj_t bound_meth_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_
     if (op != MP_BINARY_OP_EQUAL) {
         return MP_OBJ_NULL; // op not supported
     }
-    mp_obj_bound_meth_t *lhs = MP_OBJ_TO_PTR(lhs_in);
-    mp_obj_bound_meth_t *rhs = MP_OBJ_TO_PTR(rhs_in);
+    mp_obj_bound_meth_t *lhs = (mp_obj_bound_meth_t *)MP_OBJ_TO_PTR(lhs_in);
+    mp_obj_bound_meth_t *rhs = (mp_obj_bound_meth_t *)MP_OBJ_TO_PTR(rhs_in);
     #if MICROPY_PY_BOUND_METHOD_FULL_EQUALITY_CHECK
     return mp_obj_new_bool(mp_obj_equal(lhs->self, rhs->self) && mp_obj_equal(lhs->meth, rhs->meth));
     #else
@@ -116,7 +116,7 @@ static void bound_meth_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
         return;
     }
     // Delegate the load to the method object
-    mp_obj_bound_meth_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_bound_meth_t *self = (mp_obj_bound_meth_t *)MP_OBJ_TO_PTR(self_in);
     mp_load_method_maybe(self->meth, attr, dest);
 }
 #endif

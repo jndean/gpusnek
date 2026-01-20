@@ -312,6 +312,8 @@ qstr qstr_from_str(const char *str) {
 static qstr qstr_from_strn_helper(const char *str, size_t len, bool data_is_static) {
     QSTR_ENTER();
     qstr q = qstr_find_strn(str, len);
+    size_t n_bytes = 0;  // Declare here for C++ goto compatibility
+    char *q_ptr = NULL;  // Declare here for C++ goto compatibility
     if (q == 0) {
         // qstr does not exist in interned pool so need to add it
 
@@ -328,7 +330,7 @@ static qstr qstr_from_strn_helper(const char *str, size_t len, bool data_is_stat
         }
 
         // compute number of bytes needed to intern this string
-        size_t n_bytes = len + 1;
+        n_bytes = len + 1;
 
         if (MP_STATE_VM(qstr_last_chunk) != NULL && MP_STATE_VM(qstr_last_used) + n_bytes > MP_STATE_VM(qstr_last_alloc)) {
             // not enough room at end of previously interned string so try to grow
@@ -364,7 +366,7 @@ static qstr qstr_from_strn_helper(const char *str, size_t len, bool data_is_stat
         }
 
         // allocate memory from the chunk for this new interned string's data
-        char *q_ptr = MP_STATE_VM(qstr_last_chunk) + MP_STATE_VM(qstr_last_used);
+        q_ptr = MP_STATE_VM(qstr_last_chunk) + MP_STATE_VM(qstr_last_used);
         MP_STATE_VM(qstr_last_used) += n_bytes;
 
         // store the interned strings' data

@@ -335,6 +335,12 @@ typedef union _mp_rom_obj_t {
 #define MP_OBJ_TO_PTR(o) ((void *)(o))
 #endif
 
+// Typed variant of MP_OBJ_TO_PTR for C++ compatibility
+// C++ requires explicit cast from void* to typed pointer
+#ifndef MP_OBJ_TO_PTR_T
+#define MP_OBJ_TO_PTR_T(type, o) ((type)(void *)(o))
+#endif
+
 // Cast object pointer to mp_obj_t
 #ifndef MP_OBJ_FROM_PTR
 #define MP_OBJ_FROM_PTR(p) ((mp_obj_t)(p))

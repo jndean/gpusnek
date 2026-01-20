@@ -36,6 +36,8 @@ int main(int argc, char **argv) {
     int stack_dummy;
     stack_top = (char *)&stack_dummy;
 
+    printf("Adding print\n");
+
     #if MICROPY_ENABLE_GC
     gc_init(heap, heap + sizeof(heap));
     #endif

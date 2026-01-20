@@ -57,13 +57,12 @@
 // Exception stack also grows up, top element is also pointed at.
 
 #define DECODE_UINT \
-    mp_uint_t unum = 0; \
+    unum = 0; \
     do { \
         unum = (unum << 7) + (*ip & 0x7f); \
     } while ((*ip++ & 0x80) != 0)
 
 #define DECODE_ULABEL \
-    size_t ulab; \
     do { \
         if (ip[0] & 0x80) { \
             ulab = ((ip[0] & 0x7f) | (ip[1] << 7)); \
@@ -75,7 +74,6 @@
     } while (0)
 
 #define DECODE_SLABEL \
-    size_t slab; \
     do { \
         if (ip[0] & 0x80) { \
             slab = ((ip[0] & 0x7f) | (ip[1] << 7)) - 0x4000; \
@@ -123,7 +121,7 @@
     DECODE_ULABEL; /* except labels are always forward */ \
     ++exc_sp; \
     exc_sp->handler = ip + ulab; \
-    exc_sp->val_sp = MP_TAGPTR_MAKE(sp, ((with_or_finally) << 1)); \
+    exc_sp->val_sp = (mp_obj_t *)MP_TAGPTR_MAKE(sp, ((with_or_finally) << 1)); \
     exc_sp->prev_exc = NULL; \
 } while (0)
 
@@ -297,6 +295,8 @@ FRAME_SETUP();
     // outer exception handling loop
     for (;;) {
         nlr_buf_t nlr;
+        size_t ulab = 0;  // Declare here for C++ goto compatibility (visible in exception handler)
+        size_t slab = 0;  // Declare here for C++ goto compatibility (visible in exception handler)
 outer_dispatch_loop:
         if (nlr_push(&nlr) == 0) {
             // local variables that are not visible to the exception handler
@@ -306,6 +306,7 @@ outer_dispatch_loop:
             const qstr_short_t *qstr_table = code_state->fun_bc->context->constants.qstr_table;
             #endif
             mp_obj_t obj_shared;
+            mp_uint_t unum = 0;  // Declare here for C++ goto compatibility
             MICROPY_VM_HOOK_INIT
 
             // If we have exception to inject, now that we finish setting up
@@ -1133,7 +1134,7 @@ unwind_return:
                                 // pass to the finally code.  We simply copy the ret_value down
                                 // over these iterators, if they exist.  If they don't then the
                                 // following is a null operation.
-                                mp_obj_t *finally_sp = MP_TAGPTR_PTR(exc_sp->val_sp);
+                                mp_obj_t *finally_sp = (mp_obj_t *)MP_TAGPTR_PTR(exc_sp->val_sp);
                                 finally_sp[1] = sp[0];
                                 sp = &finally_sp[1];
                                 // We're going to run "finally" code as a coroutine
@@ -1317,12 +1318,12 @@ yield:
                         fastn[MP_BC_STORE_FAST_MULTI - (mp_int_t)ip[-1]] = POP();
                         DISPATCH();
                     } else if (ip[-1] < MP_BC_UNARY_OP_MULTI + MP_BC_UNARY_OP_MULTI_NUM) {
-                        SET_TOP(mp_unary_op(ip[-1] - MP_BC_UNARY_OP_MULTI, TOP()));
+                        SET_TOP(mp_unary_op((mp_unary_op_t)(ip[-1] - MP_BC_UNARY_OP_MULTI), TOP()));
                         DISPATCH();
                     } else if (ip[-1] < MP_BC_BINARY_OP_MULTI + MP_BC_BINARY_OP_MULTI_NUM) {
                         mp_obj_t rhs = POP();
                         mp_obj_t lhs = TOP();
-                        SET_TOP(mp_binary_op(ip[-1] - MP_BC_BINARY_OP_MULTI, lhs, rhs));
+                        SET_TOP(mp_binary_op((mp_binary_op_t)(ip[-1] - MP_BC_BINARY_OP_MULTI), lhs, rhs));
                         DISPATCH();
                     } else
                 #endif // MICROPY_OPT_COMPUTED_GOTO
@@ -1477,9 +1478,9 @@ unwind_loop:
             if (exc_sp >= exc_stack) {
                 // catch exception and pass to byte code
                 code_state->ip = exc_sp->handler;
-                mp_obj_t *sp = MP_TAGPTR_PTR(exc_sp->val_sp);
+                mp_obj_t *sp = (mp_obj_t *)MP_TAGPTR_PTR(exc_sp->val_sp);
                 // save this exception in the stack so it can be used in a reraise, if needed
-                exc_sp->prev_exc = nlr.ret_val;
+                exc_sp->prev_exc = (mp_obj_base_t *)nlr.ret_val;
                 // push exception object so it can be handled by bytecode
                 PUSH(MP_OBJ_FROM_PTR(nlr.ret_val));
                 code_state->sp = sp;

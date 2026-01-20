@@ -38,7 +38,7 @@
 
 // Helpers to work with binary-encoded data
 
-#ifndef alignof
+#if !defined(alignof) && !defined(__cplusplus)
 #define alignof(type) offsetof(struct { char c; type t; }, t)
 #endif
 
