@@ -71,7 +71,7 @@ static mp_map_elem_t *dict_iter_next(mp_obj_dict_t *dict, size_t *cur) {
 }
 
 static void dict_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
-    mp_obj_dict_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     bool first = true;
     const char *item_separator = ", ";
     const char *key_separator = ": ";
@@ -113,7 +113,7 @@ static void dict_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_
 
 mp_obj_t mp_obj_dict_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_obj_t dict_out = mp_obj_new_dict(0);
-    mp_obj_dict_t *dict = MP_OBJ_TO_PTR(dict_out);
+    mp_obj_dict_t *dict = (mp_obj_dict_t *)MP_OBJ_TO_PTR(dict_out);
     dict->base.type = type;
     #if MICROPY_PY_COLLECTIONS_ORDEREDDICT
     if (type == &mp_type_ordereddict) {
@@ -130,7 +130,7 @@ mp_obj_t mp_obj_dict_make_new(const mp_obj_type_t *type, size_t n_args, size_t n
 }
 
 static mp_obj_t dict_unary_op(mp_unary_op_t op, mp_obj_t self_in) {
-    mp_obj_dict_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     switch (op) {
         case MP_UNARY_OP_BOOL:
             return mp_obj_new_bool(self->map.used != 0);
@@ -148,7 +148,7 @@ static mp_obj_t dict_unary_op(mp_unary_op_t op, mp_obj_t self_in) {
 }
 
 static mp_obj_t dict_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
-    mp_obj_dict_t *o = MP_OBJ_TO_PTR(lhs_in);
+    mp_obj_dict_t *o = (mp_obj_dict_t *)MP_OBJ_TO_PTR(lhs_in);
     switch (op) {
         case MP_BINARY_OP_CONTAINS: {
             mp_map_elem_t *elem = mp_map_lookup(&o->map, rhs_in, MP_MAP_LOOKUP);
@@ -171,7 +171,7 @@ static mp_obj_t dict_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_
             #endif
 
             if (mp_obj_is_type(rhs_in, &mp_type_dict)) {
-                mp_obj_dict_t *rhs = MP_OBJ_TO_PTR(rhs_in);
+                mp_obj_dict_t *rhs = (mp_obj_dict_t *)MP_OBJ_TO_PTR(rhs_in);
                 if (o->map.used != rhs->map.used) {
                     return mp_const_false;
                 }
@@ -209,7 +209,7 @@ static mp_obj_t dict_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_
 
 // Note: Make sure this is inlined in load part of dict_subscr() below.
 mp_obj_t mp_obj_dict_get(mp_obj_t self_in, mp_obj_t index) {
-    mp_obj_dict_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     mp_map_elem_t *elem = mp_map_lookup(&self->map, index, MP_MAP_LOOKUP);
     if (elem == NULL) {
         mp_raise_type_arg(&mp_type_KeyError, index);
@@ -225,7 +225,7 @@ static mp_obj_t dict_subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
         return mp_const_none;
     } else if (value == MP_OBJ_SENTINEL) {
         // load
-        mp_obj_dict_t *self = MP_OBJ_TO_PTR(self_in);
+        mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
         mp_map_elem_t *elem = mp_map_lookup(&self->map, index, MP_MAP_LOOKUP);
         if (elem == NULL) {
             mp_raise_type_arg(&mp_type_KeyError, index);
@@ -250,7 +250,7 @@ static void mp_ensure_not_fixed(const mp_obj_dict_t *dict) {
 
 static mp_obj_t dict_clear(mp_obj_t self_in) {
     mp_check_self(mp_obj_is_dict_or_ordereddict(self_in));
-    mp_obj_dict_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     mp_ensure_not_fixed(self);
 
     mp_map_clear(&self->map);
@@ -261,9 +261,9 @@ static MP_DEFINE_CONST_FUN_OBJ_1(dict_clear_obj, dict_clear);
 
 mp_obj_t mp_obj_dict_copy(mp_obj_t self_in) {
     mp_check_self(mp_obj_is_dict_or_ordereddict(self_in));
-    mp_obj_dict_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     mp_obj_t other_out = mp_obj_new_dict(self->map.alloc);
-    mp_obj_dict_t *other = MP_OBJ_TO_PTR(other_out);
+    mp_obj_dict_t *other = (mp_obj_dict_t *)MP_OBJ_TO_PTR(other_out);
     other->base.type = self->base.type;
     other->map.used = self->map.used;
     other->map.all_keys_are_qstrs = self->map.all_keys_are_qstrs;
@@ -308,7 +308,7 @@ static MP_DEFINE_CONST_CLASSMETHOD_OBJ(dict_fromkeys_obj, MP_ROM_PTR(&dict_fromk
 
 static mp_obj_t dict_get_helper(size_t n_args, const mp_obj_t *args, mp_map_lookup_kind_t lookup_kind) {
     mp_check_self(mp_obj_is_dict_or_ordereddict(args[0]));
-    mp_obj_dict_t *self = MP_OBJ_TO_PTR(args[0]);
+    mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(args[0]);
     if (lookup_kind != MP_MAP_LOOKUP) {
         mp_ensure_not_fixed(self);
     }
@@ -353,7 +353,7 @@ static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(dict_setdefault_obj, 2, 3, dict_setde
 
 static mp_obj_t dict_popitem(mp_obj_t self_in) {
     mp_check_self(mp_obj_is_dict_or_ordereddict(self_in));
-    mp_obj_dict_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     mp_ensure_not_fixed(self);
     if (self->map.used == 0) {
         mp_raise_msg(&mp_type_KeyError, MP_ERROR_TEXT("popitem(): dictionary is empty"));
@@ -378,7 +378,7 @@ static MP_DEFINE_CONST_FUN_OBJ_1(dict_popitem_obj, dict_popitem);
 
 static mp_obj_t dict_update(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs) {
     mp_check_self(mp_obj_is_dict_or_ordereddict(args[0]));
-    mp_obj_dict_t *self = MP_OBJ_TO_PTR(args[0]);
+    mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(args[0]);
     mp_ensure_not_fixed(self);
 
     mp_arg_check_num(n_args, kwargs->used, 1, 2, true);
@@ -430,8 +430,8 @@ static MP_DEFINE_CONST_FUN_OBJ_KW(dict_update_obj, 1, dict_update);
 /******************************************************************************/
 /* dict views                                                                 */
 
-static const mp_obj_type_t mp_type_dict_view;
-static const mp_obj_type_t mp_type_dict_view_it;
+extern const mp_obj_type_t mp_type_dict_view;
+extern const mp_obj_type_t mp_type_dict_view_it;
 
 typedef enum _mp_dict_view_kind_t {
     MP_DICT_VIEW_ITEMS,
@@ -456,8 +456,8 @@ typedef struct _mp_obj_dict_view_t {
 
 static mp_obj_t dict_view_it_iternext(mp_obj_t self_in) {
     mp_check_self(mp_obj_is_type(self_in, &mp_type_dict_view_it));
-    mp_obj_dict_view_it_t *self = MP_OBJ_TO_PTR(self_in);
-    mp_map_elem_t *next = dict_iter_next(MP_OBJ_TO_PTR(self->dict), &self->cur);
+    mp_obj_dict_view_it_t *self = (mp_obj_dict_view_it_t *)MP_OBJ_TO_PTR(self_in);
+    mp_map_elem_t *next = dict_iter_next((mp_obj_dict_t *)MP_OBJ_TO_PTR(self->dict), &self->cur);
 
     if (next == NULL) {
         return MP_OBJ_STOP_ITERATION;
@@ -476,7 +476,7 @@ static mp_obj_t dict_view_it_iternext(mp_obj_t self_in) {
     }
 }
 
-static MP_DEFINE_CONST_OBJ_TYPE(
+MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_dict_view_it,
     MP_QSTR_iterator,
     MP_TYPE_FLAG_ITER_IS_ITERNEXT,
@@ -486,7 +486,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
 static mp_obj_t dict_view_getiter(mp_obj_t view_in, mp_obj_iter_buf_t *iter_buf) {
     assert(sizeof(mp_obj_dict_view_it_t) <= sizeof(mp_obj_iter_buf_t));
     mp_check_self(mp_obj_is_type(view_in, &mp_type_dict_view));
-    mp_obj_dict_view_t *view = MP_OBJ_TO_PTR(view_in);
+    mp_obj_dict_view_t *view = (mp_obj_dict_view_t *)MP_OBJ_TO_PTR(view_in);
     mp_obj_dict_view_it_t *o = (mp_obj_dict_view_it_t *)iter_buf;
     o->base.type = &mp_type_dict_view_it;
     o->kind = view->kind;
@@ -498,7 +498,7 @@ static mp_obj_t dict_view_getiter(mp_obj_t view_in, mp_obj_iter_buf_t *iter_buf)
 static void dict_view_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     (void)kind;
     mp_check_self(mp_obj_is_type(self_in, &mp_type_dict_view));
-    mp_obj_dict_view_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_dict_view_t *self = (mp_obj_dict_view_t *)MP_OBJ_TO_PTR(self_in);
     bool first = true;
     mp_print_str(print, mp_dict_view_names[self->kind]);
     mp_print_str(print, "([");
@@ -516,7 +516,7 @@ static void dict_view_print(const mp_print_t *print, mp_obj_t self_in, mp_print_
 }
 
 static mp_obj_t dict_view_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
-    mp_obj_dict_view_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_dict_view_t *o = (mp_obj_dict_view_t *)MP_OBJ_TO_PTR(o_in);
     // only dict.values() supports __hash__.
     if (op == MP_UNARY_OP_HASH && o->kind == MP_DICT_VIEW_VALUES) {
         return MP_OBJ_NEW_SMALL_INT((mp_uint_t)o_in);
@@ -527,7 +527,7 @@ static mp_obj_t dict_view_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
 
 static mp_obj_t dict_view_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
     // only supported for the 'keys' kind until sets and dicts are refactored
-    mp_obj_dict_view_t *o = MP_OBJ_TO_PTR(lhs_in);
+    mp_obj_dict_view_t *o = (mp_obj_dict_view_t *)MP_OBJ_TO_PTR(lhs_in);
     if (o->kind != MP_DICT_VIEW_KEYS) {
         return MP_OBJ_NULL; // op not supported
     }
@@ -537,7 +537,7 @@ static mp_obj_t dict_view_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t
     return dict_binary_op(op, o->dict, rhs_in);
 }
 
-static MP_DEFINE_CONST_OBJ_TYPE(
+MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_dict_view,
     MP_QSTR_dict_view,
     MP_TYPE_FLAG_ITER_IS_GETITER,
@@ -653,13 +653,13 @@ mp_obj_t mp_obj_new_dict(size_t n_args) {
 }
 
 size_t mp_obj_dict_len(mp_obj_t self_in) {
-    mp_obj_dict_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     return self->map.used;
 }
 
 mp_obj_t mp_obj_dict_store(mp_obj_t self_in, mp_obj_t key, mp_obj_t value) {
     mp_check_self(mp_obj_is_dict_or_ordereddict(self_in));
-    mp_obj_dict_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     mp_ensure_not_fixed(self);
     mp_map_lookup(&self->map, key, MP_MAP_LOOKUP_ADD_IF_NOT_FOUND)->value = value;
     return self_in;
