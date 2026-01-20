@@ -50,14 +50,14 @@ mp_pairheap_t *mp_pairheap_meld(mp_pairheap_lt_t lt, mp_pairheap_t *heap1, mp_pa
             heap1->child_last->next = heap2;
         }
         heap1->child_last = heap2;
-        heap2->next = NEXT_MAKE_RIGHTMOST_PARENT(heap1);
+        heap2->next = (mp_pairheap_t *)NEXT_MAKE_RIGHTMOST_PARENT(heap1);
         return heap1;
     } else {
         heap1->next = heap2->child;
         heap2->child = heap1;
         if (heap1->next == NULL) {
             heap2->child_last = heap1;
-            heap1->next = NEXT_MAKE_RIGHTMOST_PARENT(heap2);
+            heap1->next = (mp_pairheap_t *)NEXT_MAKE_RIGHTMOST_PARENT(heap2);
         }
         return heap2;
     }
@@ -104,7 +104,7 @@ mp_pairheap_t *mp_pairheap_delete(mp_pairheap_lt_t lt, mp_pairheap_t *heap, mp_p
     while (!NEXT_IS_RIGHTMOST_PARENT(parent->next)) {
         parent = parent->next;
     }
-    parent = NEXT_GET_RIGHTMOST_PARENT(parent->next);
+    parent = (mp_pairheap_t *)NEXT_GET_RIGHTMOST_PARENT(parent->next);
 
     // Replace node with pairing of its children
     mp_pairheap_t *next;

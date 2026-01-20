@@ -52,7 +52,7 @@ static mp_obj_t mp_builtin___build_class__(size_t n_args, const mp_obj_t *args) 
     // set the new classes __locals__ object
     mp_obj_dict_t *old_locals = mp_locals_get();
     mp_obj_t class_locals = mp_obj_new_dict(0);
-    mp_locals_set(MP_OBJ_TO_PTR(class_locals));
+    mp_locals_set((mp_obj_dict_t *)MP_OBJ_TO_PTR(class_locals));
 
     // call the class code
     mp_obj_t cell = mp_call_function_0(args[0]);

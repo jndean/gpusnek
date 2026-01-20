@@ -93,7 +93,7 @@ void emit_bc_free(emit_t *emit) {
 
 // all functions must go through this one to emit code info
 static uint8_t *emit_get_cur_to_write_code_info(void *emit_in, size_t num_bytes_to_write) {
-    emit_t *emit = emit_in;
+    emit_t *emit = (emit_t *)emit_in;
     if (emit->pass < MP_PASS_EMIT) {
         emit->code_info_offset += num_bytes_to_write;
         return emit->dummy_data;
@@ -144,7 +144,7 @@ static void emit_write_code_info_bytes_lines(emit_t *emit, mp_uint_t bytes_to_sk
 
 // all functions must go through this one to emit byte code
 static uint8_t *emit_get_cur_to_write_bytecode(void *emit_in, size_t num_bytes_to_write) {
-    emit_t *emit = emit_in;
+    emit_t *emit = (emit_t *)emit_in;
     if (emit->suppress) {
         return emit->dummy_data;
     }

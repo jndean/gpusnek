@@ -40,7 +40,7 @@ typedef struct _mp_obj_polymorph_iter_t {
 } mp_obj_polymorph_iter_t;
 
 static mp_obj_t polymorph_it_iternext(mp_obj_t self_in) {
-    mp_obj_polymorph_iter_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_polymorph_iter_t *self = (mp_obj_polymorph_iter_t *)MP_OBJ_TO_PTR(self_in);
     // Redirect call to object instance's iternext method
     return self->iternext(self_in);
 }

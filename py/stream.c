@@ -44,7 +44,7 @@ static mp_obj_t stream_readall(mp_obj_t self_in);
 // before error condition occurred. If *errcode == 0, returns total bytes written (which will
 // be equal to input size).
 mp_uint_t mp_stream_rw(mp_obj_t stream, void *buf_, mp_uint_t size, int *errcode, byte flags) {
-    byte *buf = buf_;
+    byte *buf = (byte *)buf_;
     typedef mp_uint_t (*io_func_t)(mp_obj_t obj, void *buf, mp_uint_t size, int *errcode);
     io_func_t io_func;
     const mp_stream_p_t *stream_p = mp_get_stream(stream);
@@ -97,7 +97,7 @@ mp_off_t mp_stream_seek(mp_obj_t stream, mp_off_t offset, int whence, int *errco
 const mp_stream_p_t *mp_get_stream_raise(mp_obj_t self_in, int flags) {
     const mp_obj_type_t *type = mp_obj_get_type(self_in);
     if (MP_OBJ_TYPE_HAS_SLOT(type, protocol)) {
-        const mp_stream_p_t *stream_p = MP_OBJ_TYPE_GET_SLOT(type, protocol);
+        const mp_stream_p_t *stream_p = (const mp_stream_p_t *)MP_OBJ_TYPE_GET_SLOT(type, protocol);
         if (!((flags & MP_STREAM_OP_READ) && stream_p->read == NULL)
             && !((flags & MP_STREAM_OP_WRITE) && stream_p->write == NULL)
             && !((flags & MP_STREAM_OP_IOCTL) && stream_p->ioctl == NULL)) {

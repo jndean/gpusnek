@@ -34,10 +34,11 @@
 // ValueError if it's not all-digits-zero.
 size_t mp_parse_num_base(const char *str, size_t len, int *base) {
     const byte *p = (const byte *)str;
+    unichar c;
     if (len <= 1) {
         goto no_prefix;
     }
-    unichar c = *(p++);
+    c = *(p++);
     if (c == '0') {
         c = *(p++) | 32;
         int b = *base;
