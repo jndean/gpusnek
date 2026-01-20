@@ -206,13 +206,13 @@ void mp_deinit(void) {
 }
 
 void mp_globals_locals_set_from_nlr_jump_callback(void *ctx_in) {
-    nlr_jump_callback_node_globals_locals_t *ctx = ctx_in;
+    nlr_jump_callback_node_globals_locals_t *ctx = (nlr_jump_callback_node_globals_locals_t *)ctx_in;
     mp_globals_set(ctx->globals);
     mp_locals_set(ctx->locals);
 }
 
 void mp_call_function_1_from_nlr_jump_callback(void *ctx_in) {
-    nlr_jump_callback_node_call_function_1_t *ctx = ctx_in;
+    nlr_jump_callback_node_call_function_1_t *ctx = (nlr_jump_callback_node_call_function_1_t *)ctx_in;
     ctx->func(ctx->arg);
 }
 
@@ -406,7 +406,7 @@ mp_obj_t MICROPY_WRAP_MP_BINARY_OP(mp_binary_op)(mp_binary_op_t op, mp_obj_t lhs
                 return mp_const_false;
             }
         } else if (mp_obj_is_type(rhs, &mp_type_tuple)) {
-            mp_obj_tuple_t *tuple = MP_OBJ_TO_PTR(rhs);
+            mp_obj_tuple_t *tuple = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(rhs);
             for (size_t i = 0; i < tuple->len; i++) {
                 rhs = tuple->items[i];
                 if (!mp_obj_is_exception_type(rhs)) {
@@ -566,7 +566,7 @@ mp_obj_t MICROPY_WRAP_MP_BINARY_OP(mp_binary_op)(mp_binary_op_t op, mp_obj_t lhs
                         goto zero_division;
                     }
                     // to reduce stack usage we don't pass a temp array of the 2 items
-                    mp_obj_tuple_t *tuple = MP_OBJ_TO_PTR(mp_obj_new_tuple(2, NULL));
+                    mp_obj_tuple_t *tuple = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(mp_obj_new_tuple(2, NULL));
                     tuple->items[0] = MP_OBJ_NEW_SMALL_INT(mp_small_int_floor_divide(lhs_val, rhs_val));
                     tuple->items[1] = MP_OBJ_NEW_SMALL_INT(mp_small_int_modulo(lhs_val, rhs_val));
                     return MP_OBJ_FROM_PTR(tuple);
@@ -635,7 +635,7 @@ generic_binary_op:
     // "If a specific method is not defined, the augmented assignment falls back
     // to the normal methods."
     if (op >= MP_BINARY_OP_INPLACE_OR && op <= MP_BINARY_OP_INPLACE_POWER) {
-        op += MP_BINARY_OP_OR - MP_BINARY_OP_INPLACE_OR;
+        op = (mp_binary_op_t)(op + MP_BINARY_OP_OR - MP_BINARY_OP_INPLACE_OR);
         goto generic_binary_op;
     }
 
@@ -787,7 +787,7 @@ void mp_call_prepare_args_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_
 
         // allocate memory for the new array of args
         args2_alloc = 1 + n_args + 2 * (n_kw + kw_dict_len);
-        args2 = mp_nonlocal_alloc(args2_alloc * sizeof(mp_obj_t));
+        args2 = (mp_obj_t *)mp_nonlocal_alloc(args2_alloc * sizeof(mp_obj_t));
 
         // copy the self
         if (self != MP_OBJ_NULL) {
@@ -802,7 +802,7 @@ void mp_call_prepare_args_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_
 
         // allocate memory for the new array of args
         args2_alloc = 1 + n_args + list_len + 2 * (n_kw + kw_dict_len);
-        args2 = mp_nonlocal_alloc(args2_alloc * sizeof(mp_obj_t));
+        args2 = (mp_obj_t *)mp_nonlocal_alloc(args2_alloc * sizeof(mp_obj_t));
 
         // copy the self
         if (self != MP_OBJ_NULL) {
@@ -834,7 +834,7 @@ void mp_call_prepare_args_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_
                     mp_obj_t item;
                     while ((item = mp_iternext(iterable)) != MP_OBJ_STOP_ITERATION) {
                         if (args2_len + (n_args - i) >= args2_alloc) {
-                            args2 = mp_nonlocal_realloc(args2, args2_alloc * sizeof(mp_obj_t),
+                            args2 = (mp_obj_t *)mp_nonlocal_realloc(args2, args2_alloc * sizeof(mp_obj_t),
                                 args2_alloc * 2 * sizeof(mp_obj_t));
                             args2_alloc *= 2;
                         }
@@ -855,7 +855,7 @@ void mp_call_prepare_args_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_
     // ensure there is still enough room for kw args
     if (args2_len + 2 * (n_kw + kw_dict_len) > args2_alloc) {
         size_t new_alloc = args2_len + 2 * (n_kw + kw_dict_len);
-        args2 = mp_nonlocal_realloc(args2, args2_alloc * sizeof(mp_obj_t),
+        args2 = (mp_obj_t *)mp_nonlocal_realloc(args2, args2_alloc * sizeof(mp_obj_t),
             new_alloc * sizeof(mp_obj_t));
         args2_alloc = new_alloc;
     }
@@ -897,7 +897,7 @@ void mp_call_prepare_args_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_
                     // expand size of args array if needed
                     if (args2_len + 1 >= args2_alloc) {
                         size_t new_alloc = args2_alloc * 2;
-                        args2 = mp_nonlocal_realloc(args2, args2_alloc * sizeof(mp_obj_t), new_alloc * sizeof(mp_obj_t));
+                        args2 = (mp_obj_t *)mp_nonlocal_realloc(args2, args2_alloc * sizeof(mp_obj_t), new_alloc * sizeof(mp_obj_t));
                         args2_alloc = new_alloc;
                     }
 
@@ -1024,7 +1024,7 @@ void mp_unpack_ex(mp_obj_t seq_in, size_t num_in, mp_obj_t *items) {
             }
             items[num_left + num_right + 1 - 1 - seq_len] = item;
         }
-        mp_obj_list_t *rest = MP_OBJ_TO_PTR(mp_obj_new_list(0, NULL));
+        mp_obj_list_t *rest = (mp_obj_list_t *)MP_OBJ_TO_PTR(mp_obj_new_list(0, NULL));
         while ((item = mp_iternext(iterable)) != MP_OBJ_STOP_ITERATION) {
             mp_obj_list_append(MP_OBJ_FROM_PTR(rest), item);
         }
@@ -1150,7 +1150,7 @@ void mp_convert_member_lookup(mp_obj_t self, const mp_obj_type_t *type, mp_obj_t
                 type = mp_obj_get_type(self);
                 if (type == &mp_type_type) {
                     // `self` is already a type, so use `self` directly.
-                    type = MP_OBJ_TO_PTR(self);
+                    type = (mp_obj_type_t *)MP_OBJ_TO_PTR(self);
                 }
             }
             dest[0] = ((mp_obj_static_class_method_t *)MP_OBJ_TO_PTR(member))->fun;

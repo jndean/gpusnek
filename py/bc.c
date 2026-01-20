@@ -198,6 +198,9 @@ static void mp_setup_code_state_helper(mp_code_state_t *code_state, size_t n_arg
             *var_pos_kw_args = dict;
         }
 
+        size_t j = 0;  // Declare here for C++ goto compatibility
+        qstr arg_qstr = 0;  // Declare here for C++ goto compatibility
+        mp_map_elem_t *elem = NULL;  // Declare here for C++ goto compatibility
         for (size_t i = 0; i < n_kw; i++) {
             // the keys in kwargs are expected to be qstr objects
             mp_obj_t wanted_arg_name = kwargs[2 * i];
@@ -206,8 +209,8 @@ static void mp_setup_code_state_helper(mp_code_state_t *code_state, size_t n_arg
             const uint8_t *arg_names = code_state->ip;
             arg_names = mp_decode_uint_skip(arg_names);
 
-            for (size_t j = 0; j < n_pos_args + n_kwonly_args; j++) {
-                qstr arg_qstr = mp_decode_uint(&arg_names);
+            for (j = 0; j < n_pos_args + n_kwonly_args; j++) {
+                arg_qstr = mp_decode_uint(&arg_names);
                 #if MICROPY_EMIT_BYTECODE_USES_QSTR_TABLE
                 arg_qstr = self->context->constants.qstr_table[arg_qstr];
                 #endif
@@ -230,7 +233,7 @@ static void mp_setup_code_state_helper(mp_code_state_t *code_state, size_t n_arg
                     MP_ERROR_TEXT("unexpected keyword argument '%q'"), MP_OBJ_QSTR_VALUE(wanted_arg_name));
                 #endif
             }
-            mp_map_elem_t *elem = mp_map_lookup(mp_obj_dict_get_map(dict), wanted_arg_name, MP_MAP_LOOKUP_ADD_IF_NOT_FOUND);
+            elem = mp_map_lookup(mp_obj_dict_get_map(dict), wanted_arg_name, MP_MAP_LOOKUP_ADD_IF_NOT_FOUND);
             if (elem->value == MP_OBJ_NULL) {
                 elem->value = kwargs[2 * i + 1];
             } else {

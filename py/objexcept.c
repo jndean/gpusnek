@@ -120,9 +120,9 @@ bool mp_obj_is_native_exception_instance(mp_obj_t self_in) {
 static mp_obj_exception_t *get_native_exception(mp_obj_t self_in) {
     assert(mp_obj_is_exception_instance(self_in));
     if (mp_obj_is_native_exception_instance(self_in)) {
-        return MP_OBJ_TO_PTR(self_in);
+        return (mp_obj_exception_t *)MP_OBJ_TO_PTR(self_in);
     } else {
-        return MP_OBJ_TO_PTR(((mp_obj_instance_t *)MP_OBJ_TO_PTR(self_in))->subobj[0]);
+        return (mp_obj_exception_t *)MP_OBJ_TO_PTR(((mp_obj_instance_t *)MP_OBJ_TO_PTR(self_in))->subobj[0]);
     }
 }
 
@@ -161,8 +161,8 @@ static void decompress_error_text_maybe(mp_obj_exception_t *o) {
 }
 
 void mp_obj_exception_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
-    mp_obj_exception_t *o = MP_OBJ_TO_PTR(o_in);
-    mp_print_kind_t k = kind & ~PRINT_EXC_SUBCLASS;
+    mp_obj_exception_t *o = (mp_obj_exception_t *)MP_OBJ_TO_PTR(o_in);
+    mp_print_kind_t k = (mp_print_kind_t)(kind & ~PRINT_EXC_SUBCLASS);
     bool is_subclass = kind & PRINT_EXC_SUBCLASS;
     if (!is_subclass && (k == PRINT_REPR || k == PRINT_EXC)) {
         mp_print_str(print, qstr_str(o->base.type->name));
@@ -265,7 +265,7 @@ mp_obj_t mp_obj_exception_get_value(mp_obj_t self_in) {
 }
 
 void mp_obj_exception_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
-    mp_obj_exception_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_exception_t *self = (mp_obj_exception_t *)MP_OBJ_TO_PTR(self_in);
     if (dest[0] != MP_OBJ_NULL) {
         // store/delete attribute
         if (attr == MP_QSTR___traceback__ && dest[1] == mp_const_none) {
@@ -440,7 +440,7 @@ struct _exc_printer_t {
 };
 
 static void exc_add_strn(void *data, const char *str, size_t len) {
-    struct _exc_printer_t *pr = data;
+    struct _exc_printer_t *pr = (struct _exc_printer_t *)data;
     if (pr->len + len >= pr->alloc) {
         // Not enough room for data plus a null byte so try to grow the buffer
         if (pr->allow_realloc) {
@@ -543,7 +543,7 @@ mp_obj_t mp_obj_new_exception_msg_vlist(const mp_obj_type_t *exc_type, mp_rom_er
 bool mp_obj_is_exception_type(mp_obj_t self_in) {
     if (mp_obj_is_type(self_in, &mp_type_type)) {
         // optimisation when self_in is a builtin exception
-        mp_obj_type_t *self = MP_OBJ_TO_PTR(self_in);
+        mp_obj_type_t *self = (mp_obj_type_t *)MP_OBJ_TO_PTR(self_in);
         if (MP_OBJ_TYPE_GET_SLOT_OR_NULL(self, make_new) == mp_obj_exception_make_new) {
             return true;
         }
