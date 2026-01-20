@@ -76,8 +76,8 @@ enum {
 
 // Define an array of actions corresponding to each rule
 static const uint8_t rule_act_table[] = {
-#define or(n)                   (RULE_ACT_OR | n)
-#define and(n)                  (RULE_ACT_AND | n)
+#define RULE_or(n)                   (RULE_ACT_OR | n)
+#define RULE_and(n)                  (RULE_ACT_AND | n)
 #define and_ident(n)            (RULE_ACT_AND | n | RULE_ACT_ALLOW_IDENT)
 #define and_blank(n)            (RULE_ACT_AND | n | RULE_ACT_ADD_BLANK)
 #define one_or_more             (RULE_ACT_LIST | 2)
@@ -98,8 +98,8 @@ static const uint8_t rule_act_table[] = {
 #undef DEF_RULE
 #undef DEF_RULE_NC
 
-#undef or
-#undef and
+#undef RULE_or
+#undef RULE_and
 #undef and_ident
 #undef and_blank
 #undef one_or_more
@@ -557,7 +557,7 @@ static void push_result_node(parser_t *parser, mp_parse_node_t pn) {
 }
 
 static mp_parse_node_t make_node_const_object(parser_t *parser, size_t src_line, mp_obj_t obj) {
-    mp_parse_node_struct_t *pn = parser_alloc(parser, sizeof(mp_parse_node_struct_t) + sizeof(mp_obj_t));
+    mp_parse_node_struct_t *pn = (mp_parse_node_struct_t *)parser_alloc(parser, sizeof(mp_parse_node_struct_t) + sizeof(mp_obj_t));
     pn->source_line = src_line;
     #if MICROPY_OBJ_REPR == MICROPY_OBJ_REPR_D
     // nodes are 32-bit pointers, but need to store 64-bit object
@@ -1027,7 +1027,7 @@ static void push_result_rule(parser_t *parser, size_t src_line, uint8_t rule_id,
     }
     #endif
 
-    mp_parse_node_struct_t *pn = parser_alloc(parser, sizeof(mp_parse_node_struct_t) + sizeof(mp_parse_node_t) * num_args);
+    mp_parse_node_struct_t *pn = (mp_parse_node_struct_t *)parser_alloc(parser, sizeof(mp_parse_node_struct_t) + sizeof(mp_parse_node_t) * num_args);
     pn->source_line = src_line;
     pn->kind_num_nodes = (rule_id & 0xff) | (num_args << 8);
     for (size_t i = num_args; i > 0; i--) {
@@ -1158,7 +1158,7 @@ mp_parse_tree_t mp_parse(mp_lexer_t *lex, mp_parse_input_kind_t input_kind) {
                 for (; i < n; ++i) {
                     if ((rule_arg[i] & RULE_ARG_KIND_MASK) == RULE_ARG_TOK) {
                         // need to match a token
-                        mp_token_kind_t tok_kind = rule_arg[i] & RULE_ARG_ARG_MASK;
+                        mp_token_kind_t tok_kind = (mp_token_kind_t)(rule_arg[i] & RULE_ARG_ARG_MASK);
                         if (lex->tok_kind == tok_kind) {
                             // matched token
                             if (tok_kind == MP_TOKEN_NAME) {
@@ -1210,7 +1210,7 @@ mp_parse_tree_t mp_parse(mp_lexer_t *lex, mp_parse_input_kind_t input_kind) {
                 for (size_t x = n; x > 0;) {
                     --x;
                     if ((rule_arg[x] & RULE_ARG_KIND_MASK) == RULE_ARG_TOK) {
-                        mp_token_kind_t tok_kind = rule_arg[x] & RULE_ARG_ARG_MASK;
+                        mp_token_kind_t tok_kind = (mp_token_kind_t)(rule_arg[x] & RULE_ARG_ARG_MASK);
                         if (tok_kind == MP_TOKEN_NAME) {
                             // only tokens which were names are pushed to stack
                             i += 1;
