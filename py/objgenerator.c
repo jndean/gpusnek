@@ -52,7 +52,7 @@ typedef struct _mp_obj_gen_instance_t {
 
 static mp_obj_t gen_wrap_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // A generating function is just a bytecode function with type mp_type_gen_wrap
-    mp_obj_fun_bc_t *self_fun = MP_OBJ_TO_PTR(self_in);
+    mp_obj_fun_bc_t *self_fun = (mp_obj_fun_bc_t *)MP_OBJ_TO_PTR(self_in);
 
     // bytecode prelude: get state size and exception stack size
     const uint8_t *ip = self_fun->bytecode;
@@ -98,7 +98,7 @@ typedef struct _mp_obj_gen_instance_native_t {
 
 static mp_obj_t native_gen_wrap_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // The state for a native generating function is held in the same struct as a bytecode function
-    mp_obj_fun_bc_t *self_fun = MP_OBJ_TO_PTR(self_in);
+    mp_obj_fun_bc_t *self_fun = (mp_obj_fun_bc_t *)MP_OBJ_TO_PTR(self_in);
 
     // Determine start of prelude.
     const uint8_t *prelude_ptr = mp_obj_fun_native_get_prelude_ptr(self_fun);
@@ -146,14 +146,14 @@ MP_DEFINE_CONST_OBJ_TYPE(
 
 static void gen_instance_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     (void)kind;
-    mp_obj_gen_instance_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_gen_instance_t *self = (mp_obj_gen_instance_t *)MP_OBJ_TO_PTR(self_in);
     mp_printf(print, "<generator object '%q' at %p>", mp_obj_fun_get_name(MP_OBJ_FROM_PTR(self->code_state.fun_bc)), self);
 }
 
 mp_vm_return_kind_t mp_obj_gen_resume(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, mp_obj_t *ret_val) {
     mp_cstack_check();
     mp_check_self(mp_obj_is_type(self_in, &mp_type_gen_instance));
-    mp_obj_gen_instance_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_gen_instance_t *self = (mp_obj_gen_instance_t *)MP_OBJ_TO_PTR(self_in);
     if (self->code_state.ip == 0) {
         // Trying to resume an already stopped generator.
         // This is an optimised "raise StopIteration(None)".
@@ -332,7 +332,7 @@ static MP_DEFINE_CONST_FUN_OBJ_1(gen_instance_close_obj, gen_instance_close);
 
 #if MICROPY_PY_GENERATOR_PEND_THROW
 static mp_obj_t gen_instance_pend_throw(mp_obj_t self_in, mp_obj_t exc_in) {
-    mp_obj_gen_instance_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_gen_instance_t *self = (mp_obj_gen_instance_t *)MP_OBJ_TO_PTR(self_in);
     if (self->pend_exc == MP_OBJ_NULL) {
         mp_raise_ValueError(MP_ERROR_TEXT("generator already executing"));
     }
