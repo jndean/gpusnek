@@ -34,12 +34,13 @@
 // The (unescaped) names appear in `unsorted_str_list` in the QSTR
 // generator script py/makeqstrdata.py to ensure they are assigned low numbers.
 static const uint8_t scope_simple_name_table[] = {
-    [SCOPE_MODULE] = MP_QSTR__lt_module_gt_,
-    [SCOPE_LAMBDA] = MP_QSTR__lt_lambda_gt_,
-    [SCOPE_LIST_COMP] = MP_QSTR__lt_listcomp_gt_,
-    [SCOPE_DICT_COMP] = MP_QSTR__lt_dictcomp_gt_,
-    [SCOPE_SET_COMP] = MP_QSTR__lt_setcomp_gt_,
-    [SCOPE_GEN_EXPR] = MP_QSTR__lt_genexpr_gt_,
+    MP_QSTR__lt_module_gt_, // SCOPE_MODULE
+    0,                      // SCOPE_CLASS (unused in table, handled specially)
+    MP_QSTR__lt_lambda_gt_, // SCOPE_LAMBDA
+    MP_QSTR__lt_listcomp_gt_, // SCOPE_LIST_COMP
+    MP_QSTR__lt_dictcomp_gt_, // SCOPE_DICT_COMP
+    MP_QSTR__lt_setcomp_gt_, // SCOPE_SET_COMP
+    MP_QSTR__lt_genexpr_gt_, // SCOPE_GEN_EXPR
 };
 
 scope_t *scope_new(scope_kind_t kind, mp_parse_node_t pn, mp_uint_t emit_options) {
