@@ -1,6 +1,9 @@
 # Makefile for CUDA port of MicroPython
 # POC version - compiles with nvcc
 
+# Default target
+TARGET ?= cuda
+
 # Include common MicroPython build environment
 include ../../py/mkenv.mk
 
@@ -13,6 +16,9 @@ QSTR_DEFS = qstrdefsport.h
 # Disable ROM text compression for simplicity
 MICROPY_ROM_TEXT_COMPRESSION = 0
 
+# Define build directory based on target
+BUILD = build-$(TARGET)
+
 # Include py core make definitions
 include $(TOP)/py/py.mk
 
@@ -21,21 +27,26 @@ INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
 
-# For initial POC, compile with regular gcc to test
-# Later we'll switch to nvcc for device code
-CC = gcc
-LD = gcc
-
-# Compiler flags
-CFLAGS += $(INC) -Wall -Werror -std=c99 -g
-# MICROPY_NLR_SETJMP is set in mpconfigport.h
-
-# Optimization
-CFLAGS += -Os -DNDEBUG
-CFLAGS += -fdata-sections -ffunction-sections
+ifeq ($(TARGET),cuda)
+# CUDA Build Settings
+CC = $(NVCC)
+LD = $(NVCC)
+# Optimization for nvcc (must be -O1, -O2, or -O3; -Os not supported)
+COPT = -O1
+CFLAGS = $(INC) -x cu -dc -Xcompiler -fpermissive -D"restrict="
+CFLAGS += -O1 -DNDEBUG
+# Overrides for nvcc (it doesn't support -Os)
+$(PY_BUILD)/nlr%.o: CFLAGS = $(INC) -x cu -dc -Xcompiler -fpermissive -D"restrict=" -O1 -DNDEBUG
+else
+# Host Build Settings (G++)
+CC = g++
+LD = g++
+CFLAGS = $(INC) -Wall -Werror -x c++ -fpermissive
+CFLAGS += -O1 -DNDEBUG
+endif
 
 # Linker flags
-LDFLAGS += -Wl,--gc-sections
+LDFLAGS +=
 
 # Port source files
 SRC_C = \
@@ -60,9 +71,10 @@ run: $(BUILD)/micropython
 
 # Clean up generated headers on clean
 clean: clean-genhdr
+	$(RM) -rf build-cuda build-host
 
 clean-genhdr:
-	$(RM) -rf $(BUILD)/genhdr
+	$(RM) -rf build-cuda/genhdr build-host/genhdr
 
 # Include standard rules
 include $(TOP)/py/mkrules.mk
