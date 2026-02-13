@@ -56,15 +56,15 @@ const mp_print_t mp_sys_stdout_print = {&mp_sys_stdout_obj, mp_stream_write_adap
 #endif
 
 // version - Python language version that this implementation conforms to, as a string
-static const MP_DEFINE_STR_OBJ(mp_sys_version_obj, "3.4.0; " MICROPY_BANNER_NAME_AND_VERSION);
+static MAYBE_CUDA const MP_DEFINE_STR_OBJ(mp_sys_version_obj, "3.4.0; " MICROPY_BANNER_NAME_AND_VERSION);
 
 // version_info - Python language version that this implementation conforms to, as a tuple of ints
 // TODO: CPython is now at 5-element array (major, minor, micro, releaselevel, serial), but save 2 els so far...
-static const mp_rom_obj_tuple_t mp_sys_version_info_obj = {{&mp_type_tuple}, 3, {MP_ROM_INT(3), MP_ROM_INT(4), MP_ROM_INT(0)}};
+static MAYBE_CUDA const mp_rom_obj_tuple_t mp_sys_version_info_obj = {{&mp_type_tuple}, 3, {MP_ROM_INT(3), MP_ROM_INT(4), MP_ROM_INT(0)}};
 
 // sys.implementation object
 // this holds the MicroPython version
-static const mp_rom_obj_tuple_t mp_sys_implementation_version_info_obj = {
+static MAYBE_CUDA const mp_rom_obj_tuple_t mp_sys_implementation_version_info_obj = {
     {&mp_type_tuple},
     4,
     {
@@ -78,7 +78,7 @@ static const mp_rom_obj_tuple_t mp_sys_implementation_version_info_obj = {
         #endif
     }
 };
-static const MP_DEFINE_STR_OBJ(mp_sys_implementation_machine_obj, MICROPY_BANNER_MACHINE);
+static MAYBE_CUDA const MP_DEFINE_STR_OBJ(mp_sys_implementation_machine_obj, MICROPY_BANNER_MACHINE);
 #define SYS_IMPLEMENTATION_ELEMS_BASE \
     MP_ROM_QSTR(MP_QSTR_micropython), \
     MP_ROM_PTR(&mp_sys_implementation_version_info_obj), \
@@ -102,7 +102,7 @@ static const MP_DEFINE_STR_OBJ(mp_sys_implementation_machine_obj, MICROPY_BANNER
 #if MICROPY_PY_ATTRTUPLE
 
 #if defined(MICROPY_BOARD_BUILD_NAME)
-static const MP_DEFINE_STR_OBJ(mp_sys_implementation__build_obj, MICROPY_BOARD_BUILD_NAME);
+static MAYBE_CUDA const MP_DEFINE_STR_OBJ(mp_sys_implementation__build_obj, MICROPY_BOARD_BUILD_NAME);
 #define MICROPY_BOARD_BUILD (1)
 #define SYS_IMPLEMENTATION_ELEMS__BUILD \
     , MP_ROM_PTR(&mp_sys_implementation__build_obj)
@@ -130,7 +130,7 @@ static const MP_DEFINE_STR_OBJ(mp_sys_implementation__build_obj, MICROPY_BOARD_B
 #define SYS_IMPLEMENTATION_ELEMS__V2
 #endif
 
-static const qstr impl_fields[] = {
+static MAYBE_CUDA const qstr impl_fields[] = {
     MP_QSTR_name,
     MP_QSTR_version,
     MP_QSTR__machine,
@@ -147,7 +147,7 @@ static const qstr impl_fields[] = {
     MP_QSTR__v2,
     #endif
 };
-static MP_DEFINE_ATTRTUPLE(
+static MAYBE_CUDA MP_DEFINE_ATTRTUPLE(
     mp_sys_implementation_obj,
     impl_fields,
     3 + MICROPY_PERSISTENT_CODE_LOAD + MICROPY_BOARD_BUILD + MICROPY_PY_THREAD + MICROPY_PREVIEW_VERSION_2,
@@ -158,7 +158,7 @@ static MP_DEFINE_ATTRTUPLE(
     SYS_IMPLEMENTATION_ELEMS__V2
     );
 #else
-static const mp_rom_obj_tuple_t mp_sys_implementation_obj = {
+static MAYBE_CUDA const mp_rom_obj_tuple_t mp_sys_implementation_obj = {
     {&mp_type_tuple},
     3 + MICROPY_PERSISTENT_CODE_LOAD,
     // Do not include SYS_IMPLEMENTATION_ELEMS__BUILD, SYS_IMPLEMENTATION_ELEMS__THREAD
@@ -177,7 +177,7 @@ static const mp_rom_obj_tuple_t mp_sys_implementation_obj = {
 
 #ifdef MICROPY_PY_SYS_PLATFORM
 // platform - the platform that MicroPython is running on
-static const MP_DEFINE_STR_OBJ(mp_sys_platform_obj, MICROPY_PY_SYS_PLATFORM);
+static MAYBE_CUDA const MP_DEFINE_STR_OBJ(mp_sys_platform_obj, MICROPY_PY_SYS_PLATFORM);
 #endif
 
 #ifdef MICROPY_PY_SYS_EXECUTABLE
@@ -191,7 +191,7 @@ MP_DEFINE_CONST_FUN_OBJ_1(mp_sys_intern_obj, mp_obj_str_intern_checked);
 #endif
 
 // exit([retval]): raise SystemExit, with optional argument given to the exception
-static mp_obj_t mp_sys_exit(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_sys_exit(size_t n_args, const mp_obj_t *args) {
     if (n_args == 0) {
         mp_raise_type(&mp_type_SystemExit);
     } else {
@@ -200,7 +200,7 @@ static mp_obj_t mp_sys_exit(size_t n_args, const mp_obj_t *args) {
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_sys_exit_obj, 0, 1, mp_sys_exit);
 
-static mp_obj_t mp_sys_print_exception(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_sys_print_exception(size_t n_args, const mp_obj_t *args) {
     #if MICROPY_PY_IO && MICROPY_PY_SYS_STDFILES
     void *stream_obj = &mp_sys_stdout_obj;
     if (n_args > 1) {
@@ -220,7 +220,7 @@ static mp_obj_t mp_sys_print_exception(size_t n_args, const mp_obj_t *args) {
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_sys_print_exception_obj, 1, 2, mp_sys_print_exception);
 
 #if MICROPY_PY_SYS_EXC_INFO
-static mp_obj_t mp_sys_exc_info(void) {
+static MAYBE_CUDA mp_obj_t mp_sys_exc_info(void) {
     mp_obj_t cur_exc = MP_OBJ_FROM_PTR(MP_STATE_VM(cur_exception));
     mp_obj_tuple_t *t = MP_OBJ_TO_PTR(mp_obj_new_tuple(3, NULL));
 
@@ -240,25 +240,25 @@ MP_DEFINE_CONST_FUN_OBJ_0(mp_sys_exc_info_obj, mp_sys_exc_info);
 #endif
 
 #if MICROPY_PY_SYS_GETSIZEOF
-static mp_obj_t mp_sys_getsizeof(mp_obj_t obj) {
+static MAYBE_CUDA mp_obj_t mp_sys_getsizeof(mp_obj_t obj) {
     return mp_unary_op(MP_UNARY_OP_SIZEOF, obj);
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_sys_getsizeof_obj, mp_sys_getsizeof);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(mp_sys_getsizeof_obj, mp_sys_getsizeof);
 #endif
 
 #if MICROPY_PY_SYS_ATEXIT
 // atexit(callback): Callback is called when sys.exit is called.
-static mp_obj_t mp_sys_atexit(mp_obj_t obj) {
+static MAYBE_CUDA mp_obj_t mp_sys_atexit(mp_obj_t obj) {
     mp_obj_t old = MP_STATE_VM(sys_exitfunc);
     MP_STATE_VM(sys_exitfunc) = obj;
     return old;
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_sys_atexit_obj, mp_sys_atexit);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(mp_sys_atexit_obj, mp_sys_atexit);
 #endif
 
 #if MICROPY_PY_SYS_SETTRACE
 // settrace(tracefunc): Set the system's trace function.
-static mp_obj_t mp_sys_settrace(mp_obj_t obj) {
+static MAYBE_CUDA mp_obj_t mp_sys_settrace(mp_obj_t obj) {
     return mp_prof_settrace(obj);
 }
 MP_DEFINE_CONST_FUN_OBJ_1(mp_sys_settrace_obj, mp_sys_settrace);
@@ -282,7 +282,7 @@ MP_DEFINE_CONST_FUN_OBJ_1(mp_sys_settrace_obj, mp_sys_settrace);
 
 #if MICROPY_PY_SYS_ATTR_DELEGATION
 // Must be kept in sync with the enum at the top of mpstate.h.
-static const uint16_t sys_mutable_keys[] = {
+static MAYBE_CUDA const uint16_t sys_mutable_keys[] = {
     #if MICROPY_PY_SYS_PATH
     // Code should access this (as an mp_obj_t) for use with e.g.
     // mp_obj_list_append by using the `mp_sys_path` macro defined in runtime.h.
@@ -305,7 +305,7 @@ MAYBE_CUDA void mp_module_sys_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) 
 }
 #endif
 
-static const mp_rom_map_elem_t mp_module_sys_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_sys_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_sys) },
 
     #if MICROPY_PY_SYS_ARGV
@@ -378,7 +378,7 @@ static const mp_rom_map_elem_t mp_module_sys_globals_table[] = {
     #endif
 };
 
-static MP_DEFINE_CONST_DICT(mp_module_sys_globals, mp_module_sys_globals_table);
+static MAYBE_CUDA MP_DEFINE_CONST_DICT(mp_module_sys_globals, mp_module_sys_globals_table);
 
 const mp_obj_module_t mp_module_sys = {
     .base = { &mp_type_module },

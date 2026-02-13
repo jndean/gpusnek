@@ -50,7 +50,7 @@ typedef struct _mp_obj_gen_instance_t {
     mp_code_state_t code_state;
 } mp_obj_gen_instance_t;
 
-static mp_obj_t gen_wrap_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t gen_wrap_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // A generating function is just a bytecode function with type mp_type_gen_wrap
     mp_obj_fun_bc_t *self_fun = (mp_obj_fun_bc_t *)MP_OBJ_TO_PTR(self_in);
 
@@ -96,7 +96,7 @@ typedef struct _mp_obj_gen_instance_native_t {
     mp_code_state_native_t code_state;
 } mp_obj_gen_instance_native_t;
 
-static mp_obj_t native_gen_wrap_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t native_gen_wrap_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // The state for a native generating function is held in the same struct as a bytecode function
     mp_obj_fun_bc_t *self_fun = (mp_obj_fun_bc_t *)MP_OBJ_TO_PTR(self_in);
 
@@ -144,7 +144,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 /******************************************************************************/
 /* generator instance                                                         */
 
-static void gen_instance_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
+static MAYBE_CUDA void gen_instance_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     (void)kind;
     mp_obj_gen_instance_t *self = (mp_obj_gen_instance_t *)MP_OBJ_TO_PTR(self_in);
     mp_printf(print, "<generator object '%q' at %p>", mp_obj_fun_get_name(MP_OBJ_FROM_PTR(self->code_state.fun_bc)), self);
@@ -254,7 +254,7 @@ mp_vm_return_kind_t mp_obj_gen_resume(mp_obj_t self_in, mp_obj_t send_value, mp_
     return ret_kind;
 }
 
-static mp_obj_t gen_resume_and_raise(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, bool raise_stop_iteration) {
+static MAYBE_CUDA mp_obj_t gen_resume_and_raise(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, bool raise_stop_iteration) {
     mp_obj_t ret;
     switch (mp_obj_gen_resume(self_in, send_value, throw_value, &ret)) {
         case MP_VM_RETURN_NORMAL:
@@ -278,16 +278,16 @@ static mp_obj_t gen_resume_and_raise(mp_obj_t self_in, mp_obj_t send_value, mp_o
     }
 }
 
-static mp_obj_t gen_instance_iternext(mp_obj_t self_in) {
+static MAYBE_CUDA mp_obj_t gen_instance_iternext(mp_obj_t self_in) {
     return gen_resume_and_raise(self_in, mp_const_none, MP_OBJ_NULL, false);
 }
 
-static mp_obj_t gen_instance_send(mp_obj_t self_in, mp_obj_t send_value) {
+static MAYBE_CUDA mp_obj_t gen_instance_send(mp_obj_t self_in, mp_obj_t send_value) {
     return gen_resume_and_raise(self_in, send_value, MP_OBJ_NULL, true);
 }
-static MP_DEFINE_CONST_FUN_OBJ_2(gen_instance_send_obj, gen_instance_send);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_2(gen_instance_send_obj, gen_instance_send);
 
-static mp_obj_t gen_instance_throw(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t gen_instance_throw(size_t n_args, const mp_obj_t *args) {
     // The signature of this function is: throw(type[, value[, traceback]])
     // CPython will pass all given arguments through the call chain and process them
     // at the point they are used (native generators will handle them differently to
@@ -307,9 +307,9 @@ static mp_obj_t gen_instance_throw(size_t n_args, const mp_obj_t *args) {
 
     return gen_resume_and_raise(args[0], mp_const_none, exc, true);
 }
-static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(gen_instance_throw_obj, 2, 4, gen_instance_throw);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(gen_instance_throw_obj, 2, 4, gen_instance_throw);
 
-static mp_obj_t gen_instance_close(mp_obj_t self_in) {
+static MAYBE_CUDA mp_obj_t gen_instance_close(mp_obj_t self_in) {
     mp_obj_t ret;
     switch (mp_obj_gen_resume(self_in, mp_const_none, MP_OBJ_FROM_PTR(&mp_const_GeneratorExit_obj), &ret)) {
         case MP_VM_RETURN_YIELD:
@@ -328,10 +328,10 @@ static mp_obj_t gen_instance_close(mp_obj_t self_in) {
             return mp_const_none;
     }
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(gen_instance_close_obj, gen_instance_close);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(gen_instance_close_obj, gen_instance_close);
 
 #if MICROPY_PY_GENERATOR_PEND_THROW
-static mp_obj_t gen_instance_pend_throw(mp_obj_t self_in, mp_obj_t exc_in) {
+static MAYBE_CUDA mp_obj_t gen_instance_pend_throw(mp_obj_t self_in, mp_obj_t exc_in) {
     mp_obj_gen_instance_t *self = (mp_obj_gen_instance_t *)MP_OBJ_TO_PTR(self_in);
     if (self->pend_exc == MP_OBJ_NULL) {
         mp_raise_ValueError(MP_ERROR_TEXT("generator already executing"));
@@ -340,10 +340,10 @@ static mp_obj_t gen_instance_pend_throw(mp_obj_t self_in, mp_obj_t exc_in) {
     self->pend_exc = exc_in;
     return prev;
 }
-static MP_DEFINE_CONST_FUN_OBJ_2(gen_instance_pend_throw_obj, gen_instance_pend_throw);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_2(gen_instance_pend_throw_obj, gen_instance_pend_throw);
 #endif
 
-static const mp_rom_map_elem_t gen_instance_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t gen_instance_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&gen_instance_close_obj) },
     { MP_ROM_QSTR(MP_QSTR_send), MP_ROM_PTR(&gen_instance_send_obj) },
     { MP_ROM_QSTR(MP_QSTR_throw), MP_ROM_PTR(&gen_instance_throw_obj) },
@@ -352,7 +352,7 @@ static const mp_rom_map_elem_t gen_instance_locals_dict_table[] = {
     #endif
 };
 
-static MP_DEFINE_CONST_DICT(gen_instance_locals_dict, gen_instance_locals_dict_table);
+static MAYBE_CUDA MP_DEFINE_CONST_DICT(gen_instance_locals_dict, gen_instance_locals_dict_table);
 
 MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_gen_instance,

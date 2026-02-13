@@ -124,19 +124,19 @@
 #endif
 
 // Static functions for individual steps of the GC mark/sweep sequence
-static void gc_collect_start_common(void);
-static void *gc_get_ptr(void **ptrs, int i);
+static MAYBE_CUDA void gc_collect_start_common(void);
+static MAYBE_CUDA void *gc_get_ptr(void **ptrs, int i);
 #if MICROPY_GC_SPLIT_HEAP
-static void gc_mark_subtree(mp_state_mem_area_t *area, size_t block);
+static MAYBE_CUDA void gc_mark_subtree(mp_state_mem_area_t *area, size_t block);
 #else
-static void gc_mark_subtree(size_t block);
+static MAYBE_CUDA void gc_mark_subtree(size_t block);
 #endif
-static void gc_deal_with_stack_overflow(void);
-static void gc_sweep_run_finalisers(void);
-static void gc_sweep_free_blocks(void);
+static MAYBE_CUDA void gc_deal_with_stack_overflow(void);
+static MAYBE_CUDA void gc_sweep_run_finalisers(void);
+static MAYBE_CUDA void gc_sweep_free_blocks(void);
 
 // TODO waste less memory; currently requires that all entries in alloc_table have a corresponding block in pool
-static void gc_setup_area(mp_state_mem_area_t *area, void *start, void *end) {
+static MAYBE_CUDA void gc_setup_area(mp_state_mem_area_t *area, void *start, void *end) {
     // calculate parameters for GC (T=total, A=alloc table, F=finaliser table, P=pool; all in bytes):
     // T = A + F + P
     //     F = A * BLOCKS_PER_ATB / BLOCKS_PER_FTB
@@ -252,7 +252,7 @@ void gc_add(void *start, void *end) {
 
 #if MICROPY_GC_SPLIT_HEAP_AUTO
 // Try to automatically add a heap area large enough to fulfill 'failed_alloc'.
-static bool gc_try_add_heap(size_t failed_alloc) {
+static MAYBE_CUDA bool gc_try_add_heap(size_t failed_alloc) {
     // 'needed' is the size of a heap large enough to hold failed_alloc, with
     // the additional metadata overheads as calculated in gc_setup_area().
     //
@@ -362,7 +362,7 @@ bool gc_is_locked(void) {
 #if MICROPY_GC_SPLIT_HEAP
 // Returns the area to which this pointer belongs, or NULL if it isn't
 // allocated on the GC-managed heap.
-static inline mp_state_mem_area_t *gc_get_ptr_area(const void *ptr) {
+static MAYBE_CUDA inline mp_state_mem_area_t *gc_get_ptr_area(const void *ptr) {
     if (((uintptr_t)(ptr) & (BYTES_PER_BLOCK - 1)) != 0) {   // must be aligned on a block
         return NULL;
     }
@@ -412,7 +412,7 @@ void gc_collect_start(void) {
     #endif
 }
 
-static void gc_collect_start_common(void) {
+static MAYBE_CUDA void gc_collect_start_common(void) {
     GC_ENTER();
     assert((MP_STATE_THREAD(gc_lock_depth) & GC_COLLECT_FLAG) == 0);
     MP_STATE_THREAD(gc_lock_depth) |= GC_COLLECT_FLAG;
@@ -454,9 +454,9 @@ void gc_collect_root(void **ptrs, size_t len) {
 // blocks on the stack. When all children have been checked, pop off the
 // topmost block on the stack and repeat with that one.
 #if MICROPY_GC_SPLIT_HEAP
-static void gc_mark_subtree(mp_state_mem_area_t *area, size_t block)
+static MAYBE_CUDA void gc_mark_subtree(mp_state_mem_area_t *area, size_t block)
 #else
-static void gc_mark_subtree(size_t block)
+static MAYBE_CUDA void gc_mark_subtree(size_t block)
 #endif
 {
     // Start with the block passed in the argument.
@@ -546,7 +546,7 @@ void gc_collect_end(void) {
     GC_EXIT();
 }
 
-static void gc_deal_with_stack_overflow(void) {
+static MAYBE_CUDA void gc_deal_with_stack_overflow(void) {
     while (MP_STATE_MEM(gc_stack_overflow)) {
         MP_STATE_MEM(gc_stack_overflow) = 0;
 
@@ -568,7 +568,7 @@ static void gc_deal_with_stack_overflow(void) {
 }
 
 // Run finalisers for all to-be-freed blocks
-static void gc_sweep_run_finalisers(void) {
+static MAYBE_CUDA void gc_sweep_run_finalisers(void) {
     #if MICROPY_ENABLE_FINALISER
     for (const mp_state_mem_area_t *area = &MP_STATE_MEM(area); area != NULL; area = NEXT_AREA(area)) {
         assert(area->gc_last_used_block <= area->gc_alloc_table_byte_len * BLOCKS_PER_ATB);
@@ -610,7 +610,7 @@ static void gc_sweep_run_finalisers(void) {
 }
 
 // Free unmarked heads and their tails
-static void gc_sweep_free_blocks(void) {
+static MAYBE_CUDA void gc_sweep_free_blocks(void) {
     #if MICROPY_PY_GC_COLLECT_RETVAL
     MP_STATE_MEM(gc_collected) = 0;
     #endif
@@ -675,7 +675,7 @@ static void gc_sweep_free_blocks(void) {
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))
 __attribute__((no_sanitize_address))
 #endif
-static void *gc_get_ptr(void **ptrs, int i) {
+static MAYBE_CUDA void *gc_get_ptr(void **ptrs, int i) {
     #if MICROPY_DEBUG_VALGRIND
     if (!VALGRIND_CHECK_MEM_IS_ADDRESSABLE(&ptrs[i], sizeof(*ptrs))) {
         return NULL;

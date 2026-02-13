@@ -170,13 +170,13 @@ unichar utf8_get_char(const byte *s);
 const byte *utf8_next_char(const byte *s);
 size_t utf8_charlen(const byte *str, size_t len);
 #else
-static inline unichar utf8_get_char(const byte *s) {
+static inline MAYBE_CUDA unichar utf8_get_char(const byte *s) {
     return *s;
 }
-static inline const byte *utf8_next_char(const byte *s) {
+static inline MAYBE_CUDA const byte *utf8_next_char(const byte *s) {
     return s + 1;
 }
-static inline size_t utf8_charlen(const byte *str, size_t len) {
+static inline MAYBE_CUDA size_t utf8_charlen(const byte *str, size_t len) {
     (void)str;
     return len;
 }
@@ -209,37 +209,37 @@ typedef struct _vstr_t {
 // convenience macro to declare a vstr with a fixed size buffer on the stack
 #define VSTR_FIXED(vstr, alloc) vstr_t vstr; char vstr##_buf[(alloc)]; vstr_init_fixed_buf(&vstr, (alloc), vstr##_buf);
 
-void vstr_init(vstr_t *vstr, size_t alloc);
-void vstr_init_len(vstr_t *vstr, size_t len);
-void vstr_init_fixed_buf(vstr_t *vstr, size_t alloc, char *buf);
+MAYBE_CUDA void vstr_init(vstr_t *vstr, size_t alloc);
+MAYBE_CUDA void vstr_init_len(vstr_t *vstr, size_t len);
+MAYBE_CUDA void vstr_init_fixed_buf(vstr_t *vstr, size_t alloc, char *buf);
 struct _mp_print_t;
-void vstr_init_print(vstr_t *vstr, size_t alloc, struct _mp_print_t *print);
-void vstr_clear(vstr_t *vstr);
+MAYBE_CUDA void vstr_init_print(vstr_t *vstr, size_t alloc, struct _mp_print_t *print);
+MAYBE_CUDA void vstr_clear(vstr_t *vstr);
 vstr_t *vstr_new(size_t alloc);
-void vstr_free(vstr_t *vstr);
-static inline void vstr_reset(vstr_t *vstr) {
+MAYBE_CUDA void vstr_free(vstr_t *vstr);
+static inline MAYBE_CUDA void vstr_reset(vstr_t *vstr) {
     vstr->len = 0;
 }
-static inline char *vstr_str(vstr_t *vstr) {
+static inline MAYBE_CUDA char *vstr_str(vstr_t *vstr) {
     return vstr->buf;
 }
-static inline size_t vstr_len(vstr_t *vstr) {
+static inline MAYBE_CUDA size_t vstr_len(vstr_t *vstr) {
     return vstr->len;
 }
-void vstr_hint_size(vstr_t *vstr, size_t size);
-char *vstr_extend(vstr_t *vstr, size_t size);
-char *vstr_add_len(vstr_t *vstr, size_t len);
-char *vstr_null_terminated_str(vstr_t *vstr);
-void vstr_add_byte(vstr_t *vstr, byte v);
-void vstr_add_char(vstr_t *vstr, unichar chr);
-void vstr_add_str(vstr_t *vstr, const char *str);
-void vstr_add_strn(vstr_t *vstr, const char *str, size_t len);
-void vstr_ins_byte(vstr_t *vstr, size_t byte_pos, byte b);
-void vstr_ins_char(vstr_t *vstr, size_t char_pos, unichar chr);
-void vstr_cut_head_bytes(vstr_t *vstr, size_t bytes_to_cut);
-void vstr_cut_tail_bytes(vstr_t *vstr, size_t bytes_to_cut);
-void vstr_cut_out_bytes(vstr_t *vstr, size_t byte_pos, size_t bytes_to_cut);
-void vstr_printf(vstr_t *vstr, const char *fmt, ...);
+MAYBE_CUDA void vstr_hint_size(vstr_t *vstr, size_t size);
+MAYBE_CUDA char *vstr_extend(vstr_t *vstr, size_t size);
+MAYBE_CUDA char *vstr_add_len(vstr_t *vstr, size_t len);
+MAYBE_CUDA char *vstr_null_terminated_str(vstr_t *vstr);
+MAYBE_CUDA void vstr_add_byte(vstr_t *vstr, byte v);
+MAYBE_CUDA void vstr_add_char(vstr_t *vstr, unichar chr);
+MAYBE_CUDA void vstr_add_str(vstr_t *vstr, const char *str);
+MAYBE_CUDA void vstr_add_strn(vstr_t *vstr, const char *str, size_t len);
+MAYBE_CUDA void vstr_ins_byte(vstr_t *vstr, size_t byte_pos, byte b);
+MAYBE_CUDA void vstr_ins_char(vstr_t *vstr, size_t char_pos, unichar chr);
+MAYBE_CUDA void vstr_cut_head_bytes(vstr_t *vstr, size_t bytes_to_cut);
+MAYBE_CUDA void vstr_cut_tail_bytes(vstr_t *vstr, size_t bytes_to_cut);
+MAYBE_CUDA void vstr_cut_out_bytes(vstr_t *vstr, size_t byte_pos, size_t bytes_to_cut);
+MAYBE_CUDA void vstr_printf(vstr_t *vstr, const char *fmt, ...);
 
 /** non-dynamic size-bounded variable buffer/string *************/
 
@@ -254,7 +254,7 @@ void vstr_printf(vstr_t *vstr, const char *fmt, ...);
 #define CHECKBUF_LEN(buf) (buf##_p - buf)
 
 #ifdef va_start
-void vstr_vprintf(vstr_t *vstr, const char *fmt, va_list ap);
+MAYBE_CUDA void vstr_vprintf(vstr_t *vstr, const char *fmt, va_list ap);
 #endif
 
 // Debugging helpers
@@ -383,40 +383,40 @@ typedef const char *mp_rom_error_text_t;
 #ifdef _MSC_VER
 #include <intrin.h>
 
-static inline uint32_t mp_clz(uint32_t x) {
+static inline MAYBE_CUDA uint32_t mp_clz(uint32_t x) {
     unsigned long lz = 0;
     return _BitScanReverse(&lz, x) ? (sizeof(x) * 8 - 1) - lz : 0;
 }
 
-static inline uint32_t mp_clzl(unsigned long x) {
+static inline MAYBE_CUDA uint32_t mp_clzl(unsigned long x) {
     unsigned long lz = 0;
     return _BitScanReverse(&lz, x) ? (sizeof(x) * 8 - 1) - lz : 0;
 }
 
 #ifdef _WIN64
-static inline uint32_t mp_clzll(unsigned long long x) {
+static inline MAYBE_CUDA uint32_t mp_clzll(unsigned long long x) {
     unsigned long lz = 0;
     return _BitScanReverse64(&lz, x) ? (sizeof(x) * 8 - 1) - lz : 0;
 }
 #else
 // Microsoft don't ship _BitScanReverse64 on Win32, so emulate it
-static inline uint32_t mp_clzll(unsigned long long x) {
+static inline MAYBE_CUDA uint32_t mp_clzll(unsigned long long x) {
     unsigned long h = x >> 32;
     return h ? mp_clzl(h) : (mp_clzl((unsigned long)x) + 32);
 }
 #endif
 
-static inline uint32_t mp_ctz(uint32_t x) {
+static inline MAYBE_CUDA uint32_t mp_ctz(uint32_t x) {
     unsigned long tz = 0;
     return _BitScanForward(&tz, x) ? tz : 0;
 }
 
 // Workaround for 'warning C4127: conditional expression is constant'.
-static inline bool mp_check(bool value) {
+static inline MAYBE_CUDA bool mp_check(bool value) {
     return value;
 }
 
-static inline uint32_t mp_popcount(uint32_t x) {
+static inline MAYBE_CUDA uint32_t mp_popcount(uint32_t x) {
     return __popcnt(x);
 }
 #else // _MSC_VER
@@ -428,7 +428,7 @@ static inline uint32_t mp_popcount(uint32_t x) {
 #if __has_builtin(__builtin_popcount)
 #define mp_popcount(x) __builtin_popcount(x)
 #else
-static inline uint32_t mp_popcount(uint32_t x) {
+static inline MAYBE_CUDA uint32_t mp_popcount(uint32_t x) {
     x = x - ((x >> 1) & 0x55555555);
     x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
     x = (x + (x >> 4)) & 0x0F0F0F0F;
@@ -443,7 +443,7 @@ static inline uint32_t mp_popcount(uint32_t x) {
     (((value) & (~0U << ((bits) - 1))) == (~0U << ((bits) - 1))))
 
 // mp_int_t can be larger than long, i.e. Windows 64-bit, nan-box variants
-static inline uint32_t mp_clz_mpi(mp_int_t x) {
+static inline MAYBE_CUDA uint32_t mp_clz_mpi(mp_int_t x) {
     #ifdef __XC16__
     mp_uint_t mask = MP_OBJ_WORD_MSBIT_HIGH;
     mp_uint_t zeroes = 0;
@@ -480,7 +480,7 @@ static inline uint32_t mp_clz_mpi(mp_int_t x) {
 
 #define mp_mul_ull_overflow __builtin_umulll_overflow
 #define mp_mul_ll_overflow __builtin_smulll_overflow
-static inline bool mp_mul_mp_int_t_overflow(mp_int_t x, mp_int_t y, mp_int_t *res) {
+static inline MAYBE_CUDA bool mp_mul_mp_int_t_overflow(mp_int_t x, mp_int_t y, mp_int_t *res) {
     // __builtin_mul_overflow is a type-generic function, this inline ensures the argument
     // types are checked to match mp_int_t.
     return __builtin_mul_overflow(x, y, res);
@@ -490,7 +490,7 @@ static inline bool mp_mul_mp_int_t_overflow(mp_int_t x, mp_int_t y, mp_int_t *re
 
 MAYBE_CUDA bool mp_mul_ll_overflow(long long int x, long long int y, long long int *res);
 MAYBE_CUDA bool mp_mul_mp_int_t_overflow(mp_int_t x, mp_int_t y, mp_int_t *res);
-static inline bool mp_mul_ull_overflow(unsigned long long int x, unsigned long long int y, unsigned long long int *res) {
+static inline MAYBE_CUDA bool mp_mul_ull_overflow(unsigned long long int x, unsigned long long int y, unsigned long long int *res) {
     if (y > 0 && x > (ULLONG_MAX / y)) {
         return true; // overflow
     }
@@ -503,7 +503,7 @@ static inline bool mp_mul_ull_overflow(unsigned long long int x, unsigned long l
 #if __has_builtin(__builtin_saddll_overflow) || MP_GCC_HAS_BUILTIN_OVERFLOW
 #define mp_add_ll_overflow __builtin_saddll_overflow
 #else
-static inline bool mp_add_ll_overflow(long long int lhs, long long int rhs, long long int *res) {
+static inline MAYBE_CUDA bool mp_add_ll_overflow(long long int lhs, long long int rhs, long long int *res) {
     bool overflow;
 
     if (rhs > 0) {
@@ -523,7 +523,7 @@ static inline bool mp_add_ll_overflow(long long int lhs, long long int rhs, long
 #if __has_builtin(__builtin_ssubll_overflow) || MP_GCC_HAS_BUILTIN_OVERFLOW
 #define mp_sub_ll_overflow __builtin_ssubll_overflow
 #else
-static inline bool mp_sub_ll_overflow(long long int lhs, long long int rhs, long long int *res) {
+static inline MAYBE_CUDA bool mp_sub_ll_overflow(long long int lhs, long long int rhs, long long int *res) {
     bool overflow;
 
     if (rhs > 0) {

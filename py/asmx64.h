@@ -78,7 +78,7 @@ typedef struct _asm_x64_t {
     int num_locals;
 } asm_x64_t;
 
-static inline void asm_x64_end_pass(asm_x64_t *as) {
+static inline MAYBE_CUDA void asm_x64_end_pass(asm_x64_t *as) {
     (void)as;
 }
 

@@ -200,7 +200,7 @@ static MAYBE_CUDA const qstr_pool_t *find_qstr(qstr *q) {
 }
 
 // qstr_mutex must be taken while in this function
-static qstr qstr_add(mp_uint_t len, const char *q_ptr) {
+static MAYBE_CUDA qstr qstr_add(mp_uint_t len, const char *q_ptr) {
     #if MICROPY_QSTR_BYTES_IN_HASH
     mp_uint_t hash = qstr_compute_hash((const byte *)q_ptr, len);
     DEBUG_printf("QSTR: add hash=%d len=%d data=%.*s\n", hash, len, len, q_ptr);
@@ -309,7 +309,7 @@ MAYBE_CUDA qstr qstr_from_str(const char *str) {
     return qstr_from_strn(str, strlen(str));
 }
 
-static qstr qstr_from_strn_helper(const char *str, size_t len, bool data_is_static) {
+static MAYBE_CUDA qstr qstr_from_strn_helper(const char *str, size_t len, bool data_is_static) {
     QSTR_ENTER();
     qstr q = qstr_find_strn(str, len);
     size_t n_bytes = 0;  // Declare here for C++ goto compatibility
@@ -480,7 +480,7 @@ void qstr_dump_data(void) {
 // The compressed string data is delimited by setting high bit in the final char of each word.
 // e.g. aaaa<0x80|a>bbbbbb<0x80|b>....
 // This method finds the n'th string.
-static const byte *find_uncompressed_string(uint8_t n) {
+static MAYBE_CUDA const byte *find_uncompressed_string(uint8_t n) {
     const byte *c = (byte *)compressed_string_data;
     while (n > 0) {
         while ((*c & 0x80) == 0) {

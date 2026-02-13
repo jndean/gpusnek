@@ -157,7 +157,7 @@ MAYBE_CUDA size_t mp_binary_get_size(char struct_type, char val_type, size_t *pa
 
 #if MICROPY_PY_BUILTINS_FLOAT && MICROPY_FLOAT_USE_NATIVE_FLT16
 
-static inline float mp_decode_half_float(uint16_t hf) {
+static MAYBE_CUDA inline float mp_decode_half_float(uint16_t hf) {
     union {
         uint16_t i;
         _Float16 f;
@@ -165,7 +165,7 @@ static inline float mp_decode_half_float(uint16_t hf) {
     return fpu.f;
 }
 
-static inline uint16_t mp_encode_half_float(float x) {
+static MAYBE_CUDA inline uint16_t mp_encode_half_float(float x) {
     union {
         uint16_t i;
         _Float16 f;
@@ -175,7 +175,7 @@ static inline uint16_t mp_encode_half_float(float x) {
 
 #elif MICROPY_PY_BUILTINS_FLOAT
 
-static float mp_decode_half_float(uint16_t hf) {
+static MAYBE_CUDA float mp_decode_half_float(uint16_t hf) {
     union {
         uint32_t i;
         float f;
@@ -204,7 +204,7 @@ static float mp_decode_half_float(uint16_t hf) {
     return fpu.f;
 }
 
-static uint16_t mp_encode_half_float(float x) {
+static MAYBE_CUDA uint16_t mp_encode_half_float(float x) {
     union {
         uint32_t i;
         float f;

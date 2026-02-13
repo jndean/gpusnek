@@ -66,14 +66,14 @@ void MICROPY_WRAP_MP_SCHED_VM_ABORT(mp_sched_vm_abort)(void) {
 // mp_sched_schedule that may be located in a special memory region.
 #define mp_sched_full() (mp_sched_num_pending() == MICROPY_SCHEDULER_DEPTH)
 
-static inline bool mp_sched_empty(void) {
+static MAYBE_CUDA inline bool mp_sched_empty(void) {
     MP_STATIC_ASSERT(MICROPY_SCHEDULER_DEPTH <= 255); // MICROPY_SCHEDULER_DEPTH must fit in 8 bits
     MP_STATIC_ASSERT((IDX_MASK(MICROPY_SCHEDULER_DEPTH) == 0)); // MICROPY_SCHEDULER_DEPTH must be a power of 2
 
     return mp_sched_num_pending() == 0;
 }
 
-static inline void mp_sched_run_pending(void) {
+static MAYBE_CUDA inline void mp_sched_run_pending(void) {
     mp_uint_t atomic_state = MICROPY_BEGIN_ATOMIC_SECTION();
     if (MP_STATE_VM(sched_state) != MP_SCHED_PENDING) {
         // Something else (e.g. hard IRQ) locked the scheduler while we

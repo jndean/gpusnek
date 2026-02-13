@@ -73,8 +73,8 @@ typedef struct _bytecode_prelude_t {
 
 #include "py/parsenum.h"
 
-static int read_byte(mp_reader_t *reader);
-static size_t read_uint(mp_reader_t *reader);
+static MAYBE_CUDA int read_byte(mp_reader_t *reader);
+static MAYBE_CUDA size_t read_uint(mp_reader_t *reader);
 
 #if MICROPY_EMIT_MACHINE_CODE
 
@@ -83,7 +83,7 @@ static size_t read_uint(mp_reader_t *reader);
 // An mp_obj_list_t that tracks native text/BSS/rodata to prevent the GC from reclaiming them.
 MP_REGISTER_ROOT_POINTER(mp_obj_t persistent_code_root_pointers);
 
-static void track_root_pointer(void *ptr) {
+static MAYBE_CUDA void track_root_pointer(void *ptr) {
     if (MP_STATE_PORT(persistent_code_root_pointers) == MP_OBJ_NULL) {
         MP_STATE_PORT(persistent_code_root_pointers) = mp_obj_new_list(0, NULL);
     }
@@ -156,17 +156,17 @@ MAYBE_CUDA void mp_native_relocate(void *ri_in, uint8_t *text, uintptr_t reloc_t
 
 #endif
 
-static int read_byte(mp_reader_t *reader) {
+static MAYBE_CUDA int read_byte(mp_reader_t *reader) {
     return reader->readbyte(reader->data);
 }
 
-static void read_bytes(mp_reader_t *reader, byte *buf, size_t len) {
+static MAYBE_CUDA void read_bytes(mp_reader_t *reader, byte *buf, size_t len) {
     while (len-- > 0) {
         *buf++ = reader->readbyte(reader->data);
     }
 }
 
-static size_t read_uint(mp_reader_t *reader) {
+static MAYBE_CUDA size_t read_uint(mp_reader_t *reader) {
     size_t unum = 0;
     for (;;) {
         byte b = reader->readbyte(reader->data);
@@ -178,7 +178,7 @@ static size_t read_uint(mp_reader_t *reader) {
     return unum;
 }
 
-static qstr load_qstr(mp_reader_t *reader) {
+static MAYBE_CUDA qstr load_qstr(mp_reader_t *reader) {
     size_t len = read_uint(reader);
     if (len & 1) {
         // static qstr
@@ -204,7 +204,7 @@ static qstr load_qstr(mp_reader_t *reader) {
 
 #if MICROPY_VFS_ROM
 // Create a str/bytes object that can forever reference the given data.
-static mp_obj_t mp_obj_new_str_static(const mp_obj_type_t *type, const byte *data, size_t len) {
+static MAYBE_CUDA mp_obj_t mp_obj_new_str_static(const mp_obj_type_t *type, const byte *data, size_t len) {
     if (type == &mp_type_str) {
         qstr q = qstr_find_strn((const char *)data, len);
         if (q != MP_QSTRnull) {
@@ -220,7 +220,7 @@ static mp_obj_t mp_obj_new_str_static(const mp_obj_type_t *type, const byte *dat
 }
 #endif
 
-static mp_obj_t load_obj(mp_reader_t *reader) {
+static MAYBE_CUDA mp_obj_t load_obj(mp_reader_t *reader) {
     byte obj_type = read_byte(reader);
     #if MICROPY_EMIT_MACHINE_CODE
     if (obj_type == MP_PERSISTENT_OBJ_FUN_TABLE) {
@@ -288,7 +288,7 @@ static mp_obj_t load_obj(mp_reader_t *reader) {
     }
 }
 
-static mp_raw_code_t *load_raw_code(mp_reader_t *reader, mp_module_context_t *context) {
+static MAYBE_CUDA mp_raw_code_t *load_raw_code(mp_reader_t *reader, mp_module_context_t *context) {
     // Load function kind and data length
     size_t kind_len = read_uint(reader);
     int kind = (kind_len & 3) + MP_CODE_BYTECODE;
@@ -554,12 +554,12 @@ MAYBE_CUDA void mp_raw_code_load_file(qstr filename, mp_compiled_module_t *conte
 
 #include "py/objstr.h"
 
-static void mp_print_bytes(mp_print_t *print, const byte *data, size_t len) {
+static MAYBE_CUDA void mp_print_bytes(mp_print_t *print, const byte *data, size_t len) {
     print->print_strn(print->data, (const char *)data, len);
 }
 
 #define BYTES_FOR_INT ((MP_BYTES_PER_OBJ_WORD * 8 + 6) / 7)
-static void mp_print_uint(mp_print_t *print, size_t n) {
+static MAYBE_CUDA void mp_print_uint(mp_print_t *print, size_t n) {
     byte buf[BYTES_FOR_INT];
     byte *p = buf + sizeof(buf);
     *--p = n & 0x7f;
@@ -570,7 +570,7 @@ static void mp_print_uint(mp_print_t *print, size_t n) {
     print->print_strn(print->data, (char *)p, buf + sizeof(buf) - p);
 }
 
-static void save_qstr(mp_print_t *print, qstr qst) {
+static MAYBE_CUDA void save_qstr(mp_print_t *print, qstr qst) {
     if (qst <= QSTR_LAST_STATIC) {
         // encode static qstr
         mp_print_uint(print, qst << 1 | 1);
@@ -582,7 +582,7 @@ static void save_qstr(mp_print_t *print, qstr qst) {
     mp_print_bytes(print, str, len + 1); // +1 to store null terminator
 }
 
-static void save_obj(mp_print_t *print, mp_obj_t o) {
+static MAYBE_CUDA void save_obj(mp_print_t *print, mp_obj_t o) {
     #if MICROPY_EMIT_MACHINE_CODE
     if (o == MP_OBJ_FROM_PTR(&mp_fun_table)) {
         byte obj_type = MP_PERSISTENT_OBJ_FUN_TABLE;
@@ -652,7 +652,7 @@ static void save_obj(mp_print_t *print, mp_obj_t o) {
 
 #if MICROPY_PERSISTENT_CODE_SAVE
 
-static void save_raw_code(mp_print_t *print, const mp_raw_code_t *rc) {
+static MAYBE_CUDA void save_raw_code(mp_print_t *print, const mp_raw_code_t *rc) {
     // Save function kind and data length
     mp_print_uint(print, (rc->fun_data_len << 3) | ((rc->n_children != 0) << 2) | (rc->kind - MP_CODE_BYTECODE));
 
@@ -733,7 +733,7 @@ MAYBE_CUDA void mp_raw_code_save(mp_compiled_module_t *cm, mp_print_t *print) {
 #include <sys/stat.h>
 #include <fcntl.h>
 
-static void fd_print_strn(void *env, const char *str, size_t len) {
+static MAYBE_CUDA void fd_print_strn(void *env, const char *str, size_t len) {
     int fd = (intptr_t)env;
     MP_THREAD_GIL_EXIT();
     ssize_t ret = write(fd, str, len);
@@ -772,23 +772,23 @@ typedef struct _bit_vector_t {
     uintptr_t *bits;
 } bit_vector_t;
 
-static void bit_vector_init(bit_vector_t *self) {
+static MAYBE_CUDA void bit_vector_init(bit_vector_t *self) {
     self->max_bit_set = 0;
     self->alloc = 1;
     self->bits = m_new(uintptr_t, self->alloc);
 }
 
-static void bit_vector_clear(bit_vector_t *self) {
+static MAYBE_CUDA void bit_vector_clear(bit_vector_t *self) {
     m_del(uintptr_t, self->bits, self->alloc);
 }
 
-static bool bit_vector_is_set(bit_vector_t *self, size_t index) {
+static MAYBE_CUDA bool bit_vector_is_set(bit_vector_t *self, size_t index) {
     const size_t bits_size = sizeof(*self->bits) * MP_BITS_PER_BYTE;
     return index / bits_size < self->alloc
            && (self->bits[index / bits_size] & ((uintptr_t)1 << (index % bits_size))) != 0;
 }
 
-static void bit_vector_set(bit_vector_t *self, size_t index) {
+static MAYBE_CUDA void bit_vector_set(bit_vector_t *self, size_t index) {
     const size_t bits_size = sizeof(*self->bits) * MP_BITS_PER_BYTE;
     self->max_bit_set = MAX(self->max_bit_set, index);
     if (index / bits_size >= self->alloc) {
@@ -807,7 +807,7 @@ typedef struct _mp_opcode_t {
     uint8_t extra_arg;
 } mp_opcode_t;
 
-static mp_opcode_t mp_opcode_decode(const uint8_t *ip) {
+static MAYBE_CUDA mp_opcode_t mp_opcode_decode(const uint8_t *ip) {
     const uint8_t *ip_start = ip;
     uint8_t opcode = *ip++;
     uint8_t opcode_format = MP_BC_FORMAT(opcode);

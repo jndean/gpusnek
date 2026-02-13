@@ -107,13 +107,13 @@ MAYBE_CUDA mp_int_t mp_float_hash(mp_float_t src) {
 }
 #endif
 
-static void float_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
+static MAYBE_CUDA void float_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     (void)kind;
     mp_float_t o_val = mp_obj_float_get(o_in);
     mp_print_float(print, o_val, 'g', PF_FLAG_ALWAYS_DECIMAL, '\0', -1, MP_FLOAT_REPR_PREC);
 }
 
-static mp_obj_t float_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t float_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     (void)type_in;
     mp_arg_check_num(n_args, n_kw, 0, 1, false);
 
@@ -138,7 +138,7 @@ static mp_obj_t float_make_new(const mp_obj_type_t *type_in, size_t n_args, size
     }
 }
 
-static mp_obj_t float_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
+static MAYBE_CUDA mp_obj_t float_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
     mp_float_t val = mp_obj_float_get(o_in);
     switch (op) {
         case MP_UNARY_OP_BOOL:
@@ -161,7 +161,7 @@ static mp_obj_t float_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
     }
 }
 
-static mp_obj_t float_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
+static MAYBE_CUDA mp_obj_t float_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
     mp_float_t lhs_val = mp_obj_float_get(lhs_in);
     #if MICROPY_PY_BUILTINS_COMPLEX
     if (mp_obj_is_type(rhs_in, &mp_type_complex)) {
@@ -197,7 +197,7 @@ MAYBE_CUDA mp_float_t mp_obj_float_get(mp_obj_t self_in) {
 
 #endif
 
-static void mp_obj_float_divmod(mp_float_t *x, mp_float_t *y) {
+static MAYBE_CUDA void mp_obj_float_divmod(mp_float_t *x, mp_float_t *y) {
     // logic here follows that of CPython
     // https://docs.python.org/3/reference/expressions.html#binary-arithmetic-operations
     // x == (x//y)*y + (x%y)

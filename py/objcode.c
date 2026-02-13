@@ -42,7 +42,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 
 #include "py/profile.h"
 
-static void code_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
+static MAYBE_CUDA void code_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     (void)kind;
     mp_obj_code_t *o = MP_OBJ_TO_PTR(o_in);
     const mp_raw_code_t *rc = o->rc;
@@ -56,7 +56,7 @@ static void code_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t k
         );
 }
 
-static mp_obj_tuple_t *code_consts(const mp_module_context_t *context, const mp_raw_code_t *rc) {
+static MAYBE_CUDA mp_obj_tuple_t *code_consts(const mp_module_context_t *context, const mp_raw_code_t *rc) {
     mp_obj_tuple_t *consts = MP_OBJ_TO_PTR(mp_obj_new_tuple(rc->n_children + 1, NULL));
 
     size_t const_no = 0;
@@ -70,7 +70,7 @@ static mp_obj_tuple_t *code_consts(const mp_module_context_t *context, const mp_
 }
 
 #if !MICROPY_PREVIEW_VERSION_2
-static mp_obj_t raw_code_lnotab(const mp_raw_code_t *rc) {
+static MAYBE_CUDA mp_obj_t raw_code_lnotab(const mp_raw_code_t *rc) {
     // const mp_bytecode_prelude_t *prelude = &rc->prelude;
     uint start = 0;
     uint stop = rc->fun_data_len - start;
@@ -109,8 +109,8 @@ static mp_obj_t raw_code_lnotab(const mp_raw_code_t *rc) {
 }
 #endif
 
-static mp_obj_t code_colines_iter(mp_obj_t);
-static mp_obj_t code_colines_next(mp_obj_t);
+static MAYBE_CUDA mp_obj_t code_colines_iter(mp_obj_t);
+static MAYBE_CUDA mp_obj_t code_colines_next(mp_obj_t);
 typedef struct _mp_obj_colines_iter_t {
     mp_obj_base_t base;
     mp_fun_1_t iternext;
@@ -120,7 +120,7 @@ typedef struct _mp_obj_colines_iter_t {
     const byte *ci;
 } mp_obj_colines_iter_t;
 
-static mp_obj_t code_colines_iter(mp_obj_t self_in) {
+static MAYBE_CUDA mp_obj_t code_colines_iter(mp_obj_t self_in) {
     mp_obj_code_t *self = MP_OBJ_TO_PTR(self_in);
     mp_obj_colines_iter_t *iter = mp_obj_malloc(mp_obj_colines_iter_t, &mp_type_polymorph_iter);
     iter->iternext = code_colines_next;
@@ -130,9 +130,9 @@ static mp_obj_t code_colines_iter(mp_obj_t self_in) {
     iter->ci = self->rc->prelude.line_info;
     return MP_OBJ_FROM_PTR(iter);
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(code_colines_obj, code_colines_iter);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(code_colines_obj, code_colines_iter);
 
-static mp_obj_t code_colines_next(mp_obj_t iter_in) {
+static MAYBE_CUDA mp_obj_t code_colines_next(mp_obj_t iter_in) {
     mp_obj_colines_iter_t *iter = MP_OBJ_TO_PTR(iter_in);
     const byte *ci_end = iter->rc->prelude.line_info_top;
 
@@ -170,7 +170,7 @@ static mp_obj_t code_colines_next(mp_obj_t iter_in) {
     return mp_obj_new_tuple(MP_ARRAY_SIZE(next), next);
 }
 
-static void code_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+static MAYBE_CUDA void code_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     if (dest[0] != MP_OBJ_NULL) {
         // not load attribute
         return;

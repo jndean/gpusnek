@@ -51,7 +51,7 @@ typedef struct _ringbuf_t {
         (r)->iget = (r)->iput = 0; \
     }
 
-static inline int ringbuf_get(ringbuf_t *r) {
+static inline MAYBE_CUDA int ringbuf_get(ringbuf_t *r) {
     if (r->iget == r->iput) {
         return -1;
     }
@@ -62,14 +62,14 @@ static inline int ringbuf_get(ringbuf_t *r) {
     return v;
 }
 
-static inline int ringbuf_peek(ringbuf_t *r) {
+static inline MAYBE_CUDA int ringbuf_peek(ringbuf_t *r) {
     if (r->iget == r->iput) {
         return -1;
     }
     return r->buf[r->iget];
 }
 
-static inline int ringbuf_put(ringbuf_t *r, uint8_t v) {
+static inline MAYBE_CUDA int ringbuf_put(ringbuf_t *r, uint8_t v) {
     uint32_t iput_new = r->iput + 1;
     if (iput_new >= r->size) {
         iput_new = 0;
@@ -82,15 +82,15 @@ static inline int ringbuf_put(ringbuf_t *r, uint8_t v) {
     return 0;
 }
 
-static inline size_t ringbuf_free(ringbuf_t *r) {
+static inline MAYBE_CUDA size_t ringbuf_free(ringbuf_t *r) {
     return (r->size + r->iget - r->iput - 1) % r->size;
 }
 
-static inline size_t ringbuf_avail(ringbuf_t *r) {
+static inline MAYBE_CUDA size_t ringbuf_avail(ringbuf_t *r) {
     return (r->size + r->iput - r->iget) % r->size;
 }
 
-static inline void ringbuf_memcpy_get_internal(ringbuf_t *r, uint8_t *data, size_t data_len) {
+static inline MAYBE_CUDA void ringbuf_memcpy_get_internal(ringbuf_t *r, uint8_t *data, size_t data_len) {
     // No bounds / space checking is performed here so ensure available size is checked before running this
     // otherwise data loss or buffer overflow can occur.
     uint32_t iget = r->iget;
@@ -106,7 +106,7 @@ static inline void ringbuf_memcpy_get_internal(ringbuf_t *r, uint8_t *data, size
     r->iget = iget_a;
 }
 
-static inline void ringbuf_memcpy_put_internal(ringbuf_t *r, const uint8_t *data, size_t data_len) {
+static inline MAYBE_CUDA void ringbuf_memcpy_put_internal(ringbuf_t *r, const uint8_t *data, size_t data_len) {
     // No bounds / space checking is performed here so ensure free size is checked before running this
     // otherwise data loss or buffer overflow can occur.
     uint32_t iput = r->iput;

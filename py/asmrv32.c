@@ -91,7 +91,7 @@ void asm_rv32_emit_halfword_opcode(asm_rv32_t *state, mp_uint_t word) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static void split_immediate(mp_int_t immediate, mp_uint_t *upper, mp_uint_t *lower) {
+static MAYBE_CUDA void split_immediate(mp_int_t immediate, mp_uint_t *upper, mp_uint_t *lower) {
     assert(upper != NULL && "Upper pointer is NULL.");
     assert(lower != NULL && "Lower pointer is NULL.");
 
@@ -105,7 +105,7 @@ static void split_immediate(mp_int_t immediate, mp_uint_t *upper, mp_uint_t *low
     }
 }
 
-static void load_upper_immediate(asm_rv32_t *state, mp_uint_t rd, mp_uint_t immediate) {
+static MAYBE_CUDA void load_upper_immediate(asm_rv32_t *state, mp_uint_t rd, mp_uint_t immediate) {
     // if immediate fits in 17 bits and is ≠ 0:
     //   c.lui rd, HI(immediate)
     // else:
@@ -117,7 +117,7 @@ static void load_upper_immediate(asm_rv32_t *state, mp_uint_t rd, mp_uint_t imme
     }
 }
 
-static void load_lower_immediate(asm_rv32_t *state, mp_uint_t rd, mp_uint_t immediate) {
+static MAYBE_CUDA void load_lower_immediate(asm_rv32_t *state, mp_uint_t rd, mp_uint_t immediate) {
     // WARNING: This must be executed on a register that has either been
     //          previously cleared or was the target of a LUI/C.LUI or
     //          AUIPC opcode.
@@ -137,7 +137,7 @@ static void load_lower_immediate(asm_rv32_t *state, mp_uint_t rd, mp_uint_t imme
     }
 }
 
-static void load_full_immediate(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
+static MAYBE_CUDA void load_full_immediate(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
     mp_uint_t upper = 0;
     mp_uint_t lower = 0;
     split_immediate(immediate, &upper, &lower);
@@ -173,7 +173,7 @@ void asm_rv32_emit_optimised_load_immediate(asm_rv32_t *state, mp_uint_t rd, mp_
 // RV32 does not have dedicated push/pop opcodes, so series of loads and
 // stores are generated in their place.
 
-static void emit_registers_store(asm_rv32_t *state, mp_uint_t registers_mask) {
+static MAYBE_CUDA void emit_registers_store(asm_rv32_t *state, mp_uint_t registers_mask) {
     mp_uint_t offset = 0;
     for (mp_uint_t register_index = 0; register_index < RV32_AVAILABLE_REGISTERS_COUNT; register_index++) {
         if (registers_mask & (1U << register_index)) {
@@ -185,7 +185,7 @@ static void emit_registers_store(asm_rv32_t *state, mp_uint_t registers_mask) {
     }
 }
 
-static void emit_registers_load(asm_rv32_t *state, mp_uint_t registers_mask) {
+static MAYBE_CUDA void emit_registers_load(asm_rv32_t *state, mp_uint_t registers_mask) {
     mp_uint_t offset = 0;
     for (mp_uint_t register_index = 0; register_index < RV32_AVAILABLE_REGISTERS_COUNT; register_index++) {
         if (registers_mask & (1U << register_index)) {
@@ -197,7 +197,7 @@ static void emit_registers_load(asm_rv32_t *state, mp_uint_t registers_mask) {
     }
 }
 
-static void adjust_stack(asm_rv32_t *state, mp_int_t stack_size) {
+static MAYBE_CUDA void adjust_stack(asm_rv32_t *state, mp_int_t stack_size) {
     if (stack_size == 0) {
         return;
     }
@@ -223,7 +223,7 @@ static void adjust_stack(asm_rv32_t *state, mp_int_t stack_size) {
 // Generate a generic function entry prologue code sequence, setting up the
 // stack to hold all the tainted registers and an arbitrary amount of space
 // for locals.
-static void emit_function_prologue(asm_rv32_t *state, mp_uint_t registers) {
+static MAYBE_CUDA void emit_function_prologue(asm_rv32_t *state, mp_uint_t registers) {
     mp_uint_t registers_count = mp_popcount(registers);
     state->stack_size = (registers_count + state->locals_count) * sizeof(uint32_t);
     mp_uint_t old_saved_registers_mask = state->saved_registers_mask;
@@ -236,7 +236,7 @@ static void emit_function_prologue(asm_rv32_t *state, mp_uint_t registers) {
 }
 
 // Restore registers and reset the stack pointer to its initial value.
-static void emit_function_epilogue(asm_rv32_t *state, mp_uint_t registers) {
+static MAYBE_CUDA void emit_function_epilogue(asm_rv32_t *state, mp_uint_t registers) {
     mp_uint_t old_saved_registers_mask = state->saved_registers_mask;
     // Restore registers from the top of the stack area.
     emit_registers_load(state, registers);
@@ -245,7 +245,7 @@ static void emit_function_epilogue(asm_rv32_t *state, mp_uint_t registers) {
     state->saved_registers_mask = old_saved_registers_mask;
 }
 
-static bool calculate_displacement_for_label(asm_rv32_t *state, mp_uint_t label, ptrdiff_t *displacement) {
+static MAYBE_CUDA bool calculate_displacement_for_label(asm_rv32_t *state, mp_uint_t label, ptrdiff_t *displacement) {
     assert(displacement != NULL && "Displacement pointer is NULL");
 
     mp_uint_t label_offset = state->base.label_offsets[label];
@@ -452,7 +452,7 @@ void asm_rv32_emit_mov_reg_local_addr(asm_rv32_t *state, mp_uint_t rd, mp_uint_t
     asm_rv32_opcode_cadd(state, rd, ASM_RV32_REG_SP);
 }
 
-static const uint8_t RV32_LOAD_OPCODE_TABLE[3] = {
+static MAYBE_CUDA const uint8_t RV32_LOAD_OPCODE_TABLE[3] = {
     0x04, 0x05, 0x02
 };
 
@@ -557,11 +557,11 @@ void asm_rv32_emit_optimised_xor(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) 
     asm_rv32_opcode_xor(state, rd, rd, rs);
 }
 
-static bool asm_rv32_allow_zba_opcodes(void) {
+static MAYBE_CUDA bool asm_rv32_allow_zba_opcodes(void) {
     return asm_rv32_allowed_extensions() & RV32_EXT_ZBA;
 }
 
-static void asm_rv32_fix_up_scaled_reg_reg_reg(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_uint_t operation_size) {
+static MAYBE_CUDA void asm_rv32_fix_up_scaled_reg_reg_reg(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_uint_t operation_size) {
     assert(operation_size <= 2 && "Operation size value out of range.");
 
     if (operation_size > 0 && asm_rv32_allow_zba_opcodes()) {

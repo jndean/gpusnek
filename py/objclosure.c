@@ -36,7 +36,7 @@ typedef struct _mp_obj_closure_t {
     mp_obj_t closed[];
 } mp_obj_closure_t;
 
-static mp_obj_t closure_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t closure_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_obj_closure_t *self = (mp_obj_closure_t *)MP_OBJ_TO_PTR(self_in);
 
     // need to concatenate closed-over-vars and args
@@ -60,7 +60,7 @@ static mp_obj_t closure_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const
 }
 
 #if MICROPY_ERROR_REPORTING == MICROPY_ERROR_REPORTING_DETAILED
-static void closure_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
+static MAYBE_CUDA void closure_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     (void)kind;
     mp_obj_closure_t *o = MP_OBJ_TO_PTR(o_in);
     mp_print_str(print, "<closure ");
@@ -79,7 +79,7 @@ static void closure_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_
 #endif
 
 #if MICROPY_PY_FUNCTION_ATTRS
-static void mp_obj_closure_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+static MAYBE_CUDA void mp_obj_closure_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     // forward to self_in->fun
     mp_obj_closure_t *o = MP_OBJ_TO_PTR(self_in);
     mp_load_method_maybe(o->fun, attr, dest);

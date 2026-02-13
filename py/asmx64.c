@@ -121,18 +121,18 @@
 #define UNSIGNED_FIT32(x) (((x) & 0xffffffff00000000) == 0)
 #define SIGNED_FIT8(x) (((x) & 0xffffff80) == 0) || (((x) & 0xffffff80) == 0xffffff80)
 
-static inline byte *asm_x64_get_cur_to_write_bytes(asm_x64_t *as, int n) {
+static MAYBE_CUDA inline byte *asm_x64_get_cur_to_write_bytes(asm_x64_t *as, int n) {
     return mp_asm_base_get_cur_to_write_bytes(&as->base, n);
 }
 
-static void asm_x64_write_byte_1(asm_x64_t *as, byte b1) {
+static MAYBE_CUDA void asm_x64_write_byte_1(asm_x64_t *as, byte b1) {
     byte *c = asm_x64_get_cur_to_write_bytes(as, 1);
     if (c != NULL) {
         c[0] = b1;
     }
 }
 
-static void asm_x64_write_byte_2(asm_x64_t *as, byte b1, byte b2) {
+static MAYBE_CUDA void asm_x64_write_byte_2(asm_x64_t *as, byte b1, byte b2) {
     byte *c = asm_x64_get_cur_to_write_bytes(as, 2);
     if (c != NULL) {
         c[0] = b1;
@@ -140,7 +140,7 @@ static void asm_x64_write_byte_2(asm_x64_t *as, byte b1, byte b2) {
     }
 }
 
-static void asm_x64_write_byte_3(asm_x64_t *as, byte b1, byte b2, byte b3) {
+static MAYBE_CUDA void asm_x64_write_byte_3(asm_x64_t *as, byte b1, byte b2, byte b3) {
     byte *c = asm_x64_get_cur_to_write_bytes(as, 3);
     if (c != NULL) {
         c[0] = b1;
@@ -149,7 +149,7 @@ static void asm_x64_write_byte_3(asm_x64_t *as, byte b1, byte b2, byte b3) {
     }
 }
 
-static void asm_x64_write_word32(asm_x64_t *as, int w32) {
+static MAYBE_CUDA void asm_x64_write_word32(asm_x64_t *as, int w32) {
     byte *c = asm_x64_get_cur_to_write_bytes(as, 4);
     if (c != NULL) {
         c[0] = IMM32_L0(w32);
@@ -159,7 +159,7 @@ static void asm_x64_write_word32(asm_x64_t *as, int w32) {
     }
 }
 
-static void asm_x64_write_word64(asm_x64_t *as, int64_t w64) {
+static MAYBE_CUDA void asm_x64_write_word64(asm_x64_t *as, int64_t w64) {
     byte *c = asm_x64_get_cur_to_write_bytes(as, 8);
     if (c != NULL) {
         c[0] = IMM32_L0(w64);
@@ -174,7 +174,7 @@ static void asm_x64_write_word64(asm_x64_t *as, int64_t w64) {
 }
 
 /* unused
-static void asm_x64_write_word32_to(asm_x64_t *as, int offset, int w32) {
+static MAYBE_CUDA void asm_x64_write_word32_to(asm_x64_t *as, int offset, int w32) {
     byte* c;
     assert(offset + 4 <= as->code_size);
     c = as->code_base + offset;
@@ -185,7 +185,7 @@ static void asm_x64_write_word32_to(asm_x64_t *as, int offset, int w32) {
 }
 */
 
-static void asm_x64_write_r64_disp(asm_x64_t *as, int r64, int disp_r64, int disp_offset) {
+static MAYBE_CUDA void asm_x64_write_r64_disp(asm_x64_t *as, int r64, int disp_r64, int disp_offset) {
     uint8_t rm_disp;
     if (disp_offset == 0 && (disp_r64 & 7) != ASM_X64_REG_RBP) {
         rm_disp = MODRM_RM_DISP0;
@@ -206,7 +206,7 @@ static void asm_x64_write_r64_disp(asm_x64_t *as, int r64, int disp_r64, int dis
     }
 }
 
-static void asm_x64_generic_r64_r64(asm_x64_t *as, int dest_r64, int src_r64, int op) {
+static MAYBE_CUDA void asm_x64_generic_r64_r64(asm_x64_t *as, int dest_r64, int src_r64, int op) {
     asm_x64_write_byte_3(as, REX_PREFIX | REX_W | REX_R_FROM_R64(src_r64) | REX_B_FROM_R64(dest_r64), op, MODRM_R64(src_r64) | MODRM_RM_REG | MODRM_RM_R64(dest_r64));
 }
 
@@ -245,7 +245,7 @@ void asm_x64_pop_r64(asm_x64_t *as, int dest_r64) {
     }
 }
 
-static void asm_x64_ret(asm_x64_t *as) {
+static MAYBE_CUDA void asm_x64_ret(asm_x64_t *as) {
     asm_x64_write_byte_1(as, OPCODE_RET);
 }
 
@@ -319,7 +319,7 @@ void asm_x64_mov_mem64_to_r64(asm_x64_t *as, int src_r64, int src_disp, int dest
     asm_x64_write_r64_disp(as, dest_r64, src_r64, src_disp);
 }
 
-static void asm_x64_lea_disp_to_r64(asm_x64_t *as, int src_r64, int src_disp, int dest_r64) {
+static MAYBE_CUDA void asm_x64_lea_disp_to_r64(asm_x64_t *as, int src_r64, int src_disp, int dest_r64) {
     // use REX prefix for 64 bit operation
     asm_x64_write_byte_2(as, REX_PREFIX | REX_W | REX_R_FROM_R64(dest_r64) | REX_B_FROM_R64(src_r64), OPCODE_LEA_MEM_TO_R64);
     asm_x64_write_r64_disp(as, dest_r64, src_r64, src_disp);
@@ -424,7 +424,7 @@ void asm_x64_sub_i32_from_r32(asm_x64_t *as, int src_i32, int dest_r32) {
 }
 */
 
-static void asm_x64_sub_r64_i32(asm_x64_t *as, int dest_r64, int src_i32) {
+static MAYBE_CUDA void asm_x64_sub_r64_i32(asm_x64_t *as, int dest_r64, int src_i32) {
     assert(dest_r64 < 8);
     if (SIGNED_FIT8(src_i32)) {
         // use REX prefix for 64 bit operation
@@ -490,7 +490,7 @@ void asm_x64_jmp_reg(asm_x64_t *as, int src_r64) {
     asm_x64_write_byte_2(as, OPCODE_JMP_RM64, MODRM_R64(4) | MODRM_RM_REG | MODRM_RM_R64(src_r64));
 }
 
-static mp_uint_t get_label_dest(asm_x64_t *as, mp_uint_t label) {
+static MAYBE_CUDA mp_uint_t get_label_dest(asm_x64_t *as, mp_uint_t label) {
     assert(label < as->base.max_num_labels);
     return as->base.label_offsets[label];
 }
@@ -570,7 +570,7 @@ void asm_x64_exit(asm_x64_t *as) {
 //  ^                ^
 //  | low address    | high address in RAM
 //
-static int asm_x64_local_offset_from_rsp(asm_x64_t *as, int local_num) {
+static MAYBE_CUDA int asm_x64_local_offset_from_rsp(asm_x64_t *as, int local_num) {
     (void)as;
     // Stack is full descending, RSP points to local0
     return local_num * WORD_SIZE;

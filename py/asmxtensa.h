@@ -133,152 +133,152 @@ void asm_xtensa_op24(asm_xtensa_t *as, uint32_t op);
 
 // raw instructions
 
-static inline void asm_xtensa_op_entry(asm_xtensa_t *as, uint reg_src, int32_t num_bytes) {
+static inline MAYBE_CUDA void asm_xtensa_op_entry(asm_xtensa_t *as, uint reg_src, int32_t num_bytes) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_BRI12(6, reg_src, 0, 3, (num_bytes / 8) & 0xfff));
 }
 
-static inline void asm_xtensa_op_add_n(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
+static inline MAYBE_CUDA void asm_xtensa_op_add_n(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
     asm_xtensa_op16(as, ASM_XTENSA_ENCODE_RRRN(10, reg_dest, reg_src_a, reg_src_b));
 }
 
-static inline void asm_xtensa_op_addi(asm_xtensa_t *as, uint reg_dest, uint reg_src, int imm8) {
+static inline MAYBE_CUDA void asm_xtensa_op_addi(asm_xtensa_t *as, uint reg_dest, uint reg_src, int imm8) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRI8(2, 12, reg_src, reg_dest, imm8 & 0xff));
 }
 
-static inline void asm_xtensa_op_addx2(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
+static inline MAYBE_CUDA void asm_xtensa_op_addx2(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 0, 9, reg_dest, reg_src_a, reg_src_b));
 }
 
-static inline void asm_xtensa_op_addx4(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
+static inline MAYBE_CUDA void asm_xtensa_op_addx4(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 0, 10, reg_dest, reg_src_a, reg_src_b));
 }
 
-static inline void asm_xtensa_op_and(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
+static inline MAYBE_CUDA void asm_xtensa_op_and(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 0, 1, reg_dest, reg_src_a, reg_src_b));
 }
 
-static inline void asm_xtensa_op_bcc(asm_xtensa_t *as, uint cond, uint reg_src1, uint reg_src2, int32_t rel8) {
+static inline MAYBE_CUDA void asm_xtensa_op_bcc(asm_xtensa_t *as, uint cond, uint reg_src1, uint reg_src2, int32_t rel8) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRI8(7, cond, reg_src1, reg_src2, rel8 & 0xff));
 }
 
-static inline void asm_xtensa_op_bccz(asm_xtensa_t *as, uint cond, uint reg_src, int32_t rel12) {
+static inline MAYBE_CUDA void asm_xtensa_op_bccz(asm_xtensa_t *as, uint cond, uint reg_src, int32_t rel12) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_BRI12(6, reg_src, cond, 1, rel12 & 0xfff));
 }
 
-static inline void asm_xtensa_op_call0(asm_xtensa_t *as, int32_t rel18) {
+static inline MAYBE_CUDA void asm_xtensa_op_call0(asm_xtensa_t *as, int32_t rel18) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_CALL(5, 0, rel18 & 0x3ffff));
 }
 
-static inline void asm_xtensa_op_callx0(asm_xtensa_t *as, uint reg) {
+static inline MAYBE_CUDA void asm_xtensa_op_callx0(asm_xtensa_t *as, uint reg) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_CALLX(0, 0, 0, 0, reg, 3, 0));
 }
 
-static inline void asm_xtensa_op_callx8(asm_xtensa_t *as, uint reg) {
+static inline MAYBE_CUDA void asm_xtensa_op_callx8(asm_xtensa_t *as, uint reg) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_CALLX(0, 0, 0, 0, reg, 3, 2));
 }
 
-static inline void asm_xtensa_op_j(asm_xtensa_t *as, int32_t rel18) {
+static inline MAYBE_CUDA void asm_xtensa_op_j(asm_xtensa_t *as, int32_t rel18) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_CALL(6, 0, rel18 & 0x3ffff));
 }
 
-static inline void asm_xtensa_op_jx(asm_xtensa_t *as, uint reg) {
+static inline MAYBE_CUDA void asm_xtensa_op_jx(asm_xtensa_t *as, uint reg) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_CALLX(0, 0, 0, 0, reg, 2, 2));
 }
 
-static inline void asm_xtensa_op_l8ui(asm_xtensa_t *as, uint reg_dest, uint reg_base, uint byte_offset) {
+static inline MAYBE_CUDA void asm_xtensa_op_l8ui(asm_xtensa_t *as, uint reg_dest, uint reg_base, uint byte_offset) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRI8(2, 0, reg_base, reg_dest, byte_offset & 0xff));
 }
 
-static inline void asm_xtensa_op_l16ui(asm_xtensa_t *as, uint reg_dest, uint reg_base, uint half_word_offset) {
+static inline MAYBE_CUDA void asm_xtensa_op_l16ui(asm_xtensa_t *as, uint reg_dest, uint reg_base, uint half_word_offset) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRI8(2, 1, reg_base, reg_dest, half_word_offset & 0xff));
 }
 
-static inline void asm_xtensa_op_l32i(asm_xtensa_t *as, uint reg_dest, uint reg_base, uint word_offset) {
+static inline MAYBE_CUDA void asm_xtensa_op_l32i(asm_xtensa_t *as, uint reg_dest, uint reg_base, uint word_offset) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRI8(2, 2, reg_base, reg_dest, word_offset & 0xff));
 }
 
-static inline void asm_xtensa_op_l32i_n(asm_xtensa_t *as, uint reg_dest, uint reg_base, uint word_offset) {
+static inline MAYBE_CUDA void asm_xtensa_op_l32i_n(asm_xtensa_t *as, uint reg_dest, uint reg_base, uint word_offset) {
     asm_xtensa_op16(as, ASM_XTENSA_ENCODE_RRRN(8, word_offset & 0xf, reg_base, reg_dest));
 }
 
-static inline void asm_xtensa_op_l32r(asm_xtensa_t *as, uint reg_dest, uint32_t op_off, uint32_t dest_off) {
+static inline MAYBE_CUDA void asm_xtensa_op_l32r(asm_xtensa_t *as, uint reg_dest, uint32_t op_off, uint32_t dest_off) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RI16(1, reg_dest, ((dest_off - ((op_off + 3) & ~3)) >> 2) & 0xffff));
 }
 
-static inline void asm_xtensa_op_mov_n(asm_xtensa_t *as, uint reg_dest, uint reg_src) {
+static inline MAYBE_CUDA void asm_xtensa_op_mov_n(asm_xtensa_t *as, uint reg_dest, uint reg_src) {
     asm_xtensa_op16(as, ASM_XTENSA_ENCODE_RRRN(13, 0, reg_src, reg_dest));
 }
 
-static inline void asm_xtensa_op_movi(asm_xtensa_t *as, uint reg_dest, int32_t imm12) {
+static inline MAYBE_CUDA void asm_xtensa_op_movi(asm_xtensa_t *as, uint reg_dest, int32_t imm12) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRI8(2, 10, (imm12 >> 8) & 0xf, reg_dest, imm12 & 0xff));
 }
 
 // Argument must be in the range (-32 .. 95) inclusive.
-static inline void asm_xtensa_op_movi_n(asm_xtensa_t *as, uint reg_dest, int imm7) {
+static inline MAYBE_CUDA void asm_xtensa_op_movi_n(asm_xtensa_t *as, uint reg_dest, int imm7) {
     asm_xtensa_op16(as, ASM_XTENSA_ENCODE_RI7(12, reg_dest, imm7));
 }
 
-static inline void asm_xtensa_op_mull(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
+static inline MAYBE_CUDA void asm_xtensa_op_mull(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 2, 8, reg_dest, reg_src_a, reg_src_b));
 }
 
-static inline void asm_xtensa_op_neg(asm_xtensa_t *as, uint reg_dest, uint reg_src) {
+static inline MAYBE_CUDA void asm_xtensa_op_neg(asm_xtensa_t *as, uint reg_dest, uint reg_src) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 0, 6, reg_dest, 0, reg_src));
 }
 
-static inline void asm_xtensa_op_or(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
+static inline MAYBE_CUDA void asm_xtensa_op_or(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 0, 2, reg_dest, reg_src_a, reg_src_b));
 }
 
-static inline void asm_xtensa_op_ret_n(asm_xtensa_t *as) {
+static inline MAYBE_CUDA void asm_xtensa_op_ret_n(asm_xtensa_t *as) {
     asm_xtensa_op16(as, ASM_XTENSA_ENCODE_RRRN(13, 15, 0, 0));
 }
 
-static inline void asm_xtensa_op_retw_n(asm_xtensa_t *as) {
+static inline MAYBE_CUDA void asm_xtensa_op_retw_n(asm_xtensa_t *as) {
     asm_xtensa_op16(as, ASM_XTENSA_ENCODE_RRRN(13, 15, 0, 1));
 }
 
-static inline void asm_xtensa_op_s8i(asm_xtensa_t *as, uint reg_src, uint reg_base, uint byte_offset) {
+static inline MAYBE_CUDA void asm_xtensa_op_s8i(asm_xtensa_t *as, uint reg_src, uint reg_base, uint byte_offset) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRI8(2, 4, reg_base, reg_src, byte_offset & 0xff));
 }
 
-static inline void asm_xtensa_op_s16i(asm_xtensa_t *as, uint reg_src, uint reg_base, uint half_word_offset) {
+static inline MAYBE_CUDA void asm_xtensa_op_s16i(asm_xtensa_t *as, uint reg_src, uint reg_base, uint half_word_offset) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRI8(2, 5, reg_base, reg_src, half_word_offset & 0xff));
 }
 
-static inline void asm_xtensa_op_s32i(asm_xtensa_t *as, uint reg_src, uint reg_base, uint word_offset) {
+static inline MAYBE_CUDA void asm_xtensa_op_s32i(asm_xtensa_t *as, uint reg_src, uint reg_base, uint word_offset) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRI8(2, 6, reg_base, reg_src, word_offset & 0xff));
 }
 
-static inline void asm_xtensa_op_s32i_n(asm_xtensa_t *as, uint reg_src, uint reg_base, uint word_offset) {
+static inline MAYBE_CUDA void asm_xtensa_op_s32i_n(asm_xtensa_t *as, uint reg_src, uint reg_base, uint word_offset) {
     asm_xtensa_op16(as, ASM_XTENSA_ENCODE_RRRN(9, word_offset & 0xf, reg_base, reg_src));
 }
 
-static inline void asm_xtensa_op_sll(asm_xtensa_t *as, uint reg_dest, uint reg_src) {
+static inline MAYBE_CUDA void asm_xtensa_op_sll(asm_xtensa_t *as, uint reg_dest, uint reg_src) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 1, 10, reg_dest, reg_src, 0));
 }
 
-static inline void asm_xtensa_op_srl(asm_xtensa_t *as, uint reg_dest, uint reg_src) {
+static inline MAYBE_CUDA void asm_xtensa_op_srl(asm_xtensa_t *as, uint reg_dest, uint reg_src) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 1, 9, reg_dest, 0, reg_src));
 }
 
-static inline void asm_xtensa_op_sra(asm_xtensa_t *as, uint reg_dest, uint reg_src) {
+static inline MAYBE_CUDA void asm_xtensa_op_sra(asm_xtensa_t *as, uint reg_dest, uint reg_src) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 1, 11, reg_dest, 0, reg_src));
 }
 
-static inline void asm_xtensa_op_ssl(asm_xtensa_t *as, uint reg_src) {
+static inline MAYBE_CUDA void asm_xtensa_op_ssl(asm_xtensa_t *as, uint reg_src) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 0, 4, 1, reg_src, 0));
 }
 
-static inline void asm_xtensa_op_ssr(asm_xtensa_t *as, uint reg_src) {
+static inline MAYBE_CUDA void asm_xtensa_op_ssr(asm_xtensa_t *as, uint reg_src) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 0, 4, 0, reg_src, 0));
 }
 
-static inline void asm_xtensa_op_sub(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
+static inline MAYBE_CUDA void asm_xtensa_op_sub(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 0, 12, reg_dest, reg_src_a, reg_src_b));
 }
 
-static inline void asm_xtensa_op_xor(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
+static inline MAYBE_CUDA void asm_xtensa_op_xor(asm_xtensa_t *as, uint reg_dest, uint reg_src_a, uint reg_src_b) {
     asm_xtensa_op24(as, ASM_XTENSA_ENCODE_RRR(0, 0, 3, reg_dest, reg_src_a, reg_src_b));
 }
 

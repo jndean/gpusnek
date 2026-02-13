@@ -43,11 +43,11 @@ struct _emit_inline_asm_t {
     qstr *label_lookup;
 };
 
-static void emit_inline_xtensa_error_msg(emit_inline_asm_t *emit, mp_rom_error_text_t msg) {
+static MAYBE_CUDA void emit_inline_xtensa_error_msg(emit_inline_asm_t *emit, mp_rom_error_text_t msg) {
     *emit->error_slot = mp_obj_new_exception_msg(&mp_type_SyntaxError, msg);
 }
 
-static void emit_inline_xtensa_error_exc(emit_inline_asm_t *emit, mp_obj_t exc) {
+static MAYBE_CUDA void emit_inline_xtensa_error_exc(emit_inline_asm_t *emit, mp_obj_t exc) {
     *emit->error_slot = exc;
 }
 
@@ -66,7 +66,7 @@ void emit_inline_xtensa_free(emit_inline_asm_t *emit) {
     m_del_obj(emit_inline_asm_t, emit);
 }
 
-static void emit_inline_xtensa_start_pass(emit_inline_asm_t *emit, pass_kind_t pass, mp_obj_t *error_slot) {
+static MAYBE_CUDA void emit_inline_xtensa_start_pass(emit_inline_asm_t *emit, pass_kind_t pass, mp_obj_t *error_slot) {
     emit->pass = pass;
     emit->error_slot = error_slot;
     if (emit->pass == MP_PASS_CODE_SIZE) {
@@ -76,12 +76,12 @@ static void emit_inline_xtensa_start_pass(emit_inline_asm_t *emit, pass_kind_t p
     asm_xtensa_entry(&emit->as, 0);
 }
 
-static void emit_inline_xtensa_end_pass(emit_inline_asm_t *emit, mp_uint_t type_sig) {
+static MAYBE_CUDA void emit_inline_xtensa_end_pass(emit_inline_asm_t *emit, mp_uint_t type_sig) {
     asm_xtensa_exit(&emit->as);
     asm_xtensa_end_pass(&emit->as);
 }
 
-static mp_uint_t emit_inline_xtensa_count_params(emit_inline_asm_t *emit, mp_uint_t n_params, mp_parse_node_t *pn_params) {
+static MAYBE_CUDA mp_uint_t emit_inline_xtensa_count_params(emit_inline_asm_t *emit, mp_uint_t n_params, mp_parse_node_t *pn_params) {
     if (n_params > 4) {
         emit_inline_xtensa_error_msg(emit, MP_ERROR_TEXT("can only have up to 4 parameters to Xtensa assembly"));
         return 0;
@@ -100,7 +100,7 @@ static mp_uint_t emit_inline_xtensa_count_params(emit_inline_asm_t *emit, mp_uin
     return n_params;
 }
 
-static bool emit_inline_xtensa_label(emit_inline_asm_t *emit, mp_uint_t label_num, qstr label_id) {
+static MAYBE_CUDA bool emit_inline_xtensa_label(emit_inline_asm_t *emit, mp_uint_t label_num, qstr label_id) {
     assert(label_num < emit->max_num_labels);
     if (emit->pass == MP_PASS_CODE_SIZE) {
         // check for duplicate label on first pass
@@ -115,12 +115,12 @@ static bool emit_inline_xtensa_label(emit_inline_asm_t *emit, mp_uint_t label_nu
     return true;
 }
 
-static const qstr_short_t REGISTERS[16] = {
+static MAYBE_CUDA const qstr_short_t REGISTERS[16] = {
     MP_QSTR_a0, MP_QSTR_a1, MP_QSTR_a2, MP_QSTR_a3, MP_QSTR_a4, MP_QSTR_a5, MP_QSTR_a6, MP_QSTR_a7,
     MP_QSTR_a8, MP_QSTR_a9, MP_QSTR_a10, MP_QSTR_a11, MP_QSTR_a12, MP_QSTR_a13, MP_QSTR_a14, MP_QSTR_a15
 };
 
-static mp_uint_t get_arg_reg(emit_inline_asm_t *emit, const char *op, mp_parse_node_t pn) {
+static MAYBE_CUDA mp_uint_t get_arg_reg(emit_inline_asm_t *emit, const char *op, mp_parse_node_t pn) {
     if (MP_PARSE_NODE_IS_ID(pn)) {
         qstr node_qstr = MP_PARSE_NODE_LEAF_ARG(pn);
         for (size_t i = 0; i < MP_ARRAY_SIZE(REGISTERS); i++) {
@@ -136,7 +136,7 @@ static mp_uint_t get_arg_reg(emit_inline_asm_t *emit, const char *op, mp_parse_n
     return 0;
 }
 
-static uint32_t get_arg_i(emit_inline_asm_t *emit, const char *op, mp_parse_node_t pn, int min, int max) {
+static MAYBE_CUDA uint32_t get_arg_i(emit_inline_asm_t *emit, const char *op, mp_parse_node_t pn, int min, int max) {
     mp_obj_t o;
     if (!mp_parse_node_get_int_maybe(pn, &o)) {
         emit_inline_xtensa_error_exc(emit, mp_obj_new_exception_msg_varg(&mp_type_SyntaxError, MP_ERROR_TEXT("'%s' expects an integer"), op));
@@ -150,7 +150,7 @@ static uint32_t get_arg_i(emit_inline_asm_t *emit, const char *op, mp_parse_node
     return i;
 }
 
-static int get_arg_label(emit_inline_asm_t *emit, const char *op, mp_parse_node_t pn) {
+static MAYBE_CUDA int get_arg_label(emit_inline_asm_t *emit, const char *op, mp_parse_node_t pn) {
     if (!MP_PARSE_NODE_IS_ID(pn)) {
         emit_inline_xtensa_error_exc(emit, mp_obj_new_exception_msg_varg(&mp_type_SyntaxError, MP_ERROR_TEXT("'%s' expects a label"), op));
         return 0;
@@ -179,7 +179,7 @@ typedef struct _opcode_table_3arg_t {
     uint8_t a1 : 4;
 } opcode_table_3arg_t;
 
-static const opcode_table_3arg_t opcode_table_3arg[] = {
+static MAYBE_CUDA const opcode_table_3arg_t opcode_table_3arg[] = {
     // arithmetic opcodes: reg, reg, reg
     {MP_QSTR_and_, RRR, 0, 1},
     {MP_QSTR_or_, RRR, 0, 2},
@@ -223,7 +223,7 @@ static const opcode_table_3arg_t opcode_table_3arg[] = {
 
 // The index of the first four qstrs matches the CCZ condition value to be
 // embedded into the opcode.
-static const qstr_short_t BCCZ_OPCODES[] = {
+static MAYBE_CUDA const qstr_short_t BCCZ_OPCODES[] = {
     MP_QSTR_beqz, MP_QSTR_bnez, MP_QSTR_bltz, MP_QSTR_bgez,
     MP_QSTR_beqz_n, MP_QSTR_bnez_n
 };
@@ -234,7 +234,7 @@ typedef struct _single_opcode_t {
     uint16_t value;
 } single_opcode_t;
 
-static const single_opcode_t NOARGS_OPCODES[] = {
+static MAYBE_CUDA const single_opcode_t NOARGS_OPCODES[] = {
     {MP_QSTR_dsync, 0x2030},
     {MP_QSTR_esync, 0x2020},
     {MP_QSTR_extw,  0x20D0},
@@ -245,7 +245,7 @@ static const single_opcode_t NOARGS_OPCODES[] = {
 };
 #endif
 
-static void emit_inline_xtensa_op(emit_inline_asm_t *emit, qstr op, mp_uint_t n_args, mp_parse_node_t *pn_args) {
+static MAYBE_CUDA void emit_inline_xtensa_op(emit_inline_asm_t *emit, qstr op, mp_uint_t n_args, mp_parse_node_t *pn_args) {
     size_t op_len;
     const char *op_str = (const char *)qstr_data(op, &op_len);
 

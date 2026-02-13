@@ -37,7 +37,7 @@
 #include <math.h>
 #endif
 
-static MP_NORETURN void raise_exc(mp_obj_t exc, mp_lexer_t *lex) {
+static MAYBE_CUDA MP_NORETURN void raise_exc(mp_obj_t exc, mp_lexer_t *lex) {
     // if lex!=NULL then the parser called us and we need to convert the
     // exception's type from ValueError to SyntaxError and add traceback info
     if (lex != NULL) {
@@ -283,7 +283,7 @@ mp_large_float_t mp_decimal_exp(mp_large_float_t num, int dec_exp) {
 
 
 // Break out inner digit accumulation routine to ease trailing zero deferral.
-static mp_large_float_uint_t accept_digit(mp_large_float_uint_t p_mantissa, unsigned int dig, int *p_exp_extra, int in) {
+static MAYBE_CUDA mp_large_float_uint_t accept_digit(mp_large_float_uint_t p_mantissa, unsigned int dig, int *p_exp_extra, int in) {
     // Core routine to ingest an additional digit.
     if (p_mantissa < MANTISSA_MAX) {
         // dec_val won't overflow so keep accumulating

@@ -80,7 +80,7 @@ typedef struct _asm_x86_t {
     int num_locals;
 } asm_x86_t;
 
-static inline void asm_x86_end_pass(asm_x86_t *as) {
+static inline MAYBE_CUDA void asm_x86_end_pass(asm_x86_t *as) {
     (void)as;
 }
 

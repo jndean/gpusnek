@@ -229,20 +229,20 @@ MAYBE_CUDA void m_free(void *ptr)
 // (For ports with GIL, the expectation is to only call tracked alloc functions
 // while holding the GIL.)
 
-static inline void m_tracked_node_lock(void) {
+static MAYBE_CUDA inline void m_tracked_node_lock(void) {
     mp_thread_recursive_mutex_lock(&MP_STATE_MEM(gc_mutex), 1);
 }
 
-static inline void m_tracked_node_unlock(void) {
+static MAYBE_CUDA inline void m_tracked_node_unlock(void) {
     mp_thread_recursive_mutex_unlock(&MP_STATE_MEM(gc_mutex));
 }
 
 #else
 
-static inline void m_tracked_node_lock(void) {
+static MAYBE_CUDA inline void m_tracked_node_lock(void) {
 }
 
-static inline void m_tracked_node_unlock(void) {
+static MAYBE_CUDA inline void m_tracked_node_unlock(void) {
 }
 
 #endif
@@ -259,7 +259,7 @@ typedef struct _m_tracked_node_t {
 } m_tracked_node_t;
 
 #if MICROPY_DEBUG_VERBOSE
-static size_t m_tracked_count_links(size_t *nb) {
+static MAYBE_CUDA size_t m_tracked_count_links(size_t *nb) {
     m_tracked_node_lock();
     m_tracked_node_t *node = MP_STATE_VM(m_tracked_head);
     size_t n = 0;

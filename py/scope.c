@@ -33,7 +33,7 @@
 // These low numbered qstrs should fit in 8 bits.  See assertions below.
 // The (unescaped) names appear in `unsorted_str_list` in the QSTR
 // generator script py/makeqstrdata.py to ensure they are assigned low numbers.
-static const uint8_t scope_simple_name_table[] = {
+static MAYBE_CUDA const uint8_t scope_simple_name_table[] = {
     MP_QSTR__lt_module_gt_, // SCOPE_MODULE
     0,                      // SCOPE_CLASS (unused in table, handled specially)
     MP_QSTR__lt_lambda_gt_, // SCOPE_LAMBDA
@@ -43,7 +43,7 @@ static const uint8_t scope_simple_name_table[] = {
     MP_QSTR__lt_genexpr_gt_, // SCOPE_GEN_EXPR
 };
 
-scope_t *scope_new(scope_kind_t kind, mp_parse_node_t pn, mp_uint_t emit_options) {
+MAYBE_CUDA scope_t *scope_new(scope_kind_t kind, mp_parse_node_t pn, mp_uint_t emit_options) {
     // Make sure those qstrs indeed fit in an uint8_t.
     MP_STATIC_ASSERT(MP_QSTR__lt_module_gt_ <= UINT8_MAX);
     MP_STATIC_ASSERT(MP_QSTR__lt_lambda_gt_ <= UINT8_MAX);
@@ -69,12 +69,12 @@ scope_t *scope_new(scope_kind_t kind, mp_parse_node_t pn, mp_uint_t emit_options
     return scope;
 }
 
-void scope_free(scope_t *scope) {
+MAYBE_CUDA void scope_free(scope_t *scope) {
     m_del(id_info_t, scope->id_info, scope->id_info_alloc);
     m_del(scope_t, scope, 1);
 }
 
-id_info_t *scope_find_or_add_id(scope_t *scope, qstr qst, id_info_kind_t kind) {
+MAYBE_CUDA id_info_t *scope_find_or_add_id(scope_t *scope, qstr qst, id_info_kind_t kind) {
     id_info_t *id_info = scope_find(scope, qst);
     if (id_info != NULL) {
         return id_info;
@@ -98,7 +98,7 @@ id_info_t *scope_find_or_add_id(scope_t *scope, qstr qst, id_info_kind_t kind) {
     return id_info;
 }
 
-id_info_t *scope_find(scope_t *scope, qstr qst) {
+MAYBE_CUDA id_info_t *scope_find(scope_t *scope, qstr qst) {
     for (mp_uint_t i = 0; i < scope->id_info_len; i++) {
         if (scope->id_info[i].qst == qst) {
             return &scope->id_info[i];
@@ -107,14 +107,14 @@ id_info_t *scope_find(scope_t *scope, qstr qst) {
     return NULL;
 }
 
-id_info_t *scope_find_global(scope_t *scope, qstr qst) {
+MAYBE_CUDA id_info_t *scope_find_global(scope_t *scope, qstr qst) {
     while (scope->parent != NULL) {
         scope = scope->parent;
     }
     return scope_find(scope, qst);
 }
 
-static void scope_close_over_in_parents(scope_t *scope, qstr qst) {
+static MAYBE_CUDA void scope_close_over_in_parents(scope_t *scope, qstr qst) {
     assert(scope->parent != NULL); // we should have at least 1 parent
     for (scope_t *s = scope->parent;; s = s->parent) {
         assert(s->parent != NULL); // we should not get to the outer scope
@@ -137,7 +137,7 @@ static void scope_close_over_in_parents(scope_t *scope, qstr qst) {
     }
 }
 
-void scope_check_to_close_over(scope_t *scope, id_info_t *id) {
+MAYBE_CUDA void scope_check_to_close_over(scope_t *scope, id_info_t *id) {
     if (scope->parent != NULL) {
         for (scope_t *s = scope->parent; s->parent != NULL; s = s->parent) {
             id_info_t *id2 = scope_find(s, id->qst);

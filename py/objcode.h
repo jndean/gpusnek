@@ -39,7 +39,7 @@ typedef struct _mp_obj_code_t {
     mp_obj_t module_fun;
 } mp_obj_code_t;
 
-static inline mp_obj_t mp_obj_new_code(mp_obj_t module_fun) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_new_code(mp_obj_t module_fun) {
     mp_obj_code_t *code = mp_obj_malloc(mp_obj_code_t, &mp_type_code);
     code->module_fun = module_fun;
     return MP_OBJ_FROM_PTR(code);
@@ -53,18 +53,18 @@ typedef struct _mp_obj_code_t {
     const void *proto_fun;
 } mp_obj_code_t;
 
-static inline mp_obj_t mp_obj_new_code(const mp_module_constants_t constants, const void *proto_fun) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_new_code(const mp_module_constants_t constants, const void *proto_fun) {
     mp_obj_code_t *code = mp_obj_malloc(mp_obj_code_t, &mp_type_code);
     code->constants = constants;
     code->proto_fun = proto_fun;
     return MP_OBJ_FROM_PTR(code);
 }
 
-static inline const mp_module_constants_t *mp_code_get_constants(mp_obj_code_t *self) {
+static inline MAYBE_CUDA const mp_module_constants_t *mp_code_get_constants(mp_obj_code_t *self) {
     return &self->constants;
 }
 
-static inline const void *mp_code_get_proto_fun(mp_obj_code_t *self) {
+static inline MAYBE_CUDA const void *mp_code_get_proto_fun(mp_obj_code_t *self) {
     return self->proto_fun;
 }
 
@@ -86,11 +86,11 @@ typedef struct _mp_obj_code_t {
 
 MAYBE_CUDA mp_obj_t mp_obj_new_code(const mp_module_context_t *context, const mp_raw_code_t *rc, bool result_required);
 
-static inline const mp_module_constants_t *mp_code_get_constants(mp_obj_code_t *self) {
+static inline MAYBE_CUDA const mp_module_constants_t *mp_code_get_constants(mp_obj_code_t *self) {
     return &self->context->constants;
 }
 
-static inline const void *mp_code_get_proto_fun(mp_obj_code_t *self) {
+static inline MAYBE_CUDA const void *mp_code_get_proto_fun(mp_obj_code_t *self) {
     // A mp_raw_code_t is always a proto_fun (but not the other way around).
     return self->rc;
 }

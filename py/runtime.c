@@ -1073,7 +1073,7 @@ typedef struct _mp_obj_checked_fun_t {
     mp_obj_t fun;
 } mp_obj_checked_fun_t;
 
-static mp_obj_t checked_fun_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t checked_fun_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_obj_checked_fun_t *self = MP_OBJ_TO_PTR(self_in);
     if (n_args > 0) {
         const mp_obj_type_t *arg0_type = mp_obj_get_type(args[0]);
@@ -1089,14 +1089,14 @@ static mp_obj_t checked_fun_call(mp_obj_t self_in, size_t n_args, size_t n_kw, c
     return mp_call_function_n_kw(self->fun, n_args, n_kw, args);
 }
 
-static MP_DEFINE_CONST_OBJ_TYPE(
+static MAYBE_CUDA MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_checked_fun,
     MP_QSTR_function,
     MP_TYPE_FLAG_BINDS_SELF,
     call, checked_fun_call
     );
 
-static mp_obj_t mp_obj_new_checked_fun(const mp_obj_type_t *type, mp_obj_t fun) {
+static MAYBE_CUDA mp_obj_t mp_obj_new_checked_fun(const mp_obj_type_t *type, mp_obj_t fun) {
     mp_obj_checked_fun_t *o = mp_obj_malloc(mp_obj_checked_fun_t, &mp_type_checked_fun);
     o->type = type;
     o->fun = fun;
@@ -1342,7 +1342,7 @@ MAYBE_CUDA mp_obj_t mp_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
 
 }
 
-static mp_fun_1_t type_get_iternext(const mp_obj_type_t *type) {
+static MAYBE_CUDA mp_fun_1_t type_get_iternext(const mp_obj_type_t *type) {
     if ((type->flags & MP_TYPE_FLAG_ITER_IS_STREAM) == MP_TYPE_FLAG_ITER_IS_STREAM) {
         return mp_stream_unbuffered_iter;
     } else if (type->flags & MP_TYPE_FLAG_ITER_IS_ITERNEXT) {

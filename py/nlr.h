@@ -176,19 +176,19 @@ unsigned int nlr_push(nlr_buf_t *);
 #endif
 
 unsigned int nlr_push_tail(nlr_buf_t *top);
-void nlr_pop(void);
-MP_NORETURN void nlr_jump(void *val);
+MAYBE_CUDA void nlr_pop(void);
+MAYBE_CUDA MP_NORETURN void nlr_jump(void *val);
 
 #if MICROPY_ENABLE_VM_ABORT
 #define nlr_set_abort(buf) MP_STATE_VM(nlr_abort) = buf
 #define nlr_get_abort() MP_STATE_VM(nlr_abort)
-MP_NORETURN void nlr_jump_abort(void);
+MAYBE_CUDA MP_NORETURN void nlr_jump_abort(void);
 #endif
 
 // This must be implemented by a port.  It's called by nlr_jump
 // if no nlr buf has been pushed.  It must not return, but rather
 // should bail out with a fatal error.
-MP_NORETURN void nlr_jump_fail(void *val);
+MAYBE_CUDA MP_NORETURN void nlr_jump_fail(void *val);
 
 // use nlr_raise instead of nlr_jump so that debugging is easier
 #ifndef MICROPY_DEBUG_NLR
@@ -213,13 +213,13 @@ MP_NORETURN void nlr_jump_fail(void *val);
 // Push a callback on to the linked-list of NLR jump callbacks.  The `node` pointer must
 // be on the C stack.  The `fun` callback will be executed if an NLR jump is taken which
 // unwinds the C stack through this `node`.
-void nlr_push_jump_callback(nlr_jump_callback_node_t *node, nlr_jump_callback_fun_t fun);
+MAYBE_CUDA void nlr_push_jump_callback(nlr_jump_callback_node_t *node, nlr_jump_callback_fun_t fun);
 
 // Pop a callback from the linked-list of NLR jump callbacks.  The corresponding function
 // will be called if `run_callback` is true.
-void nlr_pop_jump_callback(bool run_callback);
+MAYBE_CUDA void nlr_pop_jump_callback(bool run_callback);
 
 // Pop and call all NLR jump callbacks that were registered after `nlr` buffer was pushed.
-void nlr_call_jump_callbacks(nlr_buf_t *nlr);
+MAYBE_CUDA void nlr_call_jump_callbacks(nlr_buf_t *nlr);
 
 #endif // MICROPY_INCLUDED_PY_NLR_H

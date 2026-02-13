@@ -51,12 +51,12 @@
 #define OP_SUB_W_RRI_HI(reg_src) (0xf2a0 | (reg_src))
 #define OP_SUB_W_RRI_LO(reg_dest, imm11) ((imm11 << 4 & 0x7000) | reg_dest << 8 | (imm11 & 0xff))
 
-static inline byte *asm_thumb_get_cur_to_write_bytes(asm_thumb_t *as, int n) {
+static MAYBE_CUDA inline byte *asm_thumb_get_cur_to_write_bytes(asm_thumb_t *as, int n) {
     return mp_asm_base_get_cur_to_write_bytes(&as->base, n);
 }
 
 /*
-static void asm_thumb_write_byte_1(asm_thumb_t *as, byte b1) {
+static MAYBE_CUDA void asm_thumb_write_byte_1(asm_thumb_t *as, byte b1) {
     byte *c = asm_thumb_get_cur_to_write_bytes(as, 1);
     c[0] = b1;
 }
@@ -68,7 +68,7 @@ static void asm_thumb_write_byte_1(asm_thumb_t *as, byte b1) {
 #define IMM32_L2(x) (((x) >> 16) & 0xff)
 #define IMM32_L3(x) (((x) >> 24) & 0xff)
 
-static void asm_thumb_write_word32(asm_thumb_t *as, int w32) {
+static MAYBE_CUDA void asm_thumb_write_word32(asm_thumb_t *as, int w32) {
     byte *c = asm_thumb_get_cur_to_write_bytes(as, 4);
     c[0] = IMM32_L0(w32);
     c[1] = IMM32_L1(w32);
@@ -193,7 +193,7 @@ void asm_thumb_exit(asm_thumb_t *as) {
     asm_thumb_op16(as, OP_POP_RLIST_PC(as->push_reglist));
 }
 
-static mp_uint_t get_label_dest(asm_thumb_t *as, uint label) {
+static MAYBE_CUDA mp_uint_t get_label_dest(asm_thumb_t *as, uint label) {
     assert(label < as->base.max_num_labels);
     return as->base.label_offsets[label];
 }
@@ -249,7 +249,7 @@ void asm_thumb_mov_reg_i16(asm_thumb_t *as, uint mov_op, uint reg_dest, int i16_
     asm_thumb_op32(as, mov_op | ((i16_src >> 1) & 0x0400) | ((i16_src >> 12) & 0xf), ((i16_src << 4) & 0x7000) | (reg_dest << 8) | (i16_src & 0xff));
 }
 
-static void asm_thumb_mov_rlo_i16(asm_thumb_t *as, uint rlo_dest, int i16_src) {
+static MAYBE_CUDA void asm_thumb_mov_rlo_i16(asm_thumb_t *as, uint rlo_dest, int i16_src) {
     asm_thumb_mov_rlo_i8(as, rlo_dest, (i16_src >> 8) & 0xff);
     asm_thumb_lsl_rlo_rlo_i5(as, rlo_dest, rlo_dest, 8);
     asm_thumb_add_rlo_i8(as, rlo_dest, i16_src & 0xff);
@@ -374,7 +374,7 @@ void asm_thumb_mov_reg_i32_optimised(asm_thumb_t *as, uint reg_dest, int i32) {
 #define OP_STR_TO_SP_OFFSET(rlo_dest, word_offset) (0x9000 | ((rlo_dest) << 8) | ((word_offset) & 0x00ff))
 #define OP_LDR_FROM_SP_OFFSET(rlo_dest, word_offset) (0x9800 | ((rlo_dest) << 8) | ((word_offset) & 0x00ff))
 
-static void asm_thumb_mov_local_check(asm_thumb_t *as, int word_offset) {
+static MAYBE_CUDA void asm_thumb_mov_local_check(asm_thumb_t *as, int word_offset) {
     if (as->base.pass >= MP_ASM_PASS_EMIT) {
         assert(word_offset >= 0);
         if (!UNSIGNED_FIT8(word_offset)) {
@@ -425,7 +425,7 @@ void asm_thumb_mov_reg_pcrel(asm_thumb_t *as, uint rlo_dest, uint label) {
 }
 
 // emits code for: reg_dest = reg_base + offset << offset_shift
-static void asm_thumb_add_reg_reg_offset(asm_thumb_t *as, uint reg_dest, uint reg_base, uint offset, uint offset_shift) {
+static MAYBE_CUDA void asm_thumb_add_reg_reg_offset(asm_thumb_t *as, uint reg_dest, uint reg_base, uint offset, uint offset_shift) {
     if (reg_dest < ASM_THUMB_REG_R8 && reg_base < ASM_THUMB_REG_R8) {
         if (offset << offset_shift < 256) {
             if (reg_dest != reg_base) {
@@ -460,7 +460,7 @@ static void asm_thumb_add_reg_reg_offset(asm_thumb_t *as, uint reg_dest, uint re
 #define OP_LDR_W 0x10
 #define OP_STR_W 0x00
 
-static const uint8_t OP_LDR_STR_TABLE[3] = {
+static MAYBE_CUDA const uint8_t OP_LDR_STR_TABLE[3] = {
     0x0E, 0x10, 0x0C
 };
 

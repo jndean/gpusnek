@@ -36,21 +36,21 @@
 
 MAYBE_CUDA const char *mp_repl_get_psx(unsigned int entry);
 
-static inline const char *mp_repl_get_ps1(void) {
+static inline MAYBE_CUDA const char *mp_repl_get_ps1(void) {
     return mp_repl_get_psx(MP_SYS_MUTABLE_PS1);
 }
 
-static inline const char *mp_repl_get_ps2(void) {
+static inline MAYBE_CUDA const char *mp_repl_get_ps2(void) {
     return mp_repl_get_psx(MP_SYS_MUTABLE_PS2);
 }
 
 #else
 
-static inline const char *mp_repl_get_ps1(void) {
+static inline MAYBE_CUDA const char *mp_repl_get_ps1(void) {
     return ">>> ";
 }
 
-static inline const char *mp_repl_get_ps2(void) {
+static inline MAYBE_CUDA const char *mp_repl_get_ps2(void) {
     return "... ";
 }
 

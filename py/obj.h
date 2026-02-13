@@ -501,7 +501,7 @@ typedef enum _mp_map_lookup_kind_t {
     MP_MAP_LOOKUP_ADD_IF_NOT_FOUND_OR_REMOVE_IF_FOUND = 3, // only valid for mp_set_lookup
 } mp_map_lookup_kind_t;
 
-static inline bool mp_map_slot_is_filled(const mp_map_t *map, size_t pos) {
+static inline MAYBE_CUDA bool mp_map_slot_is_filled(const mp_map_t *map, size_t pos) {
     assert(pos < map->alloc);
     return (map)->table[pos].key != MP_OBJ_NULL && (map)->table[pos].key != MP_OBJ_SENTINEL;
 }
@@ -521,7 +521,7 @@ typedef struct _mp_set_t {
     mp_obj_t *table;
 } mp_set_t;
 
-static inline bool mp_set_slot_is_filled(const mp_set_t *set, size_t pos) {
+static inline MAYBE_CUDA bool mp_set_slot_is_filled(const mp_set_t *set, size_t pos) {
     return (set)->table[pos] != MP_OBJ_NULL && (set)->table[pos] != MP_OBJ_SENTINEL;
 }
 
@@ -1120,7 +1120,7 @@ MAYBE_CUDA mp_obj_t mp_obj_exception_get_value(mp_obj_t self_in);
 MAYBE_CUDA mp_obj_t mp_obj_exception_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args);
 MAYBE_CUDA mp_obj_t mp_alloc_emergency_exception_buf(mp_obj_t size_in);
 MAYBE_CUDA void mp_init_emergency_exception_buf(void);
-static inline mp_obj_t mp_obj_new_exception_arg1(const mp_obj_type_t *exc_type, mp_obj_t arg) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_new_exception_arg1(const mp_obj_type_t *exc_type, mp_obj_t arg) {
     assert(MP_OBJ_TYPE_GET_SLOT_OR_NULL(exc_type, make_new) == mp_obj_exception_make_new);
     return mp_obj_exception_make_new(exc_type, 1, 0, &arg);
 }
@@ -1137,42 +1137,42 @@ MAYBE_CUDA void mp_str_print_quoted(const mp_print_t *print, const byte *str_dat
 #if MICROPY_PY_BUILTINS_FLOAT
 // float
 #if MICROPY_FLOAT_IMPL == MICROPY_FLOAT_IMPL_FLOAT
-static inline float mp_obj_get_float_to_f(mp_obj_t o) {
+static inline MAYBE_CUDA float mp_obj_get_float_to_f(mp_obj_t o) {
     return mp_obj_get_float(o);
 }
 
-static inline double mp_obj_get_float_to_d(mp_obj_t o) {
+static inline MAYBE_CUDA double mp_obj_get_float_to_d(mp_obj_t o) {
     return (double)mp_obj_get_float(o);
 }
 
-static inline mp_obj_t mp_obj_new_float_from_f(float o) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_new_float_from_f(float o) {
     return mp_obj_new_float(o);
 }
 
-static inline mp_obj_t mp_obj_new_float_from_d(double o) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_new_float_from_d(double o) {
     return mp_obj_new_float((mp_float_t)o);
 }
 #elif MICROPY_FLOAT_IMPL == MICROPY_FLOAT_IMPL_DOUBLE
-static inline float mp_obj_get_float_to_f(mp_obj_t o) {
+static inline MAYBE_CUDA float mp_obj_get_float_to_f(mp_obj_t o) {
     return (float)mp_obj_get_float(o);
 }
 
-static inline double mp_obj_get_float_to_d(mp_obj_t o) {
+static inline MAYBE_CUDA double mp_obj_get_float_to_d(mp_obj_t o) {
     return mp_obj_get_float(o);
 }
 
-static inline mp_obj_t mp_obj_new_float_from_f(float o) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_new_float_from_f(float o) {
     return mp_obj_new_float((mp_float_t)o);
 }
 
-static inline mp_obj_t mp_obj_new_float_from_d(double o) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_new_float_from_d(double o) {
     return mp_obj_new_float(o);
 }
 #endif
 #if MICROPY_FLOAT_HIGH_QUALITY_HASH
 MAYBE_CUDA mp_int_t mp_float_hash(mp_float_t val);
 #else
-static inline mp_int_t mp_float_hash(mp_float_t val) {
+static inline MAYBE_CUDA mp_int_t mp_float_hash(mp_float_t val) {
     return (mp_int_t)val;
 }
 #endif
@@ -1210,7 +1210,7 @@ MAYBE_CUDA mp_obj_t mp_obj_dict_get(mp_obj_t self_in, mp_obj_t index);
 MAYBE_CUDA mp_obj_t mp_obj_dict_store(mp_obj_t self_in, mp_obj_t key, mp_obj_t value);
 MAYBE_CUDA mp_obj_t mp_obj_dict_delete(mp_obj_t self_in, mp_obj_t key);
 MAYBE_CUDA mp_obj_t mp_obj_dict_copy(mp_obj_t self_in);
-static inline mp_map_t *mp_obj_dict_get_map(mp_obj_t dict) {
+static inline MAYBE_CUDA mp_map_t *mp_obj_dict_get_map(mp_obj_t dict) {
     return &((mp_obj_dict_t *)MP_OBJ_TO_PTR(dict))->map;
 }
 
@@ -1264,7 +1264,7 @@ typedef struct _mp_obj_module_t {
     mp_obj_base_t base;
     mp_obj_dict_t *globals;
 } mp_obj_module_t;
-static inline mp_obj_dict_t *mp_obj_module_get_globals(mp_obj_t module) {
+static inline MAYBE_CUDA mp_obj_dict_t *mp_obj_module_get_globals(mp_obj_t module) {
     return ((mp_obj_module_t *)MP_OBJ_TO_PTR(module))->globals;
 }
 
