@@ -40,7 +40,7 @@
 #endif
 
 // This dispatcher function is expected to be independent of the implementation of long int
-static mp_obj_t mp_obj_int_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_obj_int_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     (void)type_in;
     mp_arg_check_num(n_args, n_kw, 0, 2, false);
 
@@ -83,7 +83,7 @@ typedef enum {
     MP_FP_CLASS_OVERFLOW
 } mp_fp_as_int_class_t;
 
-static mp_fp_as_int_class_t mp_classify_fp_as_int(mp_float_t val) {
+static MAYBE_CUDA mp_fp_as_int_class_t mp_classify_fp_as_int(mp_float_t val) {
     union {
         mp_float_t f;
         #if MICROPY_FLOAT_IMPL == MICROPY_FLOAT_IMPL_FLOAT
@@ -199,7 +199,7 @@ MAYBE_CUDA void mp_obj_int_print(const mp_print_t *print, mp_obj_t self_in, mp_p
     }
 }
 
-static const uint8_t log_base2_floor[] = {
+static MAYBE_CUDA const uint8_t log_base2_floor[] = {
     0, 1, 1, 2,
     2, 2, 2, 3,
     3, 3, 3, 3,
@@ -395,7 +395,7 @@ MAYBE_CUDA mp_obj_t mp_obj_int_binary_op_extra_cases(mp_binary_op_t op, mp_obj_t
 }
 
 // this is a classmethod
-static mp_obj_t int_from_bytes(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t int_from_bytes(size_t n_args, const mp_obj_t *args) {
     // TODO: Support signed param (assumes signed=False at the moment)
 
     // get the buffer info
@@ -424,10 +424,10 @@ static mp_obj_t int_from_bytes(size_t n_args, const mp_obj_t *args) {
     return mp_obj_new_int_from_uint(value);
 }
 
-static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(int_from_bytes_fun_obj, 2, 4, int_from_bytes);
-static MP_DEFINE_CONST_CLASSMETHOD_OBJ(int_from_bytes_obj, MP_ROM_PTR(&int_from_bytes_fun_obj));
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(int_from_bytes_fun_obj, 2, 4, int_from_bytes);
+static MAYBE_CUDA MP_DEFINE_CONST_CLASSMETHOD_OBJ(int_from_bytes_obj, MP_ROM_PTR(&int_from_bytes_fun_obj));
 
-static mp_obj_t int_to_bytes(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t int_to_bytes(size_t n_args, const mp_obj_t *args) {
     // TODO: Support signed (currently behaves as if signed=(val < 0))
     bool overflow;
 
@@ -475,14 +475,14 @@ static mp_obj_t int_to_bytes(size_t n_args, const mp_obj_t *args) {
 
     return mp_obj_new_bytes_from_vstr(&vstr);
 }
-static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(int_to_bytes_obj, 1, 4, int_to_bytes);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(int_to_bytes_obj, 1, 4, int_to_bytes);
 
-static const mp_rom_map_elem_t int_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t int_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_from_bytes), MP_ROM_PTR(&int_from_bytes_obj) },
     { MP_ROM_QSTR(MP_QSTR_to_bytes), MP_ROM_PTR(&int_to_bytes_obj) },
 };
 
-static MP_DEFINE_CONST_DICT(int_locals_dict, int_locals_dict_table);
+static MAYBE_CUDA MP_DEFINE_CONST_DICT(int_locals_dict, int_locals_dict_table);
 
 MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_int,

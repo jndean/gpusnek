@@ -211,104 +211,104 @@ void asm_rv32_emit_word_opcode(asm_rv32_t *state, mp_uint_t opcode);
 void asm_rv32_emit_halfword_opcode(asm_rv32_t *state, mp_uint_t opcode);
 
 // ADD RD, RS1, RS2
-static inline void asm_rv32_opcode_add(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_add(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000000 ..... ..... 000 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x00, 0x00, rd, rs1, rs2));
 }
 
 // ADDI RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_addi(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_addi(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: ............ ..... 000 ..... 0010011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x13, 0x00, rd, rs, immediate));
 }
 
 // AND RD, RS1, RS2
-static inline void asm_rv32_opcode_and(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_and(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000000 ..... ..... 111 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x07, 0x00, rd, rs1, rs2));
 }
 
 // ANDI RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_andi(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_andi(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: ............ ..... 111 ..... 0010011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x13, 0x07, rd, rs, immediate));
 }
 
 // AUIPC RD, offset
-static inline void asm_rv32_opcode_auipc(asm_rv32_t *state, mp_uint_t rd, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_auipc(asm_rv32_t *state, mp_uint_t rd, mp_int_t offset) {
     // U: .................... ..... 0010111
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_U(0x17, rd, offset));
 }
 
 // BEQ RS1, RS2, OFFSET
-static inline void asm_rv32_opcode_beq(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_beq(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
     // B: . ...... ..... ..... 000 .... . 1100011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_B(0x63, 0x00, rs1, rs2, offset));
 }
 
 // BGE RS1, RS2, OFFSET
-static inline void asm_rv32_opcode_bge(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_bge(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
     // B: . ...... ..... ..... 101 .... . 1100011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_B(0x63, 0x05, rs1, rs2, offset));
 }
 
 // BGEU RS1, RS2, OFFSET
-static inline void asm_rv32_opcode_bgeu(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_bgeu(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
     // B: . ...... ..... ..... 111 .... . 1100011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_B(0x63, 0x07, rs1, rs2, offset));
 }
 
 // BLT RS1, RS2, OFFSET
-static inline void asm_rv32_opcode_blt(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_blt(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
     // B: . ...... ..... ..... 100 .... . 1100011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_B(0x63, 0x04, rs1, rs2, offset));
 }
 
 // BLTU RS1, RS2, OFFSET
-static inline void asm_rv32_opcode_bltu(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_bltu(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
     // B: . ...... ..... ..... 110 .... . 1100011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_B(0x63, 0x06, rs1, rs2, offset));
 }
 
 // BNE RS1, RS2, OFFSET
-static inline void asm_rv32_opcode_bne(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_bne(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
     // B: . ...... ..... ..... 001 .... . 1100011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_B(0x63, 0x01, rs1, rs2, offset));
 }
 
 // C.ADD RD, RS
-static inline void asm_rv32_opcode_cadd(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cadd(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
     // CR: 1001 ..... ..... 10
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CR(0x02, 0x09, rd, rs));
 }
 
 // C.ADDI RD, IMMEDIATE
-static inline void asm_rv32_opcode_caddi(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_caddi(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
     // CI: 000 . ..... ..... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CI(0x01, 0x00, rd, immediate));
 }
 
 // C.ADDI4SPN RD', IMMEDIATE
-static inline void asm_rv32_opcode_caddi4spn(asm_rv32_t *state, mp_uint_t rd, mp_uint_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_caddi4spn(asm_rv32_t *state, mp_uint_t rd, mp_uint_t immediate) {
     // CIW: 000 ........ ... 00
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CIW(0x00, 0x00, rd, immediate));
 }
 
 // C.AND RD', RS'
-static inline void asm_rv32_opcode_cand(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cand(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
     // CA: 100011 ... 11 ... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CA(0x01, 0x23, 0x03, rd, rs));
 }
 
 // C.ANDI RD', IMMEDIATE
-static inline void asm_rv32_opcode_candi(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_candi(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
     // CB: 100 . 10 ... ..... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CB(0x01, 0x04, rd,
         (((immediate & 0x20) << 2) | (immediate & 0x1F) | 0x40)));
 }
 
 // C.BEQZ RS', IMMEDIATE
-static inline void asm_rv32_opcode_cbeqz(asm_rv32_t *state, mp_uint_t rs, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cbeqz(asm_rv32_t *state, mp_uint_t rs, mp_int_t offset) {
     // CB: 110 ... ... ..... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CB(0x01, 0x06, rs,
         (((offset & 0x100) >> 1) | ((offset & 0xC0) >> 3) | ((offset & 0x20) >> 5) |
@@ -316,7 +316,7 @@ static inline void asm_rv32_opcode_cbeqz(asm_rv32_t *state, mp_uint_t rs, mp_int
 }
 
 // C.BNEZ RS', IMMEDIATE
-static inline void asm_rv32_opcode_cbnez(asm_rv32_t *state, mp_uint_t rs, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cbnez(asm_rv32_t *state, mp_uint_t rs, mp_int_t offset) {
     // CB: 111 ... ... ..... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CB(0x01, 0x07, rs,
         (((offset & 0x100) >> 1) | ((offset & 0xC0) >> 3) | ((offset & 0x20) >> 5) |
@@ -324,387 +324,387 @@ static inline void asm_rv32_opcode_cbnez(asm_rv32_t *state, mp_uint_t rs, mp_int
 }
 
 // C.EBREAK
-static inline void asm_rv32_opcode_cebreak(asm_rv32_t *state) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cebreak(asm_rv32_t *state) {
     // CA: 100 1 00000 00000 10
     asm_rv32_emit_halfword_opcode(state, 0x9002);
 }
 
 // C.J OFFSET
-static inline void asm_rv32_opcode_cj(asm_rv32_t *state, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cj(asm_rv32_t *state, mp_int_t offset) {
     // CJ: 101 ........... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CJ(0x01, 0x05, offset));
 }
 
 // C.JAL OFFSET
-static inline void asm_rv32_opcode_cjal(asm_rv32_t *state, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cjal(asm_rv32_t *state, mp_int_t offset) {
     // CJ: 001 ........... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CJ(0x01, 0x01, offset));
 }
 
 // C.JALR RS
-static inline void asm_rv32_opcode_cjalr(asm_rv32_t *state, mp_uint_t rs) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cjalr(asm_rv32_t *state, mp_uint_t rs) {
     // CR: 1001 ..... 00000 10
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CR(0x02, 0x09, rs, 0));
 }
 
 // C.JR RS
-static inline void asm_rv32_opcode_cjr(asm_rv32_t *state, mp_uint_t rs) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cjr(asm_rv32_t *state, mp_uint_t rs) {
     // CR: 1000 ..... 00000 10
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CR(0x02, 0x08, rs, 0));
 }
 
 // C.LI RD, IMMEDIATE
-static inline void asm_rv32_opcode_cli(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cli(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
     // CI: 010 . ..... ..... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CI(0x01, 0x02, rd, immediate));
 }
 
 // C.LUI RD, IMMEDIATE
-static inline void asm_rv32_opcode_clui(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_clui(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
     // CI: 011 . ..... ..... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CI(0x01, 0x03, rd, immediate >> 12));
 }
 
 // C.LW RD', OFFSET(RS')
-static inline void asm_rv32_opcode_clw(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_clw(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
     // CL: 010 ... ... .. ... 00
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CL(0x00, 0x02, rd, rs, offset));
 }
 
 // C.LWSP RD, OFFSET
-static inline void asm_rv32_opcode_clwsp(asm_rv32_t *state, mp_uint_t rd, mp_uint_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_clwsp(asm_rv32_t *state, mp_uint_t rd, mp_uint_t offset) {
     // CI: 010 . ..... ..... 10
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CI(0x02, 0x02, rd, ((offset & 0xC0) >> 6) | (offset & 0x3C)));
 }
 
 // C.MV RD, RS
-static inline void asm_rv32_opcode_cmv(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cmv(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
     // CR: 1000 ..... ..... 10
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CR(0x02, 0x08, rd, rs));
 }
 
 // C.NOP
-static inline void asm_rv32_opcode_cnop(asm_rv32_t *state) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cnop(asm_rv32_t *state) {
     // CI: 000 . 00000 ..... 01
     asm_rv32_emit_halfword_opcode(state, 0x0001);
 }
 
 // C.OR RD', RS'
-static inline void asm_rv32_opcode_cor(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cor(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
     // CA: 100011 ... 10 ... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CA(0x01, 0x23, 0x02, rd, rs));
 }
 
 // C.SLLI RD, IMMEDIATE
-static inline void asm_rv32_opcode_cslli(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cslli(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
     // CI: 000 . ..... ..... 10
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CI(0x02, 0x00, rd, immediate));
 }
 
 // C.SRAI RD, IMMEDIATE
-static inline void asm_rv32_opcode_csrai(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_csrai(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
     // CB: 100 . 01 ... ..... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CB(0x01, 0x04, rd,
         (((immediate & 0x20) << 2) | (immediate & 0x1F) | 0x20)));
 }
 
 // C.SRLI RD, IMMEDIATE
-static inline void asm_rv32_opcode_csrli(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_csrli(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
     // CB: 100 . 00 ... ..... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CB(0x01, 0x04, rd,
         (((immediate & 0x20) << 2) | (immediate & 0x1F))));
 }
 
 // C.SUB RD', RS'
-static inline void asm_rv32_opcode_csub(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
+static inline MAYBE_CUDA void asm_rv32_opcode_csub(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
     // CA: 100011 ... 00 ... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CA(0x01, 0x23, 0x00, rd, rs));
 }
 
 // C.SW RS1', OFFSET(RS2')
-static inline void asm_rv32_opcode_csw(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_csw(asm_rv32_t *state, mp_uint_t rs1, mp_uint_t rs2, mp_int_t offset) {
     // CS: 110 ... ... .. ... 00
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CL(0x00, 0x06, rs1, rs2, offset));
 }
 
 // C.SWSP RS, OFFSET
-static inline void asm_rv32_opcode_cswsp(asm_rv32_t *state, mp_uint_t rs, mp_uint_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cswsp(asm_rv32_t *state, mp_uint_t rs, mp_uint_t offset) {
     // CSS: 010 ...... ..... 10
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CSS(0x02, 0x06, rs, ((offset & 0xC0) >> 6) | (offset & 0x3C)));
 }
 
 // C.XOR RD', RS'
-static inline void asm_rv32_opcode_cxor(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
+static inline MAYBE_CUDA void asm_rv32_opcode_cxor(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs) {
     // CA: 100011 ... 01 ... 01
     asm_rv32_emit_halfword_opcode(state, RV32_ENCODE_TYPE_CA(0x01, 0x23, 0x01, rd, rs));
 }
 
 // CSRRC RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_csrrc(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_csrrc(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: ............ ..... 011 ..... 1110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x73, 0x03, rd, rs, immediate));
 }
 
 // CSRRS RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_csrrs(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_csrrs(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: ............ ..... 010 ..... 1110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x73, 0x02, rd, rs, immediate));
 }
 
 // CSRRW RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_csrrw(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_csrrw(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: ............ ..... 001 ..... 1110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x73, 0x01, rd, rs, immediate));
 }
 
 // CSRRCI RD, CSR, IMMEDIATE
-static inline void asm_rv32_opcode_csrrci(asm_rv32_t *state, mp_uint_t rd, mp_uint_t csr, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_csrrci(asm_rv32_t *state, mp_uint_t rd, mp_uint_t csr, mp_int_t immediate) {
     // CSRI: ............ ..... 111 ..... 1110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_CSRI(0x73, 0x07, rd, csr, immediate));
 }
 
 // CSRRSI RD, CSR, IMMEDIATE
-static inline void asm_rv32_opcode_csrrsi(asm_rv32_t *state, mp_uint_t rd, mp_uint_t csr, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_csrrsi(asm_rv32_t *state, mp_uint_t rd, mp_uint_t csr, mp_int_t immediate) {
     // CSRI: ............ ..... 110 ..... 1110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_CSRI(0x73, 0x06, rd, csr, immediate));
 }
 
 // CSRRWI RD, CSR, IMMEDIATE
-static inline void asm_rv32_opcode_csrrwi(asm_rv32_t *state, mp_uint_t rd, mp_uint_t csr, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_csrrwi(asm_rv32_t *state, mp_uint_t rd, mp_uint_t csr, mp_int_t immediate) {
     // CSRI: ............ ..... 101 ..... 1110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_CSRI(0x73, 0x05, rd, csr, immediate));
 }
 
 // DIV RD, RS1, RS2
-static inline void asm_rv32_opcode_div(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_div(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000001 ..... ..... 100 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x04, 0x01, rd, rs1, rs2));
 }
 
 // DIVU RD, RS1, RS2
-static inline void asm_rv32_opcode_divu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_divu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000001 ..... ..... 101 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x05, 0x01, rd, rs1, rs2));
 }
 
 // EBREAK
-static inline void asm_rv32_opcode_ebreak(asm_rv32_t *state) {
+static inline MAYBE_CUDA void asm_rv32_opcode_ebreak(asm_rv32_t *state) {
     // I: 000000000001 00000 000 00000 1110011
     asm_rv32_emit_word_opcode(state, 0x100073);
 }
 
 // ECALL
-static inline void asm_rv32_opcode_ecall(asm_rv32_t *state) {
+static inline MAYBE_CUDA void asm_rv32_opcode_ecall(asm_rv32_t *state) {
     // I: 000000000000 00000 000 00000 1110011
     asm_rv32_emit_word_opcode(state, 0x73);
 }
 
 // JAL RD, OFFSET
-static inline void asm_rv32_opcode_jal(asm_rv32_t *state, mp_uint_t rd, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_jal(asm_rv32_t *state, mp_uint_t rd, mp_int_t offset) {
     // J: ......................... 1101111
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_J(0x6F, rd, offset));
 }
 
 // JALR RD, RS, OFFSET
-static inline void asm_rv32_opcode_jalr(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_jalr(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
     // I: ............ ..... 000 ..... 1100111
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x67, 0x00, rd, rs, offset));
 }
 
 // LB RD, OFFSET(RS)
-static inline void asm_rv32_opcode_lb(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_lb(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
     // I: ............ ..... 000 ..... 0000011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x03, 0x00, rd, rs, offset));
 }
 
 // LBU RD, OFFSET(RS)
-static inline void asm_rv32_opcode_lbu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_lbu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
     // I: ............ ..... 100 ..... 0000011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x03, 0x04, rd, rs, offset));
 }
 
 // LH RD, OFFSET(RS)
-static inline void asm_rv32_opcode_lh(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_lh(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
     // I: ............ ..... 001 ..... 0000011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x03, 0x01, rd, rs, offset));
 }
 
 // LHU RD, OFFSET(RS)
-static inline void asm_rv32_opcode_lhu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_lhu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
     // I: ............ ..... 101 ..... 0000011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x03, 0x05, rd, rs, offset));
 }
 
 // LUI RD, IMMEDIATE
-static inline void asm_rv32_opcode_lui(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_lui(asm_rv32_t *state, mp_uint_t rd, mp_int_t immediate) {
     // U: .................... ..... 0110111
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_U(0x37, rd, immediate));
 }
 
 // LW RD, OFFSET(RS)
-static inline void asm_rv32_opcode_lw(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_lw(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t offset) {
     // I: ............ ..... 010 ..... 0000011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x03, 0x02, rd, rs, offset));
 }
 
 // MUL RD, RS1, RS2
-static inline void asm_rv32_opcode_mul(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_mul(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000001 ..... ..... 000 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x00, 0x01, rd, rs1, rs2));
 }
 
 // MULH RD, RS1, RS2
-static inline void asm_rv32_opcode_mulh(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_mulh(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000001 ..... ..... 001 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x01, 0x01, rd, rs1, rs2));
 }
 
 // MULHSU RD, RS1, RS2
-static inline void asm_rv32_opcode_mulhsu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_mulhsu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000001 ..... ..... 010 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x02, 0x01, rd, rs1, rs2));
 }
 
 // MULHU RD, RS1, RS2
-static inline void asm_rv32_opcode_mulhu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_mulhu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000001 ..... ..... 011 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x03, 0x01, rd, rs1, rs2));
 }
 
 // OR RD, RS1, RS2
-static inline void asm_rv32_opcode_or(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_or(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000000 ..... ..... 110 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x06, 0x00, rd, rs1, rs2));
 }
 
 // ORI RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_ori(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_ori(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: ............ ..... 110 ..... 0010011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x13, 0x06, rd, rs, immediate));
 }
 
 // REM RD, RS1, RS2
-static inline void asm_rv32_opcode_rem(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_rem(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000001 ..... ..... 110 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x06, 0x01, rd, rs1, rs2));
 }
 
 // REMU RD, RS1, RS2
-static inline void asm_rv32_opcode_remu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_remu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000001 ..... ..... 111 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x07, 0x01, rd, rs1, rs2));
 }
 
 // SH1ADD RD, RS1, RS2
-static inline void asm_rv32_opcode_sh1add(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sh1add(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0010000 ..... ..... 010 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x02, 0x10, rd, rs1, rs2));
 }
 
 // SH2ADD RD, RS1, RS2
-static inline void asm_rv32_opcode_sh2add(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sh2add(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0010000 ..... ..... 100 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x04, 0x10, rd, rs1, rs2));
 }
 
 // SH3ADD RD, RS1, RS2
-static inline void asm_rv32_opcode_sh3add(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sh3add(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0010000 ..... ..... 110 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x06, 0x10, rd, rs1, rs2));
 }
 
 // SLL RD, RS1, RS2
-static inline void asm_rv32_opcode_sll(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sll(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000000 ..... ..... 001 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x01, 0x00, rd, rs1, rs2));
 }
 
 // SLLI RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_slli(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_slli(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: 0000000..... ..... 001 ..... 0010011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x13, 0x01, rd, rs, immediate & 0x1F));
 }
 
 // SLT RD, RS1, RS2
-static inline void asm_rv32_opcode_slt(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_slt(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000000 ..... ..... 010 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x02, 0x00, rd, rs1, rs2));
 }
 
 // SLTI RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_slti(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_slti(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: ............ ..... 010 ..... 0010011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x13, 0x02, rd, rs, immediate));
 }
 
 // SLTIU RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_sltiu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sltiu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: ............ ..... 011 ..... 0010011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x13, 0x03, rd, rs, immediate));
 }
 
 // SLTU RD, RS1, RS2
-static inline void asm_rv32_opcode_sltu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sltu(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000000 ..... ..... 011 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x03, 0x00, rd, rs1, rs2));
 }
 
 // SRA RD, RS1, RS2
-static inline void asm_rv32_opcode_sra(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sra(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0100000 ..... ..... 101 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x05, 0x20, rd, rs1, rs2));
 }
 
 // SRAI RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_srai(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_srai(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: 0100000..... ..... 101 ..... 0010011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x13, 0x05, rd, rs, ((immediate & 0x1F) | 0x400)));
 }
 
 // SRL RD, RS1, RS2
-static inline void asm_rv32_opcode_srl(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_srl(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000000 ..... ..... 101 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x05, 0x00, rd, rs1, rs2));
 }
 
 // SRLI RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_srli(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_srli(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: 0000000..... ..... 101 ..... 0010011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x13, 0x05, rd, rs, immediate & 0x1F));
 }
 
 // SUB RD, RS1, RS2
-static inline void asm_rv32_opcode_sub(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sub(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0100000 ..... ..... 000 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x00, 0x20, rd, rs1, rs2));
 }
 
 // SB RS2, OFFSET(RS1)
-static inline void asm_rv32_opcode_sb(asm_rv32_t *state, mp_uint_t rs2, mp_uint_t rs1, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sb(asm_rv32_t *state, mp_uint_t rs2, mp_uint_t rs1, mp_int_t offset) {
     // S: ....... ..... ..... 000 ..... 0100011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_S(0x23, 0x00, rs1, rs2, offset));
 }
 
 // SH RS2, OFFSET(RS1)
-static inline void asm_rv32_opcode_sh(asm_rv32_t *state, mp_uint_t rs2, mp_uint_t rs1, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sh(asm_rv32_t *state, mp_uint_t rs2, mp_uint_t rs1, mp_int_t offset) {
     // S: ....... ..... ..... 001 ..... 0100011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_S(0x23, 0x01, rs1, rs2, offset));
 }
 
 // SW RS2, OFFSET(RS1)
-static inline void asm_rv32_opcode_sw(asm_rv32_t *state, mp_uint_t rs2, mp_uint_t rs1, mp_int_t offset) {
+static inline MAYBE_CUDA void asm_rv32_opcode_sw(asm_rv32_t *state, mp_uint_t rs2, mp_uint_t rs1, mp_int_t offset) {
     // S: ....... ..... ..... 010 ..... 0100011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_S(0x23, 0x02, rs1, rs2, offset));
 }
 
 // XOR RD, RS1, RS2
-static inline void asm_rv32_opcode_xor(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
+static inline MAYBE_CUDA void asm_rv32_opcode_xor(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs1, mp_uint_t rs2) {
     // R: 0000000 ..... ..... 100 ..... 0110011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_R(0x33, 0x04, 0x00, rd, rs1, rs2));
 }
 
 // XORI RD, RS, IMMEDIATE
-static inline void asm_rv32_opcode_xori(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
+static inline MAYBE_CUDA void asm_rv32_opcode_xori(asm_rv32_t *state, mp_uint_t rd, mp_uint_t rs, mp_int_t immediate) {
     // I: ............ ..... 100 ..... 0010011
     asm_rv32_emit_word_opcode(state, RV32_ENCODE_TYPE_I(0x13, 0x04, rd, rs, immediate));
 }
@@ -712,7 +712,7 @@ static inline void asm_rv32_opcode_xori(asm_rv32_t *state, mp_uint_t rd, mp_uint
 #define MICROPY_RV32_EXTENSIONS \
     (MICROPY_EMIT_RV32_ZBA ? RV32_EXT_ZBA : 0)
 
-static inline uint8_t asm_rv32_allowed_extensions(void) {
+static inline MAYBE_CUDA uint8_t asm_rv32_allowed_extensions(void) {
     uint8_t extensions = MICROPY_RV32_EXTENSIONS;
     #if MICROPY_DYNAMIC_COMPILER
     if (mp_dynamic_compiler.backend_options != NULL) {

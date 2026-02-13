@@ -37,11 +37,11 @@
 #define MP_PI_4 MICROPY_FLOAT_CONST(0.78539816339744830962)
 #define MP_3_PI_4 MICROPY_FLOAT_CONST(2.35619449019234492885)
 
-static MP_NORETURN void math_error(void) {
+static MAYBE_CUDA MP_NORETURN void math_error(void) {
     mp_raise_ValueError(MP_ERROR_TEXT("math domain error"));
 }
 
-static mp_obj_t math_generic_1(mp_obj_t x_obj, mp_float_t (*f)(mp_float_t)) {
+static MAYBE_CUDA mp_obj_t math_generic_1(mp_obj_t x_obj, mp_float_t (*f)(mp_float_t)) {
     mp_float_t x = mp_obj_get_float(x_obj);
     mp_float_t ans = f(x);
     if ((isnan(ans) && !isnan(x)) || (isinf(ans) && !isinf(x))) {
@@ -50,7 +50,7 @@ static mp_obj_t math_generic_1(mp_obj_t x_obj, mp_float_t (*f)(mp_float_t)) {
     return mp_obj_new_float(ans);
 }
 
-static mp_obj_t math_generic_2(mp_obj_t x_obj, mp_obj_t y_obj, mp_float_t (*f)(mp_float_t, mp_float_t)) {
+static MAYBE_CUDA mp_obj_t math_generic_2(mp_obj_t x_obj, mp_obj_t y_obj, mp_float_t (*f)(mp_float_t, mp_float_t)) {
     mp_float_t x = mp_obj_get_float(x_obj);
     mp_float_t y = mp_obj_get_float(y_obj);
     mp_float_t ans = f(x, y);
@@ -164,7 +164,7 @@ MATH_FUN_2(atan2, atan2)
 // ceil(x)
 MATH_FUN_1_TO_INT(ceil, ceil)
 // copysign(x, y)
-static mp_float_t MICROPY_FLOAT_C_FUN(copysign_func)(mp_float_t x, mp_float_t y) {
+static MAYBE_CUDA mp_float_t MICROPY_FLOAT_C_FUN(copysign_func)(mp_float_t x, mp_float_t y) {
     #if MICROPY_PY_MATH_COPYSIGN_FIX_NAN
     if (isnan(y)) {
         y = 0.0;
@@ -174,7 +174,7 @@ static mp_float_t MICROPY_FLOAT_C_FUN(copysign_func)(mp_float_t x, mp_float_t y)
 }
 MATH_FUN_2(copysign, copysign_func)
 // fabs(x)
-static mp_float_t MICROPY_FLOAT_C_FUN(fabs_func)(mp_float_t x) {
+static MAYBE_CUDA mp_float_t MICROPY_FLOAT_C_FUN(fabs_func)(mp_float_t x) {
     return MICROPY_FLOAT_C_FUN(fabs)(x);
 }
 MATH_FUN_1(fabs, fabs_func)
@@ -206,7 +206,7 @@ MATH_FUN_1(erf, erf)
 MATH_FUN_1(erfc, erfc)
 // gamma(x): return the gamma function of x
 #if MICROPY_PY_MATH_GAMMA_FIX_NEGINF
-static mp_float_t MICROPY_FLOAT_C_FUN(tgamma_func)(mp_float_t x) {
+static MAYBE_CUDA mp_float_t MICROPY_FLOAT_C_FUN(tgamma_func)(mp_float_t x) {
     if (isinf(x) && x < 0) {
         math_error();
     }
@@ -222,7 +222,7 @@ MATH_FUN_1(lgamma, lgamma)
 // TODO: fsum
 
 #if MICROPY_PY_MATH_ISCLOSE
-static mp_obj_t mp_math_isclose(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+static MAYBE_CUDA mp_obj_t mp_math_isclose(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_rel_tol, ARG_abs_tol };
     static const mp_arg_t allowed_args[] = {
         {MP_QSTR_rel_tol, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_obj = MP_OBJ_NULL}},
@@ -258,7 +258,7 @@ MP_DEFINE_CONST_FUN_OBJ_KW(mp_math_isclose_obj, 2, mp_math_isclose);
 // Function that takes a variable number of arguments
 
 // log(x[, base])
-static mp_obj_t mp_math_log(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_math_log(size_t n_args, const mp_obj_t *args) {
     mp_float_t x = mp_obj_get_float(args[0]);
     if (x <= (mp_float_t)0.0) {
         math_error();
@@ -276,12 +276,12 @@ static mp_obj_t mp_math_log(size_t n_args, const mp_obj_t *args) {
         return mp_obj_new_float(l / MICROPY_FLOAT_C_FUN(log)(base));
     }
 }
-static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_math_log_obj, 1, 2, mp_math_log);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_math_log_obj, 1, 2, mp_math_log);
 
 // Functions that return a tuple
 
 // frexp(x): converts a floating-point number to fractional and integral components
-static mp_obj_t mp_math_frexp(mp_obj_t x_obj) {
+static MAYBE_CUDA mp_obj_t mp_math_frexp(mp_obj_t x_obj) {
     int int_exponent = 0;
     mp_float_t significand = MICROPY_FLOAT_C_FUN(frexp)(mp_obj_get_float(x_obj), &int_exponent);
     mp_obj_t tuple[2];
@@ -289,10 +289,10 @@ static mp_obj_t mp_math_frexp(mp_obj_t x_obj) {
     tuple[1] = mp_obj_new_int(int_exponent);
     return mp_obj_new_tuple(2, tuple);
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_math_frexp_obj, mp_math_frexp);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(mp_math_frexp_obj, mp_math_frexp);
 
 // modf(x)
-static mp_obj_t mp_math_modf(mp_obj_t x_obj) {
+static MAYBE_CUDA mp_obj_t mp_math_modf(mp_obj_t x_obj) {
     mp_float_t int_part = 0.0;
     mp_float_t x = mp_obj_get_float(x_obj);
     mp_float_t fractional_part = MICROPY_FLOAT_C_FUN(modf)(x, &int_part);
@@ -306,28 +306,28 @@ static mp_obj_t mp_math_modf(mp_obj_t x_obj) {
     tuple[1] = mp_obj_new_float(int_part);
     return mp_obj_new_tuple(2, tuple);
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_math_modf_obj, mp_math_modf);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(mp_math_modf_obj, mp_math_modf);
 
 // Angular conversions
 
 // radians(x)
-static mp_obj_t mp_math_radians(mp_obj_t x_obj) {
+static MAYBE_CUDA mp_obj_t mp_math_radians(mp_obj_t x_obj) {
     return mp_obj_new_float(mp_obj_get_float(x_obj) * (MP_PI / MICROPY_FLOAT_CONST(180.0)));
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_math_radians_obj, mp_math_radians);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(mp_math_radians_obj, mp_math_radians);
 
 // degrees(x)
-static mp_obj_t mp_math_degrees(mp_obj_t x_obj) {
+static MAYBE_CUDA mp_obj_t mp_math_degrees(mp_obj_t x_obj) {
     return mp_obj_new_float(mp_obj_get_float(x_obj) * (MICROPY_FLOAT_CONST(180.0) / MP_PI));
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_math_degrees_obj, mp_math_degrees);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(mp_math_degrees_obj, mp_math_degrees);
 
 #if MICROPY_PY_MATH_FACTORIAL
 
 #if MICROPY_OPT_MATH_FACTORIAL
 
 // factorial(x): slightly efficient recursive implementation
-static mp_obj_t mp_math_factorial_inner(mp_uint_t start, mp_uint_t end) {
+static MAYBE_CUDA mp_obj_t mp_math_factorial_inner(mp_uint_t start, mp_uint_t end) {
     if (start == end) {
         return mp_obj_new_int(start);
     } else if (end - start == 1) {
@@ -345,7 +345,7 @@ static mp_obj_t mp_math_factorial_inner(mp_uint_t start, mp_uint_t end) {
         return mp_binary_op(MP_BINARY_OP_MULTIPLY, left, right);
     }
 }
-static mp_obj_t mp_math_factorial(mp_obj_t x_obj) {
+static MAYBE_CUDA mp_obj_t mp_math_factorial(mp_obj_t x_obj) {
     mp_int_t max = mp_obj_get_int(x_obj);
     if (max < 0) {
         mp_raise_ValueError(MP_ERROR_TEXT("negative factorial"));
@@ -359,7 +359,7 @@ static mp_obj_t mp_math_factorial(mp_obj_t x_obj) {
 
 // factorial(x): squared difference implementation
 // based on http://www.luschny.de/math/factorial/index.html
-static mp_obj_t mp_math_factorial(mp_obj_t x_obj) {
+static MAYBE_CUDA mp_obj_t mp_math_factorial(mp_obj_t x_obj) {
     mp_int_t max = mp_obj_get_int(x_obj);
     if (max < 0) {
         mp_raise_ValueError(MP_ERROR_TEXT("negative factorial"));
@@ -382,11 +382,11 @@ static mp_obj_t mp_math_factorial(mp_obj_t x_obj) {
 
 #endif
 
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_math_factorial_obj, mp_math_factorial);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(mp_math_factorial_obj, mp_math_factorial);
 
 #endif
 
-static const mp_rom_map_elem_t mp_module_math_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_math_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_math) },
     { MP_ROM_QSTR(MP_QSTR_e), mp_const_float_e },
     { MP_ROM_QSTR(MP_QSTR_pi), mp_const_float_pi },
@@ -447,7 +447,7 @@ static const mp_rom_map_elem_t mp_module_math_globals_table[] = {
     #endif
 };
 
-static MP_DEFINE_CONST_DICT(mp_module_math_globals, mp_module_math_globals_table);
+static MAYBE_CUDA MP_DEFINE_CONST_DICT(mp_module_math_globals, mp_module_math_globals_table);
 
 const mp_obj_module_t mp_module_math = {
     .base = { &mp_type_module },

@@ -43,7 +43,7 @@
 // Export value for sys.maxsize
 // *FORMAT-OFF*
 #define DIG_MASK ((MPZ_LONG_1 << MPZ_DIG_SIZE) - 1)
-static const mpz_dig_t maxsize_dig[] = {
+static MAYBE_CUDA const mpz_dig_t maxsize_dig[] = {
     #define NUM_DIG 1
     (MP_SSIZE_MAX >> MPZ_DIG_SIZE * 0) & DIG_MASK,
     #if (MP_SSIZE_MAX >> MPZ_DIG_SIZE * 0) > DIG_MASK
@@ -343,7 +343,7 @@ MAYBE_CUDA mp_obj_t mp_obj_int_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_
 }
 
 #if MICROPY_PY_BUILTINS_POW3
-static mpz_t *mp_mpz_for_int(mp_obj_t arg, mpz_t *temp) {
+static MAYBE_CUDA mpz_t *mp_mpz_for_int(mp_obj_t arg, mpz_t *temp) {
     if (mp_obj_is_small_int(arg)) {
         mpz_init_from_int(temp, MP_OBJ_SMALL_INT_VALUE(arg));
         return temp;

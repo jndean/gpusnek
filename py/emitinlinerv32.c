@@ -61,7 +61,7 @@ struct _emit_inline_asm_t {
     qstr *label_lookup;
 };
 
-static const qstr_short_t REGISTERS_QSTR_TABLE[] = {
+static MAYBE_CUDA const qstr_short_t REGISTERS_QSTR_TABLE[] = {
     MP_QSTR_zero, MP_QSTR_ra,  MP_QSTR_sp,  MP_QSTR_gp,  MP_QSTR_tp,  MP_QSTR_t0,  MP_QSTR_t1,  MP_QSTR_t2,
     MP_QSTR_s0,   MP_QSTR_s1,  MP_QSTR_a0,  MP_QSTR_a1,  MP_QSTR_a2,  MP_QSTR_a3,  MP_QSTR_a4,  MP_QSTR_a5,
     MP_QSTR_a6,   MP_QSTR_a7,  MP_QSTR_s2,  MP_QSTR_s3,  MP_QSTR_s4,  MP_QSTR_s5,  MP_QSTR_s6,  MP_QSTR_s7,
@@ -74,11 +74,11 @@ static const qstr_short_t REGISTERS_QSTR_TABLE[] = {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static inline void emit_inline_rv32_error_msg(emit_inline_asm_t *emit, mp_rom_error_text_t msg) {
+static MAYBE_CUDA inline void emit_inline_rv32_error_msg(emit_inline_asm_t *emit, mp_rom_error_text_t msg) {
     *emit->error_slot = mp_obj_new_exception_msg(&mp_type_SyntaxError, msg);
 }
 
-static inline void emit_inline_rv32_error_exc(emit_inline_asm_t *emit, mp_obj_t exc) {
+static MAYBE_CUDA inline void emit_inline_rv32_error_exc(emit_inline_asm_t *emit, mp_obj_t exc) {
     *emit->error_slot = exc;
 }
 
@@ -97,7 +97,7 @@ void emit_inline_rv32_free(emit_inline_asm_t *emit) {
     m_del_obj(emit_inline_asm_t, emit);
 }
 
-static void emit_inline_rv32_start_pass(emit_inline_asm_t *emit, pass_kind_t pass, mp_obj_t *error_slot) {
+static MAYBE_CUDA void emit_inline_rv32_start_pass(emit_inline_asm_t *emit, pass_kind_t pass, mp_obj_t *error_slot) {
     emit->pass = pass;
     emit->error_slot = error_slot;
     if (emit->pass == MP_PASS_CODE_SIZE) {
@@ -106,13 +106,13 @@ static void emit_inline_rv32_start_pass(emit_inline_asm_t *emit, pass_kind_t pas
     mp_asm_base_start_pass(&emit->as.base, pass == MP_PASS_EMIT ? MP_ASM_PASS_EMIT : MP_ASM_PASS_COMPUTE);
 }
 
-static void emit_inline_rv32_end_pass(emit_inline_asm_t *emit, mp_uint_t type_sig) {
+static MAYBE_CUDA void emit_inline_rv32_end_pass(emit_inline_asm_t *emit, mp_uint_t type_sig) {
     // c.jr ra
     asm_rv32_opcode_cjr(&emit->as, ASM_RV32_REG_RA);
     asm_rv32_end_pass(&emit->as);
 }
 
-static bool parse_register_node(mp_parse_node_t node, mp_uint_t *register_number, bool compressed) {
+static MAYBE_CUDA bool parse_register_node(mp_parse_node_t node, mp_uint_t *register_number, bool compressed) {
     assert(register_number != NULL && "Register number pointer is NULL.");
 
     if (!MP_PARSE_NODE_IS_ID(node)) {
@@ -134,7 +134,7 @@ static bool parse_register_node(mp_parse_node_t node, mp_uint_t *register_number
     return false;
 }
 
-static mp_uint_t lookup_label(emit_inline_asm_t *emit, mp_parse_node_t node, qstr *qstring) {
+static MAYBE_CUDA mp_uint_t lookup_label(emit_inline_asm_t *emit, mp_parse_node_t node, qstr *qstring) {
     assert(qstring && "qstring pointer is NULL");
 
     *qstring = MP_PARSE_NODE_LEAF_ARG(node);
@@ -147,11 +147,11 @@ static mp_uint_t lookup_label(emit_inline_asm_t *emit, mp_parse_node_t node, qst
     return emit->max_num_labels;
 }
 
-static inline ptrdiff_t label_code_offset(emit_inline_asm_t *emit, mp_uint_t label_index) {
+static MAYBE_CUDA inline ptrdiff_t label_code_offset(emit_inline_asm_t *emit, mp_uint_t label_index) {
     return emit->as.base.label_offsets[label_index] - emit->as.base.code_offset;
 }
 
-static mp_uint_t emit_inline_rv32_count_params(emit_inline_asm_t *emit, mp_uint_t parameters_count, mp_parse_node_t *parameter_nodes) {
+static MAYBE_CUDA mp_uint_t emit_inline_rv32_count_params(emit_inline_asm_t *emit, mp_uint_t parameters_count, mp_parse_node_t *parameter_nodes) {
     // TODO: Raise this up to 8?  RV32I has 8 A-registers that are meant to
     //       be used for passing arguments.
 
@@ -172,7 +172,7 @@ static mp_uint_t emit_inline_rv32_count_params(emit_inline_asm_t *emit, mp_uint_
     return parameters_count;
 }
 
-static bool emit_inline_rv32_label(emit_inline_asm_t *emit, mp_uint_t label_num, qstr label_id) {
+static MAYBE_CUDA bool emit_inline_rv32_label(emit_inline_asm_t *emit, mp_uint_t label_num, qstr label_id) {
     assert(label_num < emit->max_num_labels);
     if (emit->pass == MP_PASS_CODE_SIZE) {
         for (mp_uint_t index = 0; index < emit->max_num_labels; index++) {
@@ -239,7 +239,7 @@ typedef struct _opcode_t {
 
 #define opcode_li asm_rv32_emit_optimised_load_immediate
 
-static void opcode_la(asm_rv32_t *state, mp_uint_t rd, mp_int_t displacement) {
+static MAYBE_CUDA void opcode_la(asm_rv32_t *state, mp_uint_t rd, mp_int_t displacement) {
     // This cannot be optimised for size, otherwise label addresses would move around.
     mp_uint_t upper = (mp_uint_t)displacement & 0xFFFFF000;
     mp_uint_t lower = (mp_uint_t)displacement & 0x00000FFF;
@@ -276,7 +276,7 @@ enum {
     MASK_001FFFFE,
 };
 
-static const uint32_t OPCODE_MASKS[] = {
+static MAYBE_CUDA const uint32_t OPCODE_MASKS[] = {
     [MASK_FFFFFFFF] = 0xFFFFFFFF,
     [MASK_00000FFF] = 0x00000FFF,
     [MASK_FFFFF000] = 0xFFFFF000,
@@ -295,7 +295,7 @@ static const uint32_t OPCODE_MASKS[] = {
     [MASK_001FFFFE] = 0x001FFFFE,
 };
 
-static const opcode_t OPCODES[] = {
+static MAYBE_CUDA const opcode_t OPCODES[] = {
     { MP_QSTR_add,        MASK_FFFFFFFF, MASK_FFFFFFFF, MASK_FFFFFFFF, 3, CALL_RRR, R,  0, R,   0,  R,  0, RV32_EXT_NONE, asm_rv32_opcode_add       },
     { MP_QSTR_addi,       MASK_FFFFFFFF, MASK_FFFFFFFF, MASK_00000FFF, 3, CALL_RRI, R,  0, R,   0,  I,  0, RV32_EXT_NONE, asm_rv32_opcode_addi      },
     { MP_QSTR_and_,       MASK_FFFFFFFF, MASK_FFFFFFFF, MASK_FFFFFFFF, 3, CALL_RRR, R,  0, R,   0,  R,  0, RV32_EXT_NONE, asm_rv32_opcode_and       },
@@ -390,7 +390,7 @@ static const opcode_t OPCODES[] = {
 
 // These two checks assume the bitmasks are contiguous.
 
-static bool is_in_signed_mask(uint32_t mask, mp_uint_t value) {
+static MAYBE_CUDA bool is_in_signed_mask(uint32_t mask, mp_uint_t value) {
     uint32_t leading_zeroes = mp_clz(mask);
     if (leading_zeroes == 0) {
         return true;
@@ -411,11 +411,11 @@ static bool is_in_signed_mask(uint32_t mask, mp_uint_t value) {
     return (value & negative_mask) == negative_mask;
 }
 
-static inline bool is_in_unsigned_mask(mp_uint_t mask, mp_uint_t value) {
+static MAYBE_CUDA inline bool is_in_unsigned_mask(mp_uint_t mask, mp_uint_t value) {
     return (value & ~mask) == 0;
 }
 
-static bool validate_integer(mp_uint_t value, mp_uint_t mask, mp_uint_t flags) {
+static MAYBE_CUDA bool validate_integer(mp_uint_t value, mp_uint_t mask, mp_uint_t flags) {
     if (flags & U) {
         if (!is_in_unsigned_mask(mask, value)) {
             return false;
@@ -437,7 +437,7 @@ static bool validate_integer(mp_uint_t value, mp_uint_t mask, mp_uint_t flags) {
 #define ET_WRONG_ARGUMENTS_COUNT MP_ERROR_TEXT("opcode '%q': expecting %d arguments")
 #define ET_OUT_OF_RANGE          MP_ERROR_TEXT("opcode '%q' argument %d: out of range")
 
-static bool serialise_argument(emit_inline_asm_t *emit, const opcode_t *opcode, mp_parse_node_t node, mp_uint_t node_index, mp_uint_t *serialised) {
+static MAYBE_CUDA bool serialise_argument(emit_inline_asm_t *emit, const opcode_t *opcode, mp_parse_node_t node, mp_uint_t node_index, mp_uint_t *serialised) {
     assert((node_index < 3) && "Invalid argument node number.");
     assert(serialised && "Serialised value pointer is NULL.");
 
@@ -579,7 +579,7 @@ zero_immediate:
     return false;
 }
 
-static bool serialise_register_offset_node(emit_inline_asm_t *emit, const opcode_t *opcode_data, mp_parse_node_t node, mp_uint_t node_index, mp_uint_t *offset, mp_uint_t *base) {
+static MAYBE_CUDA bool serialise_register_offset_node(emit_inline_asm_t *emit, const opcode_t *opcode_data, mp_parse_node_t node, mp_uint_t node_index, mp_uint_t *offset, mp_uint_t *base) {
     assert(offset && "Attempting to store the offset value into NULL.");
     assert(base && "Attempting to store the base register into NULL.");
 
@@ -639,7 +639,7 @@ invalid_structure:
     return false;
 }
 
-static void handle_opcode(emit_inline_asm_t *emit, const opcode_t *opcode_data, mp_uint_t *arguments) {
+static MAYBE_CUDA void handle_opcode(emit_inline_asm_t *emit, const opcode_t *opcode_data, mp_uint_t *arguments) {
     switch (opcode_data->calling_convention) {
         case CALL_RRR:
             ((call_rrr_t)opcode_data->emitter)(&emit->as, arguments[0], arguments[1], arguments[2]);
@@ -693,7 +693,7 @@ static void handle_opcode(emit_inline_asm_t *emit, const opcode_t *opcode_data, 
     }
 }
 
-static void emit_inline_rv32_opcode(emit_inline_asm_t *emit, qstr opcode, mp_uint_t arguments_count, mp_parse_node_t *argument_nodes) {
+static MAYBE_CUDA void emit_inline_rv32_opcode(emit_inline_asm_t *emit, qstr opcode, mp_uint_t arguments_count, mp_parse_node_t *argument_nodes) {
     const opcode_t *opcode_data = NULL;
     for (mp_uint_t index = 0; index < MP_ARRAY_SIZE(OPCODES); index++) {
         if (OPCODES[index].qstring == opcode) {

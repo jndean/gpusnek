@@ -37,7 +37,7 @@ typedef struct _micropython_ringio_obj_t {
     ringbuf_t ringbuffer;
 } micropython_ringio_obj_t;
 
-static mp_obj_t micropython_ringio_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t micropython_ringio_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
     mp_buffer_info_t bufinfo = {NULL, 0, 0};
 
@@ -55,7 +55,7 @@ static mp_obj_t micropython_ringio_make_new(const mp_obj_type_t *type, size_t n_
     return MP_OBJ_FROM_PTR(self);
 }
 
-static mp_uint_t micropython_ringio_read(mp_obj_t self_in, void *buf_in, mp_uint_t size, int *errcode) {
+static MAYBE_CUDA mp_uint_t micropython_ringio_read(mp_obj_t self_in, void *buf_in, mp_uint_t size, int *errcode) {
     micropython_ringio_obj_t *self = MP_OBJ_TO_PTR(self_in);
     size = MIN(size, ringbuf_avail(&self->ringbuffer));
     ringbuf_memcpy_get_internal(&(self->ringbuffer), buf_in, size);
@@ -63,7 +63,7 @@ static mp_uint_t micropython_ringio_read(mp_obj_t self_in, void *buf_in, mp_uint
     return size;
 }
 
-static mp_uint_t micropython_ringio_write(mp_obj_t self_in, const void *buf_in, mp_uint_t size, int *errcode) {
+static MAYBE_CUDA mp_uint_t micropython_ringio_write(mp_obj_t self_in, const void *buf_in, mp_uint_t size, int *errcode) {
     micropython_ringio_obj_t *self = MP_OBJ_TO_PTR(self_in);
     size = MIN(size, ringbuf_free(&self->ringbuffer));
     ringbuf_memcpy_put_internal(&(self->ringbuffer), buf_in, size);
@@ -71,7 +71,7 @@ static mp_uint_t micropython_ringio_write(mp_obj_t self_in, const void *buf_in, 
     return size;
 }
 
-static mp_uint_t micropython_ringio_ioctl(mp_obj_t self_in, mp_uint_t request, uintptr_t arg, int *errcode) {
+static MAYBE_CUDA mp_uint_t micropython_ringio_ioctl(mp_obj_t self_in, mp_uint_t request, uintptr_t arg, int *errcode) {
     micropython_ringio_obj_t *self = MP_OBJ_TO_PTR(self_in);
     switch (request) {
         case MP_STREAM_POLL: {
@@ -91,13 +91,13 @@ static mp_uint_t micropython_ringio_ioctl(mp_obj_t self_in, mp_uint_t request, u
     return MP_STREAM_ERROR;
 }
 
-static mp_obj_t micropython_ringio_any(mp_obj_t self_in) {
+static MAYBE_CUDA mp_obj_t micropython_ringio_any(mp_obj_t self_in) {
     micropython_ringio_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return MP_OBJ_NEW_SMALL_INT(ringbuf_avail(&self->ringbuffer));
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(micropython_ringio_any_obj, micropython_ringio_any);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(micropython_ringio_any_obj, micropython_ringio_any);
 
-static const mp_rom_map_elem_t micropython_ringio_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t micropython_ringio_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_any), MP_ROM_PTR(&micropython_ringio_any_obj) },
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
     { MP_ROM_QSTR(MP_QSTR_readline), MP_ROM_PTR(&mp_stream_unbuffered_readline_obj) },
@@ -106,9 +106,9 @@ static const mp_rom_map_elem_t micropython_ringio_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&mp_stream_close_obj) },
 
 };
-static MP_DEFINE_CONST_DICT(micropython_ringio_locals_dict, micropython_ringio_locals_dict_table);
+static MAYBE_CUDA MP_DEFINE_CONST_DICT(micropython_ringio_locals_dict, micropython_ringio_locals_dict_table);
 
-static const mp_stream_p_t ringio_stream_p = {
+static MAYBE_CUDA const mp_stream_p_t ringio_stream_p = {
     .read = micropython_ringio_read,
     .write = micropython_ringio_write,
     .ioctl = micropython_ringio_ioctl,

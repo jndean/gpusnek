@@ -48,7 +48,7 @@
 #define AT_LX (FL_LOWER | FL_ALPHA | FL_PRINT | FL_XDIGIT)
 
 // table of attributes for ascii characters
-static const uint8_t attr[] = {
+static MAYBE_CUDA const uint8_t attr[] = {
     0, 0, 0, 0, 0, 0, 0, 0,
     0, AT_SP, AT_SP, AT_SP, AT_SP, AT_SP, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -116,41 +116,41 @@ size_t utf8_charlen(const byte *str, size_t len) {
 #endif
 
 // Be aware: These unichar_is* functions are actually ASCII-only!
-bool unichar_isspace(unichar c) {
+MAYBE_CUDA bool unichar_isspace(unichar c) {
     return c < 128 && (attr[c] & FL_SPACE) != 0;
 }
 
-bool unichar_isalpha(unichar c) {
+MAYBE_CUDA bool unichar_isalpha(unichar c) {
     return c < 128 && (attr[c] & FL_ALPHA) != 0;
 }
 
 /* unused
-bool unichar_isprint(unichar c) {
+MAYBE_CUDA bool unichar_isprint(unichar c) {
     return c < 128 && (attr[c] & FL_PRINT) != 0;
 }
 */
 
-bool unichar_isdigit(unichar c) {
+MAYBE_CUDA bool unichar_isdigit(unichar c) {
     return c < 128 && (attr[c] & FL_DIGIT) != 0;
 }
 
-bool unichar_isxdigit(unichar c) {
+MAYBE_CUDA bool unichar_isxdigit(unichar c) {
     return c < 128 && (attr[c] & FL_XDIGIT) != 0;
 }
 
-bool unichar_isident(unichar c) {
+MAYBE_CUDA bool unichar_isident(unichar c) {
     return c < 128 && ((attr[c] & (FL_ALPHA | FL_DIGIT)) != 0 || c == '_');
 }
 
-bool unichar_isalnum(unichar c) {
+MAYBE_CUDA bool unichar_isalnum(unichar c) {
     return c < 128 && ((attr[c] & (FL_ALPHA | FL_DIGIT)) != 0);
 }
 
-bool unichar_isupper(unichar c) {
+MAYBE_CUDA bool unichar_isupper(unichar c) {
     return c < 128 && (attr[c] & FL_UPPER) != 0;
 }
 
-bool unichar_islower(unichar c) {
+MAYBE_CUDA bool unichar_islower(unichar c) {
     return c < 128 && (attr[c] & FL_LOWER) != 0;
 }
 
@@ -168,7 +168,7 @@ unichar unichar_toupper(unichar c) {
     return c;
 }
 
-mp_uint_t unichar_xdigit_value(unichar c) {
+MAYBE_CUDA mp_uint_t unichar_xdigit_value(unichar c) {
     // c is assumed to be hex digit
     mp_uint_t n = c - '0';
     if (n > 9) {

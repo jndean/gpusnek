@@ -75,18 +75,18 @@ struct _emit_t {
     size_t n_cell;
 };
 
-emit_t *emit_bc_new(mp_emit_common_t *emit_common) {
+MAYBE_CUDA emit_t *emit_bc_new(mp_emit_common_t *emit_common) {
     emit_t *emit = m_new0(emit_t, 1);
     emit->emit_common = emit_common;
     return emit;
 }
 
-void emit_bc_set_max_num_labels(emit_t *emit, mp_uint_t max_num_labels) {
+MAYBE_CUDA void emit_bc_set_max_num_labels(emit_t *emit, mp_uint_t max_num_labels) {
     emit->max_num_labels = max_num_labels;
     emit->label_offsets = m_new(size_t, emit->max_num_labels);
 }
 
-void emit_bc_free(emit_t *emit) {
+MAYBE_CUDA void emit_bc_free(emit_t *emit) {
     m_del(size_t, emit->label_offsets, emit->max_num_labels);
     m_del_obj(emit_t, emit);
 }

@@ -15,7 +15,7 @@
 #ifndef MICROPY_NLR_SETJMP
 #define MICROPY_NLR_SETJMP              (1)  // We provide custom implementation
 #endif
-#define MICROPY_ENABLE_GC               (0)  // No GC for POC
+#define MICROPY_ENABLE_GC               (0)  // No GC for POC. Our malloc implementation overr
 #define MICROPY_STACK_CHECK             (0)  // No stack checking
 #define MICROPY_OPT_COMPUTED_GOTO       (0)  // Use switch statement
 #define MICROPY_NO_ALLOCA               (1)  // Don't use alloca
@@ -67,3 +67,6 @@ typedef long mp_off_t;
 #else
 #define MAYBE_CUDA
 #endif
+
+// Device-side string function replacements for CUDA
+#include "py/cuda_string.h"

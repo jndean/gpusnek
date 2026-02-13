@@ -176,21 +176,21 @@ typedef struct _emit_method_table_t {
 #if MICROPY_EMIT_BYTECODE_USES_QSTR_TABLE
 qstr_short_t mp_emit_common_use_qstr(mp_emit_common_t *emit, qstr qst);
 #else
-static inline qstr_short_t mp_emit_common_use_qstr(mp_emit_common_t *emit, qstr qst) {
+static inline MAYBE_CUDA qstr_short_t mp_emit_common_use_qstr(mp_emit_common_t *emit, qstr qst) {
     return qst;
 }
 #endif
 
 MAYBE_CUDA size_t mp_emit_common_use_const_obj(mp_emit_common_t *emit, mp_obj_t const_obj);
 
-static inline size_t mp_emit_common_alloc_const_child(mp_emit_common_t *emit, mp_raw_code_t *rc) {
+static inline MAYBE_CUDA size_t mp_emit_common_alloc_const_child(mp_emit_common_t *emit, mp_raw_code_t *rc) {
     if (emit->pass == MP_PASS_EMIT) {
         emit->children[emit->ct_cur_child] = rc;
     }
     return emit->ct_cur_child++;
 }
 
-static inline void mp_emit_common_get_id_for_load(scope_t *scope, qstr qst) {
+static inline MAYBE_CUDA void mp_emit_common_get_id_for_load(scope_t *scope, qstr qst) {
     scope_find_or_add_id(scope, qst, ID_INFO_KIND_GLOBAL_IMPLICIT);
 }
 

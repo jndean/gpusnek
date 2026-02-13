@@ -105,14 +105,14 @@
 
 #define SIGNED_FIT8(x) (((x) & 0xffffff80) == 0) || (((x) & 0xffffff80) == 0xffffff80)
 
-static void asm_x86_write_byte_1(asm_x86_t *as, byte b1) {
+static MAYBE_CUDA void asm_x86_write_byte_1(asm_x86_t *as, byte b1) {
     byte *c = mp_asm_base_get_cur_to_write_bytes(&as->base, 1);
     if (c != NULL) {
         c[0] = b1;
     }
 }
 
-static void asm_x86_write_byte_2(asm_x86_t *as, byte b1, byte b2) {
+static MAYBE_CUDA void asm_x86_write_byte_2(asm_x86_t *as, byte b1, byte b2) {
     byte *c = mp_asm_base_get_cur_to_write_bytes(&as->base, 2);
     if (c != NULL) {
         c[0] = b1;
@@ -120,7 +120,7 @@ static void asm_x86_write_byte_2(asm_x86_t *as, byte b1, byte b2) {
     }
 }
 
-static void asm_x86_write_byte_3(asm_x86_t *as, byte b1, byte b2, byte b3) {
+static MAYBE_CUDA void asm_x86_write_byte_3(asm_x86_t *as, byte b1, byte b2, byte b3) {
     byte *c = mp_asm_base_get_cur_to_write_bytes(&as->base, 3);
     if (c != NULL) {
         c[0] = b1;
@@ -129,7 +129,7 @@ static void asm_x86_write_byte_3(asm_x86_t *as, byte b1, byte b2, byte b3) {
     }
 }
 
-static void asm_x86_write_word32(asm_x86_t *as, int w32) {
+static MAYBE_CUDA void asm_x86_write_word32(asm_x86_t *as, int w32) {
     byte *c = mp_asm_base_get_cur_to_write_bytes(&as->base, 4);
     if (c != NULL) {
         c[0] = IMM32_L0(w32);
@@ -139,7 +139,7 @@ static void asm_x86_write_word32(asm_x86_t *as, int w32) {
     }
 }
 
-static void asm_x86_write_r32_disp(asm_x86_t *as, int r32, int disp_r32, int disp_offset) {
+static MAYBE_CUDA void asm_x86_write_r32_disp(asm_x86_t *as, int r32, int disp_r32, int disp_offset) {
     uint8_t rm_disp;
     if (disp_offset == 0 && disp_r32 != ASM_X86_REG_EBP) {
         rm_disp = MODRM_RM_DISP0;
@@ -160,17 +160,17 @@ static void asm_x86_write_r32_disp(asm_x86_t *as, int r32, int disp_r32, int dis
     }
 }
 
-static void asm_x86_generic_r32_r32(asm_x86_t *as, int dest_r32, int src_r32, int op) {
+static MAYBE_CUDA void asm_x86_generic_r32_r32(asm_x86_t *as, int dest_r32, int src_r32, int op) {
     asm_x86_write_byte_2(as, op, MODRM_R32(src_r32) | MODRM_RM_REG | MODRM_RM_R32(dest_r32));
 }
 
 #if 0
-static void asm_x86_nop(asm_x86_t *as) {
+static MAYBE_CUDA void asm_x86_nop(asm_x86_t *as) {
     asm_x86_write_byte_1(as, OPCODE_NOP);
 }
 #endif
 
-static void asm_x86_push_r32(asm_x86_t *as, int src_r32) {
+static MAYBE_CUDA void asm_x86_push_r32(asm_x86_t *as, int src_r32) {
     asm_x86_write_byte_1(as, OPCODE_PUSH_R32 | src_r32);
 }
 
@@ -186,11 +186,11 @@ void asm_x86_push_disp(asm_x86_t *as, int src_r32, int src_offset) {
 }
 #endif
 
-static void asm_x86_pop_r32(asm_x86_t *as, int dest_r32) {
+static MAYBE_CUDA void asm_x86_pop_r32(asm_x86_t *as, int dest_r32) {
     asm_x86_write_byte_1(as, OPCODE_POP_R32 | dest_r32);
 }
 
-static void asm_x86_ret(asm_x86_t *as) {
+static MAYBE_CUDA void asm_x86_ret(asm_x86_t *as) {
     asm_x86_write_byte_1(as, OPCODE_RET);
 }
 
@@ -228,7 +228,7 @@ void asm_x86_mov_mem32_to_r32(asm_x86_t *as, int src_r32, int src_disp, int dest
     asm_x86_write_r32_disp(as, dest_r32, src_r32, src_disp);
 }
 
-static void asm_x86_lea_disp_to_r32(asm_x86_t *as, int src_r32, int src_disp, int dest_r32) {
+static MAYBE_CUDA void asm_x86_lea_disp_to_r32(asm_x86_t *as, int src_r32, int src_disp, int dest_r32) {
     asm_x86_write_byte_1(as, OPCODE_LEA_MEM_TO_R32);
     asm_x86_write_r32_disp(as, dest_r32, src_r32, src_disp);
 }
@@ -282,7 +282,7 @@ void asm_x86_add_r32_r32(asm_x86_t *as, int dest_r32, int src_r32) {
     asm_x86_generic_r32_r32(as, dest_r32, src_r32, OPCODE_ADD_R32_TO_RM32);
 }
 
-static void asm_x86_add_i32_to_r32(asm_x86_t *as, int src_i32, int dest_r32) {
+static MAYBE_CUDA void asm_x86_add_i32_to_r32(asm_x86_t *as, int src_i32, int dest_r32) {
     if (SIGNED_FIT8(src_i32)) {
         asm_x86_write_byte_2(as, OPCODE_ADD_I8_TO_RM32, MODRM_R32(0) | MODRM_RM_REG | MODRM_RM_R32(dest_r32));
         asm_x86_write_byte_1(as, src_i32 & 0xff);
@@ -296,7 +296,7 @@ void asm_x86_sub_r32_r32(asm_x86_t *as, int dest_r32, int src_r32) {
     asm_x86_generic_r32_r32(as, dest_r32, src_r32, OPCODE_SUB_R32_FROM_RM32);
 }
 
-static void asm_x86_sub_r32_i32(asm_x86_t *as, int dest_r32, int src_i32) {
+static MAYBE_CUDA void asm_x86_sub_r32_i32(asm_x86_t *as, int dest_r32, int src_i32) {
     if (SIGNED_FIT8(src_i32)) {
         // defaults to 32 bit operation
         asm_x86_write_byte_2(as, OPCODE_SUB_I8_FROM_RM32, MODRM_R32(5) | MODRM_RM_REG | MODRM_RM_R32(dest_r32));
@@ -363,7 +363,7 @@ void asm_x86_jmp_reg(asm_x86_t *as, int src_r32) {
     asm_x86_write_byte_2(as, OPCODE_JMP_RM32, MODRM_R32(4) | MODRM_RM_REG | MODRM_RM_R32(src_r32));
 }
 
-static mp_uint_t get_label_dest(asm_x86_t *as, mp_uint_t label) {
+static MAYBE_CUDA mp_uint_t get_label_dest(asm_x86_t *as, mp_uint_t label) {
     assert(label < as->base.max_num_labels);
     return as->base.label_offsets[label];
 }
@@ -432,7 +432,7 @@ void asm_x86_exit(asm_x86_t *as) {
     asm_x86_ret(as);
 }
 
-static int asm_x86_arg_offset_from_esp(asm_x86_t *as, size_t arg_num) {
+static MAYBE_CUDA int asm_x86_arg_offset_from_esp(asm_x86_t *as, size_t arg_num) {
     // Above esp are: locals, 4 saved registers, return eip, arguments
     return (as->num_locals + 4 + 1 + arg_num) * WORD_SIZE;
 }
@@ -464,7 +464,7 @@ void asm_x86_mov_r32_to_arg(asm_x86_t *as, int src_r32, int dest_arg_num) {
 //  ^                ^
 //  | low address    | high address in RAM
 //
-static int asm_x86_local_offset_from_esp(asm_x86_t *as, int local_num) {
+static MAYBE_CUDA int asm_x86_local_offset_from_esp(asm_x86_t *as, int local_num) {
     (void)as;
     // Stack is full descending, ESP points to local0
     return local_num * WORD_SIZE;

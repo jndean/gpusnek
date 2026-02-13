@@ -42,11 +42,11 @@ MAYBE_CUDA const char *mp_parse_float_internal(const char *str, size_t len, mp_f
 #if MICROPY_PY_BUILTINS_COMPLEX
 MAYBE_CUDA mp_obj_t mp_parse_num_decimal(const char *str, size_t len, bool allow_imag, bool force_complex, mp_lexer_t *lex);
 
-static inline mp_obj_t mp_parse_num_float(const char *str, size_t len, bool allow_imag, mp_lexer_t *lex) {
+static inline MAYBE_CUDA mp_obj_t mp_parse_num_float(const char *str, size_t len, bool allow_imag, mp_lexer_t *lex) {
     return mp_parse_num_decimal(str, len, allow_imag, false, lex);
 }
 
-static inline mp_obj_t mp_parse_num_complex(const char *str, size_t len, mp_lexer_t *lex) {
+static inline MAYBE_CUDA mp_obj_t mp_parse_num_complex(const char *str, size_t len, mp_lexer_t *lex) {
     return mp_parse_num_decimal(str, len, true, true, lex);
 }
 #else

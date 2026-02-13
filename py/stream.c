@@ -38,7 +38,7 @@
 // TODO: should be in mpconfig.h
 #define DEFAULT_BUFFER_SIZE 256
 
-static mp_obj_t stream_readall(mp_obj_t self_in);
+static MAYBE_CUDA mp_obj_t stream_readall(mp_obj_t self_in);
 
 // Returns error condition in *errcode, if non-zero, return value is number of bytes written
 // before error condition occurred. If *errcode == 0, returns total bytes written (which will
@@ -108,7 +108,7 @@ const mp_stream_p_t *mp_get_stream_raise(mp_obj_t self_in, int flags) {
     mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("stream operation not supported"));
 }
 
-static mp_obj_t stream_read_generic(size_t n_args, const mp_obj_t *args, byte flags) {
+static MAYBE_CUDA mp_obj_t stream_read_generic(size_t n_args, const mp_obj_t *args, byte flags) {
     // What to do if sz < -1?  Python docs don't specify this case.
     // CPython does a readall, but here we silently let negatives through,
     // and they will cause a MemoryError.
@@ -230,12 +230,12 @@ static mp_obj_t stream_read_generic(size_t n_args, const mp_obj_t *args, byte fl
     }
 }
 
-static mp_obj_t stream_read(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t stream_read(size_t n_args, const mp_obj_t *args) {
     return stream_read_generic(n_args, args, MP_STREAM_RW_READ);
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream_read_obj, 1, 2, stream_read);
 
-static mp_obj_t stream_read1(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t stream_read1(size_t n_args, const mp_obj_t *args) {
     return stream_read_generic(n_args, args, MP_STREAM_RW_READ | MP_STREAM_RW_ONCE);
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream_read1_obj, 1, 2, stream_read1);
@@ -261,7 +261,7 @@ MAYBE_CUDA void mp_stream_write_adaptor(void *self, const char *buf, size_t len)
     mp_stream_write(MP_OBJ_FROM_PTR(self), buf, len, MP_STREAM_RW_WRITE);
 }
 
-static mp_obj_t stream_readinto_write_generic(size_t n_args, const mp_obj_t *args, byte flags) {
+static MAYBE_CUDA mp_obj_t stream_readinto_write_generic(size_t n_args, const mp_obj_t *args, byte flags) {
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(args[1], &bufinfo, (flags & MP_STREAM_RW_WRITE) ? MP_BUFFER_READ : MP_BUFFER_WRITE);
 
@@ -286,27 +286,27 @@ static mp_obj_t stream_readinto_write_generic(size_t n_args, const mp_obj_t *arg
     return mp_stream_write(args[0], (byte *)bufinfo.buf + off, MIN(bufinfo.len, max_len), flags);
 }
 
-static mp_obj_t stream_write_method(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t stream_write_method(size_t n_args, const mp_obj_t *args) {
     return stream_readinto_write_generic(n_args, args, MP_STREAM_RW_WRITE);
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream_write_obj, 2, 4, stream_write_method);
 
-static mp_obj_t stream_write1_method(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t stream_write1_method(size_t n_args, const mp_obj_t *args) {
     return stream_readinto_write_generic(n_args, args, MP_STREAM_RW_WRITE | MP_STREAM_RW_ONCE);
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream_write1_obj, 2, 4, stream_write1_method);
 
-static mp_obj_t stream_readinto(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t stream_readinto(size_t n_args, const mp_obj_t *args) {
     return stream_readinto_write_generic(n_args, args, MP_STREAM_RW_READ);
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream_readinto_obj, 2, 3, stream_readinto);
 
-static mp_obj_t stream_readinto1(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t stream_readinto1(size_t n_args, const mp_obj_t *args) {
     return stream_readinto_write_generic(n_args, args, MP_STREAM_RW_READ | MP_STREAM_RW_ONCE);
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream_readinto1_obj, 2, 3, stream_readinto1);
 
-static mp_obj_t stream_readall(mp_obj_t self_in) {
+static MAYBE_CUDA mp_obj_t stream_readall(mp_obj_t self_in) {
     const mp_stream_p_t *stream_p = mp_get_stream(self_in);
 
     mp_uint_t total_size = 0;
@@ -351,7 +351,7 @@ static mp_obj_t stream_readall(mp_obj_t self_in) {
 }
 
 // Unbuffered, inefficient implementation of readline() for raw I/O files.
-static mp_obj_t stream_unbuffered_readline(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t stream_unbuffered_readline(size_t n_args, const mp_obj_t *args) {
     const mp_stream_p_t *stream_p = mp_get_stream(args[0]);
 
     mp_int_t max_size = -1;
@@ -409,7 +409,7 @@ static mp_obj_t stream_unbuffered_readline(size_t n_args, const mp_obj_t *args) 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream_unbuffered_readline_obj, 1, 2, stream_unbuffered_readline);
 
 // TODO take an optional extra argument (what does it do exactly?)
-static mp_obj_t stream_unbuffered_readlines(mp_obj_t self) {
+static MAYBE_CUDA mp_obj_t stream_unbuffered_readlines(mp_obj_t self) {
     mp_obj_t lines = mp_obj_new_list(0, NULL);
     for (;;) {
         mp_obj_t line = stream_unbuffered_readline(1, &self);
@@ -441,13 +441,13 @@ MAYBE_CUDA mp_obj_t mp_stream_close(mp_obj_t stream) {
 }
 MP_DEFINE_CONST_FUN_OBJ_1(mp_stream_close_obj, mp_stream_close);
 
-static mp_obj_t mp_stream___exit__(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_stream___exit__(size_t n_args, const mp_obj_t *args) {
     (void)n_args;
     return mp_stream_close(args[0]);
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream___exit___obj, 4, 4, mp_stream___exit__);
 
-static mp_obj_t stream_seek(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t stream_seek(size_t n_args, const mp_obj_t *args) {
     // TODO: Could be uint64
     mp_off_t offset = mp_obj_get_int(args[1]);
     int whence = SEEK_SET;
@@ -471,7 +471,7 @@ static mp_obj_t stream_seek(size_t n_args, const mp_obj_t *args) {
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream_seek_obj, 2, 3, stream_seek);
 
-static mp_obj_t stream_tell(mp_obj_t self) {
+static MAYBE_CUDA mp_obj_t stream_tell(mp_obj_t self) {
     mp_obj_t offset = MP_OBJ_NEW_SMALL_INT(0);
     mp_obj_t whence = MP_OBJ_NEW_SMALL_INT(SEEK_CUR);
     const mp_obj_t args[3] = {self, offset, whence};
@@ -479,7 +479,7 @@ static mp_obj_t stream_tell(mp_obj_t self) {
 }
 MP_DEFINE_CONST_FUN_OBJ_1(mp_stream_tell_obj, stream_tell);
 
-static mp_obj_t stream_flush(mp_obj_t self) {
+static MAYBE_CUDA mp_obj_t stream_flush(mp_obj_t self) {
     const mp_stream_p_t *stream_p = mp_get_stream(self);
     int error;
     mp_uint_t res = stream_p->ioctl(self, MP_STREAM_FLUSH, 0, &error);
@@ -490,7 +490,7 @@ static mp_obj_t stream_flush(mp_obj_t self) {
 }
 MP_DEFINE_CONST_FUN_OBJ_1(mp_stream_flush_obj, stream_flush);
 
-static mp_obj_t stream_ioctl(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t stream_ioctl(size_t n_args, const mp_obj_t *args) {
     mp_buffer_info_t bufinfo;
     uintptr_t val = 0;
     if (n_args > 2) {

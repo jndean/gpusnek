@@ -109,7 +109,7 @@ MAYBE_CUDA void mp_sched_vm_abort(void);
 
 MAYBE_CUDA void mp_handle_pending_internal(mp_handle_pending_behaviour_t behavior);
 
-static inline void mp_handle_pending(bool raise_exc) {
+static inline MAYBE_CUDA void mp_handle_pending(bool raise_exc) {
     mp_handle_pending_internal(raise_exc ?
         MP_HANDLE_PENDING_CALLBACKS_AND_EXCEPTIONS :
         MP_HANDLE_PENDING_CALLBACKS_AND_CLEAR_EXCEPTIONS);
@@ -144,7 +144,7 @@ MAYBE_CUDA void mp_event_wait_ms(mp_uint_t timeout_ms);
 int mp_print_mp_int(const mp_print_t *print, mp_obj_t x, unsigned base, int base_char, int flags, char fill, int width, int prec);
 
 MAYBE_CUDA void mp_arg_check_num_sig(size_t n_args, size_t n_kw, uint32_t sig);
-static inline void mp_arg_check_num(size_t n_args, size_t n_kw, size_t n_args_min, size_t n_args_max, bool takes_kw) {
+static inline MAYBE_CUDA void mp_arg_check_num(size_t n_args, size_t n_kw, size_t n_args_min, size_t n_args_max, bool takes_kw) {
     mp_arg_check_num_sig(n_args, n_kw, MP_OBJ_FUN_MAKE_SIG(n_args_min, n_args_max, takes_kw));
 }
 MAYBE_CUDA void mp_arg_parse_all(size_t n_pos, const mp_obj_t *pos, mp_map_t *kws, size_t n_allowed, const mp_arg_t *allowed, mp_arg_val_t *out_vals);
@@ -152,16 +152,16 @@ MAYBE_CUDA void mp_arg_parse_all_kw_array(size_t n_pos, size_t n_kw, const mp_ob
 MP_NORETURN void mp_arg_error_terse_mismatch(void);
 MP_NORETURN void mp_arg_error_unimpl_kw(void);
 
-static inline mp_obj_dict_t *mp_locals_get(void) {
+static inline MAYBE_CUDA mp_obj_dict_t *mp_locals_get(void) {
     return MP_STATE_THREAD(dict_locals);
 }
-static inline void mp_locals_set(mp_obj_dict_t *d) {
+static inline MAYBE_CUDA void mp_locals_set(mp_obj_dict_t *d) {
     MP_STATE_THREAD(dict_locals) = d;
 }
-static inline mp_obj_dict_t *mp_globals_get(void) {
+static inline MAYBE_CUDA mp_obj_dict_t *mp_globals_get(void) {
     return MP_STATE_THREAD(dict_globals);
 }
-static inline void mp_globals_set(mp_obj_dict_t *d) {
+static inline MAYBE_CUDA void mp_globals_set(mp_obj_dict_t *d) {
     MP_STATE_THREAD(dict_globals) = d;
 }
 
@@ -169,7 +169,7 @@ MAYBE_CUDA void mp_globals_locals_set_from_nlr_jump_callback(void *ctx_in);
 void mp_call_function_1_from_nlr_jump_callback(void *ctx_in);
 
 #if MICROPY_PY_THREAD
-static inline void mp_thread_init_state(mp_state_thread_t *ts, size_t stack_size, mp_obj_dict_t *locals, mp_obj_dict_t *globals) {
+static inline MAYBE_CUDA void mp_thread_init_state(mp_state_thread_t *ts, size_t stack_size, mp_obj_dict_t *locals, mp_obj_dict_t *globals) {
     mp_thread_set_state(ts);
 
     mp_cstack_init_with_top(ts + 1, stack_size); // need to include ts in root-pointer scan
@@ -253,7 +253,7 @@ MAYBE_CUDA mp_obj_t mp_iternext_allow_raise(mp_obj_t o); // may return MP_OBJ_ST
 MAYBE_CUDA mp_obj_t mp_iternext(mp_obj_t o); // will always return MP_OBJ_STOP_ITERATION instead of raising StopIteration(...)
 mp_vm_return_kind_t mp_resume(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, mp_obj_t *ret_val);
 
-static inline mp_obj_t mp_make_stop_iteration(mp_obj_t o) {
+static inline MAYBE_CUDA mp_obj_t mp_make_stop_iteration(mp_obj_t o) {
     MP_STATE_THREAD(stop_iteration_arg) = o;
     return MP_OBJ_STOP_ITERATION;
 }

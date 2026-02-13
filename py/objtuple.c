@@ -62,7 +62,7 @@ MAYBE_CUDA void mp_obj_tuple_print(const mp_print_t *print, mp_obj_t o_in, mp_pr
     }
 }
 
-static mp_obj_t mp_obj_tuple_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_obj_tuple_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     (void)type_in;
 
     mp_arg_check_num(n_args, n_kw, 0, 1, false);
@@ -104,7 +104,7 @@ static mp_obj_t mp_obj_tuple_make_new(const mp_obj_type_t *type_in, size_t n_arg
 }
 
 // Don't pass MP_BINARY_OP_NOT_EQUAL here
-static mp_obj_t tuple_cmp_helper(mp_uint_t op, mp_obj_t self_in, mp_obj_t another_in) {
+static MAYBE_CUDA mp_obj_t tuple_cmp_helper(mp_uint_t op, mp_obj_t self_in, mp_obj_t another_in) {
     mp_check_self(mp_obj_is_tuple_compatible(self_in));
     const mp_obj_type_t *another_type = mp_obj_get_type(another_in);
     mp_obj_tuple_t *self = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(self_in);
@@ -200,26 +200,26 @@ MAYBE_CUDA mp_obj_t mp_obj_tuple_subscr(mp_obj_t self_in, mp_obj_t index, mp_obj
     }
 }
 
-static mp_obj_t tuple_count(mp_obj_t self_in, mp_obj_t value) {
+static MAYBE_CUDA mp_obj_t tuple_count(mp_obj_t self_in, mp_obj_t value) {
     mp_check_self(mp_obj_is_type(self_in, &mp_type_tuple));
     mp_obj_tuple_t *self = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(self_in);
     return mp_seq_count_obj(self->items, self->len, value);
 }
-static MP_DEFINE_CONST_FUN_OBJ_2(tuple_count_obj, tuple_count);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_2(tuple_count_obj, tuple_count);
 
-static mp_obj_t tuple_index(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t tuple_index(size_t n_args, const mp_obj_t *args) {
     mp_check_self(mp_obj_is_type(args[0], &mp_type_tuple));
     mp_obj_tuple_t *self = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(args[0]);
     return mp_seq_index_obj(self->items, self->len, n_args, args);
 }
-static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(tuple_index_obj, 2, 4, tuple_index);
+static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(tuple_index_obj, 2, 4, tuple_index);
 
-static const mp_rom_map_elem_t tuple_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t tuple_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_count), MP_ROM_PTR(&tuple_count_obj) },
     { MP_ROM_QSTR(MP_QSTR_index), MP_ROM_PTR(&tuple_index_obj) },
 };
 
-static MP_DEFINE_CONST_DICT(tuple_locals_dict, tuple_locals_dict_table);
+static MAYBE_CUDA MP_DEFINE_CONST_DICT(tuple_locals_dict, tuple_locals_dict_table);
 
 MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_tuple,
@@ -274,7 +274,7 @@ typedef struct _mp_obj_tuple_it_t {
     size_t cur;
 } mp_obj_tuple_it_t;
 
-static mp_obj_t tuple_it_iternext(mp_obj_t self_in) {
+static MAYBE_CUDA mp_obj_t tuple_it_iternext(mp_obj_t self_in) {
     mp_obj_tuple_it_t *self = (mp_obj_tuple_it_t *)MP_OBJ_TO_PTR(self_in);
     if (self->cur < self->tuple->len) {
         mp_obj_t o_out = self->tuple->items[self->cur];

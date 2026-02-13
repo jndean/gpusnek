@@ -130,7 +130,7 @@ void asm_xtensa_exit_win(asm_xtensa_t *as) {
     asm_xtensa_op_retw_n(as);
 }
 
-static uint32_t get_label_dest(asm_xtensa_t *as, uint label) {
+static MAYBE_CUDA uint32_t get_label_dest(asm_xtensa_t *as, uint label) {
     assert(label < as->base.max_num_labels);
     return as->base.label_offsets[label];
 }
@@ -159,7 +159,7 @@ void asm_xtensa_j_label(asm_xtensa_t *as, uint label) {
     asm_xtensa_op_j(as, rel);
 }
 
-static bool calculate_branch_displacement(asm_xtensa_t *as, uint label, ptrdiff_t *displacement) {
+static MAYBE_CUDA bool calculate_branch_displacement(asm_xtensa_t *as, uint label, ptrdiff_t *displacement) {
     assert(displacement != NULL && "Displacement pointer is NULL");
 
     uint32_t label_offset = get_label_dest(as, label);

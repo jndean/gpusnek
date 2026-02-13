@@ -38,7 +38,7 @@
 #define ROUND_ALLOC(a) (((a) & ((~0U) - 7)) + 8)
 
 // Init the vstr so it allocs exactly given number of bytes.  Set length to zero.
-void vstr_init(vstr_t *vstr, size_t alloc) {
+MAYBE_CUDA void vstr_init(vstr_t *vstr, size_t alloc) {
     if (alloc < 1) {
         alloc = 1;
     }
@@ -50,25 +50,25 @@ void vstr_init(vstr_t *vstr, size_t alloc) {
 
 // Init the vstr so it allocs exactly enough ram to hold a null-terminated
 // string of the given length, and set the length.
-void vstr_init_len(vstr_t *vstr, size_t len) {
+MAYBE_CUDA void vstr_init_len(vstr_t *vstr, size_t len) {
     vstr_init(vstr, len + 1);
     vstr->len = len;
 }
 
-void vstr_init_fixed_buf(vstr_t *vstr, size_t alloc, char *buf) {
+MAYBE_CUDA void vstr_init_fixed_buf(vstr_t *vstr, size_t alloc, char *buf) {
     vstr->alloc = alloc;
     vstr->len = 0;
     vstr->buf = buf;
     vstr->fixed_buf = true;
 }
 
-void vstr_init_print(vstr_t *vstr, size_t alloc, mp_print_t *print) {
+MAYBE_CUDA void vstr_init_print(vstr_t *vstr, size_t alloc, mp_print_t *print) {
     vstr_init(vstr, alloc);
     print->data = vstr;
     print->print_strn = (mp_print_strn_t)vstr_add_strn;
 }
 
-void vstr_clear(vstr_t *vstr) {
+MAYBE_CUDA void vstr_clear(vstr_t *vstr) {
     if (!vstr->fixed_buf) {
         m_del(char, vstr->buf, vstr->alloc);
     }
@@ -81,7 +81,7 @@ vstr_t *vstr_new(size_t alloc) {
     return vstr;
 }
 
-void vstr_free(vstr_t *vstr) {
+MAYBE_CUDA void vstr_free(vstr_t *vstr) {
     if (vstr != NULL) {
         if (!vstr->fixed_buf) {
             m_del(char, vstr->buf, vstr->alloc);
@@ -91,7 +91,7 @@ void vstr_free(vstr_t *vstr) {
 }
 
 // Extend vstr strictly by requested size, return pointer to newly added chunk.
-char *vstr_extend(vstr_t *vstr, size_t size) {
+MAYBE_CUDA char *vstr_extend(vstr_t *vstr, size_t size) {
     if (vstr->fixed_buf) {
         // We can't reallocate, and the caller is expecting the space to
         // be there, so the only safe option is to raise an exception.
@@ -104,7 +104,7 @@ char *vstr_extend(vstr_t *vstr, size_t size) {
     return p;
 }
 
-static void vstr_ensure_extra(vstr_t *vstr, size_t size) {
+static MAYBE_CUDA void vstr_ensure_extra(vstr_t *vstr, size_t size) {
     if (vstr->len + size > vstr->alloc) {
         if (vstr->fixed_buf) {
             // We can't reallocate, and the caller is expecting the space to
@@ -118,11 +118,11 @@ static void vstr_ensure_extra(vstr_t *vstr, size_t size) {
     }
 }
 
-void vstr_hint_size(vstr_t *vstr, size_t size) {
+MAYBE_CUDA void vstr_hint_size(vstr_t *vstr, size_t size) {
     vstr_ensure_extra(vstr, size);
 }
 
-char *vstr_add_len(vstr_t *vstr, size_t len) {
+MAYBE_CUDA char *vstr_add_len(vstr_t *vstr, size_t len) {
     vstr_ensure_extra(vstr, len);
     char *buf = vstr->buf + vstr->len;
     vstr->len += len;
@@ -130,7 +130,7 @@ char *vstr_add_len(vstr_t *vstr, size_t len) {
 }
 
 // Doesn't increase len, just makes sure there is a null byte at the end
-char *vstr_null_terminated_str(vstr_t *vstr) {
+MAYBE_CUDA char *vstr_null_terminated_str(vstr_t *vstr) {
     // If there's no more room, add single byte
     if (vstr->alloc == vstr->len) {
         vstr_extend(vstr, 1);
@@ -139,12 +139,12 @@ char *vstr_null_terminated_str(vstr_t *vstr) {
     return vstr->buf;
 }
 
-void vstr_add_byte(vstr_t *vstr, byte b) {
+MAYBE_CUDA void vstr_add_byte(vstr_t *vstr, byte b) {
     byte *buf = (byte *)vstr_add_len(vstr, 1);
     buf[0] = b;
 }
 
-void vstr_add_char(vstr_t *vstr, unichar c) {
+MAYBE_CUDA void vstr_add_char(vstr_t *vstr, unichar c) {
     #if MICROPY_PY_BUILTINS_STR_UNICODE
     // TODO: Can this be simplified and deduplicated?
     // Is it worth just calling vstr_add_len(vstr, 4)?
@@ -173,17 +173,17 @@ void vstr_add_char(vstr_t *vstr, unichar c) {
     #endif
 }
 
-void vstr_add_str(vstr_t *vstr, const char *str) {
+MAYBE_CUDA void vstr_add_str(vstr_t *vstr, const char *str) {
     vstr_add_strn(vstr, str, strlen(str));
 }
 
-void vstr_add_strn(vstr_t *vstr, const char *str, size_t len) {
+MAYBE_CUDA void vstr_add_strn(vstr_t *vstr, const char *str, size_t len) {
     vstr_ensure_extra(vstr, len);
     memmove(vstr->buf + vstr->len, str, len);
     vstr->len += len;
 }
 
-static char *vstr_ins_blank_bytes(vstr_t *vstr, size_t byte_pos, size_t byte_len) {
+static MAYBE_CUDA char *vstr_ins_blank_bytes(vstr_t *vstr, size_t byte_pos, size_t byte_len) {
     size_t l = vstr->len;
     if (byte_pos > l) {
         byte_pos = l;
@@ -199,22 +199,22 @@ static char *vstr_ins_blank_bytes(vstr_t *vstr, size_t byte_pos, size_t byte_len
     return vstr->buf + byte_pos;
 }
 
-void vstr_ins_byte(vstr_t *vstr, size_t byte_pos, byte b) {
+MAYBE_CUDA void vstr_ins_byte(vstr_t *vstr, size_t byte_pos, byte b) {
     char *s = vstr_ins_blank_bytes(vstr, byte_pos, 1);
     *s = b;
 }
 
-void vstr_ins_char(vstr_t *vstr, size_t char_pos, unichar chr) {
+MAYBE_CUDA void vstr_ins_char(vstr_t *vstr, size_t char_pos, unichar chr) {
     // TODO UNICODE
     char *s = vstr_ins_blank_bytes(vstr, char_pos, 1);
     *s = chr;
 }
 
-void vstr_cut_head_bytes(vstr_t *vstr, size_t bytes_to_cut) {
+MAYBE_CUDA void vstr_cut_head_bytes(vstr_t *vstr, size_t bytes_to_cut) {
     vstr_cut_out_bytes(vstr, 0, bytes_to_cut);
 }
 
-void vstr_cut_tail_bytes(vstr_t *vstr, size_t len) {
+MAYBE_CUDA void vstr_cut_tail_bytes(vstr_t *vstr, size_t len) {
     if (len > vstr->len) {
         vstr->len = 0;
     } else {
@@ -222,7 +222,7 @@ void vstr_cut_tail_bytes(vstr_t *vstr, size_t len) {
     }
 }
 
-void vstr_cut_out_bytes(vstr_t *vstr, size_t byte_pos, size_t bytes_to_cut) {
+MAYBE_CUDA void vstr_cut_out_bytes(vstr_t *vstr, size_t byte_pos, size_t bytes_to_cut) {
     if (byte_pos >= vstr->len) {
         return;
     } else if (byte_pos + bytes_to_cut >= vstr->len) {
@@ -233,14 +233,14 @@ void vstr_cut_out_bytes(vstr_t *vstr, size_t byte_pos, size_t bytes_to_cut) {
     }
 }
 
-void vstr_printf(vstr_t *vstr, const char *fmt, ...) {
+MAYBE_CUDA void vstr_printf(vstr_t *vstr, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     vstr_vprintf(vstr, fmt, ap);
     va_end(ap);
 }
 
-void vstr_vprintf(vstr_t *vstr, const char *fmt, va_list ap) {
+MAYBE_CUDA void vstr_vprintf(vstr_t *vstr, const char *fmt, va_list ap) {
     mp_print_t print = {vstr, (mp_print_strn_t)vstr_add_strn};
     mp_vprintf(&print, fmt, ap);
 }

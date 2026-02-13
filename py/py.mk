@@ -97,6 +97,7 @@ PY_CORE_O_BASENAME = $(addprefix py/,\
 	pystack.o \
 	qstr.o \
 	vstr.o \
+	cuda_string.o \
 	mpprint.o \
 	unicode.o \
 	mpz.o \

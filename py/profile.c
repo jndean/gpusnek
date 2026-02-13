@@ -70,7 +70,7 @@ MAYBE_CUDA void mp_prof_extract_prelude(const byte *bytecode, mp_bytecode_prelud
 /******************************************************************************/
 // frame object
 
-static void frame_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
+static MAYBE_CUDA void frame_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     (void)kind;
     mp_obj_frame_t *frame = MP_OBJ_TO_PTR(o_in);
     mp_obj_code_t *code = frame->code;
@@ -85,7 +85,7 @@ static void frame_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t 
         );
 }
 
-static void frame_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+static MAYBE_CUDA void frame_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     if (dest[0] != MP_OBJ_NULL) {
         // not load attribute
         return;
@@ -162,7 +162,7 @@ typedef struct {
     mp_obj_t arg;
 } prof_callback_args_t;
 
-static mp_obj_t mp_prof_callback_invoke(mp_obj_t callback, prof_callback_args_t *args) {
+static MAYBE_CUDA mp_obj_t mp_prof_callback_invoke(mp_obj_t callback, prof_callback_args_t *args) {
     assert(mp_obj_is_callable(callback));
 
     mp_prof_is_executing = true;
@@ -342,7 +342,7 @@ typedef struct _mp_dis_instruction_t {
     mp_obj_t argobjex_cache;
 } mp_dis_instruction_t;
 
-static const byte *mp_prof_opcode_decode(const byte *ip, const mp_uint_t *const_table, mp_dis_instruction_t *instruction) {
+static MAYBE_CUDA const byte *mp_prof_opcode_decode(const byte *ip, const mp_uint_t *const_table, mp_dis_instruction_t *instruction) {
     mp_uint_t unum;
     const byte *ptr;
     mp_obj_t obj;

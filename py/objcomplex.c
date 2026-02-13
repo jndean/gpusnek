@@ -42,7 +42,7 @@ typedef struct _mp_obj_complex_t {
     mp_float_t imag;
 } mp_obj_complex_t;
 
-static void complex_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
+static MAYBE_CUDA void complex_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     (void)kind;
     mp_obj_complex_t *o = MP_OBJ_TO_PTR(o_in);
     const char *suffix;
@@ -59,7 +59,7 @@ static void complex_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_
     mp_print_str(print, suffix);
 }
 
-static mp_obj_t complex_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t complex_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     (void)type_in;
     mp_arg_check_num(n_args, n_kw, 0, 2, false);
 
@@ -104,7 +104,7 @@ static mp_obj_t complex_make_new(const mp_obj_type_t *type_in, size_t n_args, si
     }
 }
 
-static mp_obj_t complex_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
+static MAYBE_CUDA mp_obj_t complex_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
     mp_obj_complex_t *o = MP_OBJ_TO_PTR(o_in);
     switch (op) {
         case MP_UNARY_OP_BOOL:
@@ -122,12 +122,12 @@ static mp_obj_t complex_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
     }
 }
 
-static mp_obj_t complex_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
+static MAYBE_CUDA mp_obj_t complex_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
     mp_obj_complex_t *lhs = MP_OBJ_TO_PTR(lhs_in);
     return mp_obj_complex_binary_op(op, lhs->real, lhs->imag, rhs_in);
 }
 
-static void complex_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+static MAYBE_CUDA void complex_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     if (dest[0] != MP_OBJ_NULL) {
         // not load attribute
         return;

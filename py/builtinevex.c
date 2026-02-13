@@ -34,7 +34,7 @@
 
 #if MICROPY_PY_BUILTINS_COMPILE
 
-static mp_obj_t code_execute(mp_obj_code_t *self, mp_obj_dict_t *globals, mp_obj_dict_t *locals) {
+static MAYBE_CUDA mp_obj_t code_execute(mp_obj_code_t *self, mp_obj_dict_t *globals, mp_obj_dict_t *locals) {
     // save context
     nlr_jump_callback_node_globals_locals_t ctx;
     ctx.globals = mp_globals_get();
@@ -77,7 +77,7 @@ static mp_obj_t code_execute(mp_obj_code_t *self, mp_obj_dict_t *globals, mp_obj
     return ret;
 }
 
-static mp_obj_t mp_builtin_compile(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_builtin_compile(size_t n_args, const mp_obj_t *args) {
     (void)n_args;
 
     // get the source
@@ -137,7 +137,7 @@ MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_builtin_compile_obj, 3, 6, mp_builtin_com
 
 #if MICROPY_PY_BUILTINS_EVAL_EXEC
 
-static mp_obj_t eval_exec_helper(size_t n_args, const mp_obj_t *args, mp_parse_input_kind_t parse_input_kind) {
+static MAYBE_CUDA mp_obj_t eval_exec_helper(size_t n_args, const mp_obj_t *args, mp_parse_input_kind_t parse_input_kind) {
     // work out the context
     mp_obj_dict_t *globals = mp_globals_get();
     mp_obj_dict_t *locals = mp_locals_get();
@@ -177,12 +177,12 @@ static mp_obj_t eval_exec_helper(size_t n_args, const mp_obj_t *args, mp_parse_i
     return mp_parse_compile_execute(lex, parse_input_kind, globals, locals);
 }
 
-static mp_obj_t mp_builtin_eval(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_builtin_eval(size_t n_args, const mp_obj_t *args) {
     return eval_exec_helper(n_args, args, MP_PARSE_EVAL_INPUT);
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_builtin_eval_obj, 1, 3, mp_builtin_eval);
 
-static mp_obj_t mp_builtin_exec(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_builtin_exec(size_t n_args, const mp_obj_t *args) {
     return eval_exec_helper(n_args, args, MP_PARSE_FILE_INPUT);
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_builtin_exec_obj, 1, 3, mp_builtin_exec);
@@ -190,7 +190,7 @@ MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_builtin_exec_obj, 1, 3, mp_builtin_exec);
 #endif // MICROPY_PY_BUILTINS_EVAL_EXEC
 
 #if MICROPY_PY_BUILTINS_EXECFILE
-static mp_obj_t mp_builtin_execfile(size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_builtin_execfile(size_t n_args, const mp_obj_t *args) {
     // MP_PARSE_SINGLE_INPUT is used to indicate a file input
     return eval_exec_helper(n_args, args, MP_PARSE_SINGLE_INPUT);
 }

@@ -93,11 +93,11 @@ typedef struct _scope_t {
     id_info_t *id_info;
 } scope_t;
 
-scope_t *scope_new(scope_kind_t kind, mp_parse_node_t pn, mp_uint_t emit_options);
-void scope_free(scope_t *scope);
-id_info_t *scope_find_or_add_id(scope_t *scope, qstr qstr, id_info_kind_t kind);
-id_info_t *scope_find(scope_t *scope, qstr qstr);
-id_info_t *scope_find_global(scope_t *scope, qstr qstr);
-void scope_check_to_close_over(scope_t *scope, id_info_t *id);
+MAYBE_CUDA scope_t *scope_new(scope_kind_t kind, mp_parse_node_t pn, mp_uint_t emit_options);
+MAYBE_CUDA void scope_free(scope_t *scope);
+MAYBE_CUDA id_info_t *scope_find_or_add_id(scope_t *scope, qstr qstr, id_info_kind_t kind);
+MAYBE_CUDA id_info_t *scope_find(scope_t *scope, qstr qstr);
+MAYBE_CUDA id_info_t *scope_find_global(scope_t *scope, qstr qstr);
+MAYBE_CUDA void scope_check_to_close_over(scope_t *scope, id_info_t *id);
 
 #endif // MICROPY_INCLUDED_PY_SCOPE_H

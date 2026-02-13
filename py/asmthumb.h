@@ -73,20 +73,20 @@ typedef struct _asm_thumb_t {
 
 #if MICROPY_DYNAMIC_COMPILER
 
-static inline bool asm_thumb_allow_armv7m(asm_thumb_t *as) {
+static inline MAYBE_CUDA bool asm_thumb_allow_armv7m(asm_thumb_t *as) {
     return MP_NATIVE_ARCH_ARMV7M <= mp_dynamic_compiler.native_arch
            && mp_dynamic_compiler.native_arch <= MP_NATIVE_ARCH_ARMV7EMDP;
 }
 
 #else
 
-static inline bool asm_thumb_allow_armv7m(asm_thumb_t *as) {
+static inline MAYBE_CUDA bool asm_thumb_allow_armv7m(asm_thumb_t *as) {
     return MICROPY_EMIT_THUMB_ARMV7M;
 }
 
 #endif
 
-static inline void asm_thumb_end_pass(asm_thumb_t *as) {
+static inline MAYBE_CUDA void asm_thumb_end_pass(asm_thumb_t *as) {
     (void)as;
 }
 
@@ -120,7 +120,7 @@ void asm_thumb_exit(asm_thumb_t *as);
 void asm_thumb_op16(asm_thumb_t *as, uint op);
 void asm_thumb_op32(asm_thumb_t *as, uint op1, uint op2);
 
-static inline void asm_thumb_it_cc(asm_thumb_t *as, uint cc, uint mask) {
+static inline MAYBE_CUDA void asm_thumb_it_cc(asm_thumb_t *as, uint cc, uint mask) {
     asm_thumb_op16(as, ASM_THUMB_OP_IT | (cc << 4) | mask);
 }
 
@@ -133,7 +133,7 @@ static inline void asm_thumb_it_cc(asm_thumb_t *as, uint cc, uint mask) {
 #define ASM_THUMB_FORMAT_1_ENCODE(op, rlo_dest, rlo_src, offset) \
     ((op) | ((offset) << 6) | ((rlo_src) << 3) | (rlo_dest))
 
-static inline void asm_thumb_format_1(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_src, uint offset) {
+static inline MAYBE_CUDA void asm_thumb_format_1(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_src, uint offset) {
     assert(rlo_dest < ASM_THUMB_REG_R8);
     assert(rlo_src < ASM_THUMB_REG_R8);
     asm_thumb_op16(as, ASM_THUMB_FORMAT_1_ENCODE(op, rlo_dest, rlo_src, offset));
@@ -149,22 +149,22 @@ static inline void asm_thumb_format_1(asm_thumb_t *as, uint op, uint rlo_dest, u
 #define ASM_THUMB_FORMAT_2_ENCODE(op, rlo_dest, rlo_src, src_b) \
     ((op) | ((src_b) << 6) | ((rlo_src) << 3) | (rlo_dest))
 
-static inline void asm_thumb_format_2(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_src, int src_b) {
+static inline MAYBE_CUDA void asm_thumb_format_2(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_src, int src_b) {
     assert(rlo_dest < ASM_THUMB_REG_R8);
     assert(rlo_src < ASM_THUMB_REG_R8);
     asm_thumb_op16(as, ASM_THUMB_FORMAT_2_ENCODE(op, rlo_dest, rlo_src, src_b));
 }
 
-static inline void asm_thumb_add_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src_a, uint rlo_src_b) {
+static inline MAYBE_CUDA void asm_thumb_add_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src_a, uint rlo_src_b) {
     asm_thumb_format_2(as, ASM_THUMB_FORMAT_2_ADD | ASM_THUMB_FORMAT_2_REG_OPERAND, rlo_dest, rlo_src_a, rlo_src_b);
 }
-static inline void asm_thumb_add_rlo_rlo_i3(asm_thumb_t *as, uint rlo_dest, uint rlo_src_a, int i3_src) {
+static inline MAYBE_CUDA void asm_thumb_add_rlo_rlo_i3(asm_thumb_t *as, uint rlo_dest, uint rlo_src_a, int i3_src) {
     asm_thumb_format_2(as, ASM_THUMB_FORMAT_2_ADD | ASM_THUMB_FORMAT_2_IMM_OPERAND, rlo_dest, rlo_src_a, i3_src);
 }
-static inline void asm_thumb_sub_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src_a, uint rlo_src_b) {
+static inline MAYBE_CUDA void asm_thumb_sub_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src_a, uint rlo_src_b) {
     asm_thumb_format_2(as, ASM_THUMB_FORMAT_2_SUB | ASM_THUMB_FORMAT_2_REG_OPERAND, rlo_dest, rlo_src_a, rlo_src_b);
 }
-static inline void asm_thumb_sub_rlo_rlo_i3(asm_thumb_t *as, uint rlo_dest, uint rlo_src_a, int i3_src) {
+static inline MAYBE_CUDA void asm_thumb_sub_rlo_rlo_i3(asm_thumb_t *as, uint rlo_dest, uint rlo_src_a, int i3_src) {
     asm_thumb_format_2(as, ASM_THUMB_FORMAT_2_SUB | ASM_THUMB_FORMAT_2_IMM_OPERAND, rlo_dest, rlo_src_a, i3_src);
 }
 
@@ -179,24 +179,24 @@ static inline void asm_thumb_sub_rlo_rlo_i3(asm_thumb_t *as, uint rlo_dest, uint
 
 #define ASM_THUMB_FORMAT_3_ENCODE(op, rlo, i8) ((op) | ((rlo) << 8) | (i8))
 
-static inline void asm_thumb_format_3(asm_thumb_t *as, uint op, uint rlo, int i8) {
+static inline MAYBE_CUDA void asm_thumb_format_3(asm_thumb_t *as, uint op, uint rlo, int i8) {
     assert(rlo < ASM_THUMB_REG_R8);
     asm_thumb_op16(as, ASM_THUMB_FORMAT_3_ENCODE(op, rlo, i8));
 }
 
-static inline void asm_thumb_mov_rlo_i8(asm_thumb_t *as, uint rlo, int i8) {
+static inline MAYBE_CUDA void asm_thumb_mov_rlo_i8(asm_thumb_t *as, uint rlo, int i8) {
     asm_thumb_format_3(as, ASM_THUMB_FORMAT_3_MOV, rlo, i8);
 }
-static inline void asm_thumb_cmp_rlo_i8(asm_thumb_t *as, uint rlo, int i8) {
+static inline MAYBE_CUDA void asm_thumb_cmp_rlo_i8(asm_thumb_t *as, uint rlo, int i8) {
     asm_thumb_format_3(as, ASM_THUMB_FORMAT_3_CMP, rlo, i8);
 }
-static inline void asm_thumb_add_rlo_i8(asm_thumb_t *as, uint rlo, int i8) {
+static inline MAYBE_CUDA void asm_thumb_add_rlo_i8(asm_thumb_t *as, uint rlo, int i8) {
     asm_thumb_format_3(as, ASM_THUMB_FORMAT_3_ADD, rlo, i8);
 }
-static inline void asm_thumb_sub_rlo_i8(asm_thumb_t *as, uint rlo, int i8) {
+static inline MAYBE_CUDA void asm_thumb_sub_rlo_i8(asm_thumb_t *as, uint rlo, int i8) {
     asm_thumb_format_3(as, ASM_THUMB_FORMAT_3_SUB, rlo, i8);
 }
-static inline void asm_thumb_ldr_rlo_pcrel_i8(asm_thumb_t *as, uint rlo, uint i8) {
+static inline MAYBE_CUDA void asm_thumb_ldr_rlo_pcrel_i8(asm_thumb_t *as, uint rlo, uint i8) {
     asm_thumb_format_3(as, ASM_THUMB_FORMAT_3_LDR, rlo, i8);
 }
 
@@ -221,13 +221,13 @@ static inline void asm_thumb_ldr_rlo_pcrel_i8(asm_thumb_t *as, uint rlo, uint i8
 
 void asm_thumb_format_4(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_src);
 
-static inline void asm_thumb_cmp_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src) {
+static inline MAYBE_CUDA void asm_thumb_cmp_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src) {
     asm_thumb_format_4(as, ASM_THUMB_FORMAT_4_CMP, rlo_dest, rlo_src);
 }
-static inline void asm_thumb_mvn_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src) {
+static inline MAYBE_CUDA void asm_thumb_mvn_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src) {
     asm_thumb_format_4(as, ASM_THUMB_FORMAT_4_MVN, rlo_dest, rlo_src);
 }
-static inline void asm_thumb_neg_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src) {
+static inline MAYBE_CUDA void asm_thumb_neg_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src) {
     asm_thumb_format_4(as, ASM_THUMB_FORMAT_4_NEG, rlo_dest, rlo_src);
 }
 
@@ -240,14 +240,14 @@ static inline void asm_thumb_neg_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rl
 #define ASM_THUMB_FORMAT_5_ENCODE(op, r_dest, r_src) \
     ((op) | ((r_dest) << 4 & 0x0080) | ((r_src) << 3) | ((r_dest) & 0x0007))
 
-static inline void asm_thumb_format_5(asm_thumb_t *as, uint op, uint r_dest, uint r_src) {
+static inline MAYBE_CUDA void asm_thumb_format_5(asm_thumb_t *as, uint op, uint r_dest, uint r_src) {
     asm_thumb_op16(as, ASM_THUMB_FORMAT_5_ENCODE(op, r_dest, r_src));
 }
 
-static inline void asm_thumb_add_reg_reg(asm_thumb_t *as, uint r_dest, uint r_src) {
+static inline MAYBE_CUDA void asm_thumb_add_reg_reg(asm_thumb_t *as, uint r_dest, uint r_src) {
     asm_thumb_format_5(as, ASM_THUMB_FORMAT_5_ADD, r_dest, r_src);
 }
-static inline void asm_thumb_bx_reg(asm_thumb_t *as, uint r_src) {
+static inline MAYBE_CUDA void asm_thumb_bx_reg(asm_thumb_t *as, uint r_src) {
     asm_thumb_format_5(as, ASM_THUMB_FORMAT_5_BX, 0, r_src);
 }
 
@@ -264,34 +264,34 @@ static inline void asm_thumb_bx_reg(asm_thumb_t *as, uint r_src) {
 #define ASM_THUMB_FORMAT_7_8_ENCODE(op, rlo_dest, rlo_base, rlo_index) \
     ((op) | ((rlo_index) << 6) | ((rlo_base) << 3) | ((rlo_dest)))
 
-static inline void asm_thumb_format_7_8(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_base, uint rlo_index) {
+static inline MAYBE_CUDA void asm_thumb_format_7_8(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_base, uint rlo_index) {
     assert(rlo_dest < ASM_THUMB_REG_R8);
     assert(rlo_base < ASM_THUMB_REG_R8);
     assert(rlo_index < ASM_THUMB_REG_R8);
     asm_thumb_op16(as, ASM_THUMB_FORMAT_7_8_ENCODE(op, rlo_dest, rlo_base, rlo_index));
 }
 
-static inline void asm_thumb_ldrb_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_base, uint rlo_index) {
+static inline MAYBE_CUDA void asm_thumb_ldrb_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_base, uint rlo_index) {
     asm_thumb_format_7_8(as, ASM_THUMB_FORMAT_7_LDR | ASM_THUMB_FORMAT_7_BYTE_TRANSFER, rlo_dest, rlo_base, rlo_index);
 }
 
-static inline void asm_thumb_ldrh_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_base, uint rlo_index) {
+static inline MAYBE_CUDA void asm_thumb_ldrh_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_base, uint rlo_index) {
     asm_thumb_format_7_8(as, ASM_THUMB_FORMAT_8_LDRH, rlo_dest, rlo_base, rlo_index);
 }
 
-static inline void asm_thumb_ldr_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_base, uint rlo_index) {
+static inline MAYBE_CUDA void asm_thumb_ldr_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_base, uint rlo_index) {
     asm_thumb_format_7_8(as, ASM_THUMB_FORMAT_7_LDR | ASM_THUMB_FORMAT_7_WORD_TRANSFER, rlo_dest, rlo_base, rlo_index);
 }
 
-static inline void asm_thumb_strb_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_src, uint rlo_base, uint rlo_index) {
+static inline MAYBE_CUDA void asm_thumb_strb_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_src, uint rlo_base, uint rlo_index) {
     asm_thumb_format_7_8(as, ASM_THUMB_FORMAT_7_STR | ASM_THUMB_FORMAT_7_BYTE_TRANSFER, rlo_src, rlo_base, rlo_index);
 }
 
-static inline void asm_thumb_strh_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_base, uint rlo_index) {
+static inline MAYBE_CUDA void asm_thumb_strh_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_base, uint rlo_index) {
     asm_thumb_format_7_8(as, ASM_THUMB_FORMAT_8_STRH, rlo_dest, rlo_base, rlo_index);
 }
 
-static inline void asm_thumb_str_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_src, uint rlo_base, uint rlo_index) {
+static inline MAYBE_CUDA void asm_thumb_str_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_src, uint rlo_base, uint rlo_index) {
     asm_thumb_format_7_8(as, ASM_THUMB_FORMAT_7_STR | ASM_THUMB_FORMAT_7_WORD_TRANSFER, rlo_src, rlo_base, rlo_index);
 }
 
@@ -313,14 +313,14 @@ static inline void asm_thumb_str_rlo_rlo_rlo(asm_thumb_t *as, uint rlo_src, uint
 #define ASM_THUMB_FORMAT_9_10_ENCODE(op, rlo_dest, rlo_base, offset) \
     ((op) | (((offset) << 6) & 0x07c0) | ((rlo_base) << 3) | (rlo_dest))
 
-static inline void asm_thumb_format_9_10(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_base, uint offset) {
+static inline MAYBE_CUDA void asm_thumb_format_9_10(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_base, uint offset) {
     asm_thumb_op16(as, ASM_THUMB_FORMAT_9_10_ENCODE(op, rlo_dest, rlo_base, offset));
 }
 
-static inline void asm_thumb_lsl_rlo_rlo_i5(asm_thumb_t *as, uint rlo_dest, uint rlo_src, uint shift) {
+static inline MAYBE_CUDA void asm_thumb_lsl_rlo_rlo_i5(asm_thumb_t *as, uint rlo_dest, uint rlo_src, uint shift) {
     asm_thumb_format_1(as, ASM_THUMB_FORMAT_1_LSL, rlo_dest, rlo_src, shift);
 }
-static inline void asm_thumb_asr_rlo_rlo_i5(asm_thumb_t *as, uint rlo_dest, uint rlo_src, uint shift) {
+static inline MAYBE_CUDA void asm_thumb_asr_rlo_rlo_i5(asm_thumb_t *as, uint rlo_dest, uint rlo_src, uint shift) {
     asm_thumb_format_1(as, ASM_THUMB_FORMAT_1_ASR, rlo_dest, rlo_src, shift);
 }
 
@@ -334,13 +334,13 @@ static inline void asm_thumb_asr_rlo_rlo_i5(asm_thumb_t *as, uint rlo_dest, uint
 #define ASM_THUMB_FORMAT_11_UXTH (0xb280)
 #define ASM_THUMB_FORMAT_11_UXTB (0xb2c0)
 
-static inline void asm_thumb_format_11(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_src) {
+static inline MAYBE_CUDA void asm_thumb_format_11(asm_thumb_t *as, uint op, uint rlo_dest, uint rlo_src) {
     assert(rlo_dest < ASM_THUMB_REG_R8);
     assert(rlo_src < ASM_THUMB_REG_R8);
     asm_thumb_op16(as, ASM_THUMB_FORMAT_11_ENCODE(op, rlo_dest, rlo_src));
 }
 
-static inline void asm_thumb_sxth_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src) {
+static inline MAYBE_CUDA void asm_thumb_sxth_rlo_rlo(asm_thumb_t *as, uint rlo_dest, uint rlo_src) {
     asm_thumb_format_11(as, ASM_THUMB_FORMAT_11_SXTH, rlo_dest, rlo_src);
 }
 

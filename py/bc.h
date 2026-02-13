@@ -293,7 +293,7 @@ const byte *mp_bytecode_print_str(const mp_print_t *print, const byte *ip_start,
 #define MP_TAGPTR_TAG1(x) ((uintptr_t)(x) & 2)
 #define MP_TAGPTR_MAKE(ptr, tag) ((void *)((uintptr_t)(ptr) | (tag)))
 
-static inline void mp_module_context_alloc_tables(mp_module_context_t *context, size_t n_qstr, size_t n_obj) {
+static inline MAYBE_CUDA void mp_module_context_alloc_tables(mp_module_context_t *context, size_t n_qstr, size_t n_obj) {
     #if MICROPY_EMIT_BYTECODE_USES_QSTR_TABLE
     size_t nq = (n_qstr * sizeof(qstr_short_t) + sizeof(mp_uint_t) - 1) / sizeof(mp_uint_t);
     size_t no = n_obj;
@@ -314,7 +314,7 @@ typedef struct _mp_code_lineinfo_t {
     size_t line_increment;
 } mp_code_lineinfo_t;
 
-static inline mp_code_lineinfo_t mp_bytecode_decode_lineinfo(const byte **line_info) {
+static inline MAYBE_CUDA mp_code_lineinfo_t mp_bytecode_decode_lineinfo(const byte **line_info) {
     mp_code_lineinfo_t result;
     size_t c = (*line_info)[0];
     if ((c & 0x80) == 0) {
@@ -331,7 +331,7 @@ static inline mp_code_lineinfo_t mp_bytecode_decode_lineinfo(const byte **line_i
     return result;
 }
 
-static inline size_t mp_bytecode_get_source_line(const byte *line_info, const byte *line_info_top, size_t bc_offset) {
+static inline MAYBE_CUDA size_t mp_bytecode_get_source_line(const byte *line_info, const byte *line_info_top, size_t bc_offset) {
     size_t source_line = 1;
     while (line_info < line_info_top) {
         mp_code_lineinfo_t decoded = mp_bytecode_decode_lineinfo(&line_info);

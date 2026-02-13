@@ -72,7 +72,7 @@ typedef struct _asm_arm_t {
     uint stack_adjust;
 } asm_arm_t;
 
-static inline void asm_arm_end_pass(asm_arm_t *as) {
+static inline MAYBE_CUDA void asm_arm_end_pass(asm_arm_t *as) {
     (void)as;
 }
 

@@ -56,19 +56,19 @@ MAYBE_CUDA void mp_asm_base_label_assign(mp_asm_base_t *as, size_t label);
 MAYBE_CUDA void mp_asm_base_align(mp_asm_base_t *as, unsigned int align);
 MAYBE_CUDA void mp_asm_base_data(mp_asm_base_t *as, unsigned int bytesize, uintptr_t val);
 
-static inline void mp_asm_base_suppress_code(mp_asm_base_t *as) {
+static inline MAYBE_CUDA void mp_asm_base_suppress_code(mp_asm_base_t *as) {
     as->suppress = true;
 }
 
-static inline size_t mp_asm_base_get_code_pos(mp_asm_base_t *as) {
+static inline MAYBE_CUDA size_t mp_asm_base_get_code_pos(mp_asm_base_t *as) {
     return as->code_offset;
 }
 
-static inline size_t mp_asm_base_get_code_size(mp_asm_base_t *as) {
+static inline MAYBE_CUDA size_t mp_asm_base_get_code_size(mp_asm_base_t *as) {
     return as->code_size;
 }
 
-static inline void *mp_asm_base_get_code(mp_asm_base_t *as) {
+static inline MAYBE_CUDA void *mp_asm_base_get_code(mp_asm_base_t *as) {
     #if defined(MP_PLAT_COMMIT_EXEC)
     return MP_PLAT_COMMIT_EXEC(as->code_base, as->code_size, NULL);
     #else

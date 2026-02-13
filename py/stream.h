@@ -97,7 +97,7 @@ MP_DECLARE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream_ioctl_obj);
 #define MP_STREAM_OP_IOCTL (4)
 
 // Object is assumed to have a non-NULL stream protocol with valid r/w/ioctl methods
-static inline const mp_stream_p_t *mp_get_stream(mp_const_obj_t self) {
+static inline MAYBE_CUDA const mp_stream_p_t *mp_get_stream(mp_const_obj_t self) {
     return (const mp_stream_p_t *)MP_OBJ_TYPE_GET_SLOT(((const mp_obj_base_t *)MP_OBJ_TO_PTR(self))->type, protocol);
 }
 

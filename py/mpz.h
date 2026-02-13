@@ -116,10 +116,10 @@ void mpz_set_from_float(mpz_t *z, mp_float_t src);
 size_t mpz_set_from_str(mpz_t *z, const char *str, size_t len, bool neg, unsigned int base);
 void mpz_set_from_bytes(mpz_t *z, bool big_endian, size_t len, const byte *buf);
 
-static inline bool mpz_is_zero(const mpz_t *z) {
+static inline MAYBE_CUDA bool mpz_is_zero(const mpz_t *z) {
     return z->len == 0;
 }
-static inline bool mpz_is_neg(const mpz_t *z) {
+static inline MAYBE_CUDA bool mpz_is_neg(const mpz_t *z) {
     return z->neg != 0;
 }
 int mpz_cmp(const mpz_t *lhs, const mpz_t *rhs);
@@ -139,7 +139,7 @@ void mpz_or_inpl(mpz_t *dest, const mpz_t *lhs, const mpz_t *rhs);
 void mpz_xor_inpl(mpz_t *dest, const mpz_t *lhs, const mpz_t *rhs);
 void mpz_divmod_inpl(mpz_t *dest_quo, mpz_t *dest_rem, const mpz_t *lhs, const mpz_t *rhs);
 
-static inline size_t mpz_max_num_bits(const mpz_t *z) {
+static inline MAYBE_CUDA size_t mpz_max_num_bits(const mpz_t *z) {
     return z->len * MPZ_DIG_SIZE;
 }
 mp_int_t mpz_hash(const mpz_t *z);

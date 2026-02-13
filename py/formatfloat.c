@@ -63,27 +63,27 @@
 #define MP_FFUINT_FMT "%u"
 #endif
 
-static inline int fp_expval(mp_float_t x) {
+static MAYBE_CUDA inline int fp_expval(mp_float_t x) {
     mp_float_union_t fb = { x };
     return (int)fb.p.exp - MP_FLOAT_EXP_OFFSET;
 }
 
 #if MICROPY_FLOAT_IMPL == MICROPY_FLOAT_IMPL_DOUBLE
 
-static inline int fp_isless1(mp_float_t x) {
+static MAYBE_CUDA inline int fp_isless1(mp_float_t x) {
     return x < 1.0;
 }
 
-static inline int fp_iszero(mp_float_t x) {
+static MAYBE_CUDA inline int fp_iszero(mp_float_t x) {
     return x == 0.0;
 }
 
 #if MICROPY_FLOAT_FORMAT_IMPL != MICROPY_FLOAT_FORMAT_IMPL_APPROX
-static inline int fp_equal(mp_float_t x, mp_float_t y) {
+static MAYBE_CUDA inline int fp_equal(mp_float_t x, mp_float_t y) {
     return x == y;
 }
 #else
-static inline mp_float_t fp_diff(mp_float_t x, mp_float_t y) {
+static MAYBE_CUDA inline mp_float_t fp_diff(mp_float_t x, mp_float_t y) {
     return x - y;
 }
 #endif
@@ -97,18 +97,18 @@ static inline mp_float_t fp_diff(mp_float_t x, mp_float_t y) {
 //
 // They also take into account lost bits of REPR_C as needed.
 
-static inline int fp_isless1(mp_float_t x) {
+static MAYBE_CUDA inline int fp_isless1(mp_float_t x) {
     mp_float_union_t fb = { x };
     return fb.i < 0x3f800000;
 }
 
-static inline int fp_iszero(mp_float_t x) {
+static MAYBE_CUDA inline int fp_iszero(mp_float_t x) {
     mp_float_union_t x_check = { x };
     return !x_check.i; // this is valid for REPR_C as well
 }
 
 #if MICROPY_FLOAT_FORMAT_IMPL != MICROPY_FLOAT_FORMAT_IMPL_APPROX
-static inline int fp_equal(mp_float_t x, mp_float_t y) {
+static MAYBE_CUDA inline int fp_equal(mp_float_t x, mp_float_t y) {
     mp_float_union_t x_check = { x };
     mp_float_union_t y_check = { y };
     #if MICROPY_OBJ_REPR == MICROPY_OBJ_REPR_C
@@ -118,7 +118,7 @@ static inline int fp_equal(mp_float_t x, mp_float_t y) {
     #endif
 }
 #else
-static inline mp_float_t fp_diff(mp_float_t x, mp_float_t y) {
+static MAYBE_CUDA inline mp_float_t fp_diff(mp_float_t x, mp_float_t y) {
     #if MICROPY_OBJ_REPR == MICROPY_OBJ_REPR_C
     mp_float_union_t x_check = { x };
     mp_float_union_t y_check = { y };
@@ -149,7 +149,7 @@ static inline mp_float_t fp_diff(mp_float_t x, mp_float_t y) {
 #define FMT_MODE_F 0x04  // render using using expanded fixed-point format (%f)
 #define FMT_E_CASE 0x20  // don't change this value (used for case conversion!)
 
-static char *mp_prepend_zeros(char *s, int cnt) {
+static MAYBE_CUDA char *mp_prepend_zeros(char *s, int cnt) {
     *s++ = '0';
     *s++ = '.';
     while (cnt > 0) {
@@ -160,7 +160,7 @@ static char *mp_prepend_zeros(char *s, int cnt) {
 }
 
 // Helper to convert a decimal mantissa (provided as an mp_large_float_uint_t) to string
-static int mp_format_mantissa(mp_large_float_uint_t mantissa, mp_large_float_uint_t mantissa_cap, char *buf, char *s,
+static MAYBE_CUDA int mp_format_mantissa(mp_large_float_uint_t mantissa, mp_large_float_uint_t mantissa_cap, char *buf, char *s,
     int num_digits, int max_exp_zeros, int trailing_zeros, int dec, int e, int fmt_flags) {
 
     DEBUG_PRINTF("mantissa=" MP_FFUINT_FMT " exp=%d (cap=" MP_FFUINT_FMT "):\n", mantissa, e, mantissa_cap);

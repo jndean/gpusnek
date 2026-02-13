@@ -76,11 +76,11 @@ static MP_NORETURN inline void m_malloc_fail_dyn(size_t num_bytes) {
         "memory allocation failed");
 }
 
-static inline void *m_realloc_maybe_dyn(void *ptr, size_t new_num_bytes, bool allow_move) {
+static inline MAYBE_CUDA void *m_realloc_maybe_dyn(void *ptr, size_t new_num_bytes, bool allow_move) {
     return mp_fun_table.realloc_(ptr, new_num_bytes, allow_move);
 }
 
-static inline void *m_realloc_checked_dyn(void *ptr, size_t new_num_bytes, bool allow_move) {
+static inline MAYBE_CUDA void *m_realloc_checked_dyn(void *ptr, size_t new_num_bytes, bool allow_move) {
     ptr = m_realloc_maybe(ptr, new_num_bytes, allow_move);
     if (ptr == NULL && new_num_bytes != 0) {
         m_malloc_fail(new_num_bytes);
@@ -88,15 +88,15 @@ static inline void *m_realloc_checked_dyn(void *ptr, size_t new_num_bytes, bool 
     return ptr;
 }
 
-static inline void *m_malloc_dyn(size_t n) {
+static inline MAYBE_CUDA void *m_malloc_dyn(size_t n) {
     return m_realloc_checked_dyn(NULL, n, false);
 }
 
-static inline void m_free_dyn(void *ptr) {
+static inline MAYBE_CUDA void m_free_dyn(void *ptr) {
     mp_fun_table.realloc_(ptr, 0, false);
 }
 
-static inline void *m_realloc_dyn(void *ptr, size_t new_num_bytes) {
+static inline MAYBE_CUDA void *m_realloc_dyn(void *ptr, size_t new_num_bytes) {
     return m_realloc_checked_dyn(ptr, new_num_bytes, true);
 }
 
@@ -171,7 +171,7 @@ static inline void *m_realloc_dyn(void *ptr, size_t new_num_bytes) {
 
 #define mp_obj_malloc_helper(n, t)          (mp_obj_malloc_helper_dyn(n, t))
 
-static inline mp_obj_t mp_obj_new_str_of_type_dyn(const mp_obj_type_t *type, const byte *data, size_t len) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_new_str_of_type_dyn(const mp_obj_type_t *type, const byte *data, size_t len) {
     if (type == &mp_type_str) {
         return mp_obj_new_str((const char *)data, len);
     } else {
@@ -179,7 +179,7 @@ static inline mp_obj_t mp_obj_new_str_of_type_dyn(const mp_obj_type_t *type, con
     }
 }
 
-static inline mp_obj_t mp_obj_cast_to_native_base_dyn(mp_obj_t self_in, mp_const_obj_t native_type) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_cast_to_native_base_dyn(mp_obj_t self_in, mp_const_obj_t native_type) {
     const mp_obj_type_t *self_type = mp_obj_get_type(self_in);
 
     if (MP_OBJ_FROM_PTR(self_type) == native_type) {
@@ -194,7 +194,7 @@ static inline mp_obj_t mp_obj_cast_to_native_base_dyn(mp_obj_t self_in, mp_const
     }
 }
 
-static inline void *mp_obj_str_get_data_dyn(mp_obj_t o, size_t *l) {
+static inline MAYBE_CUDA void *mp_obj_str_get_data_dyn(mp_obj_t o, size_t *l) {
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(o, &bufinfo, MP_BUFFER_READ);
     if (l != NULL) {
@@ -203,12 +203,12 @@ static inline void *mp_obj_str_get_data_dyn(mp_obj_t o, size_t *l) {
     return bufinfo.buf;
 }
 
-static inline mp_obj_t mp_obj_len_dyn(mp_obj_t o) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_len_dyn(mp_obj_t o) {
     // If bytes implemented MP_UNARY_OP_LEN could use: mp_unary_op(MP_UNARY_OP_LEN, o)
     return mp_fun_table.call_function_n_kw(mp_fun_table.load_name(MP_QSTR_len), 1, &o);
 }
 
-static inline void *mp_obj_malloc_helper_dyn(size_t num_bytes, const mp_obj_type_t *type) {
+static inline MAYBE_CUDA void *mp_obj_malloc_helper_dyn(size_t num_bytes, const mp_obj_type_t *type) {
     mp_obj_base_t *base = (mp_obj_base_t *)m_malloc(num_bytes);
     base->type = type;
     return base;
@@ -290,7 +290,7 @@ static inline void *mp_obj_malloc_helper_dyn(size_t num_bytes, const mp_obj_type
 #define mp_raise_TypeError(msg)                 (mp_raise_msg(&mp_type_TypeError, (msg)))
 #define mp_raise_ValueError(msg)                (mp_raise_msg(&mp_type_ValueError, (msg)))
 
-static inline mp_obj_t mp_obj_new_exception_arg1_dyn(const mp_obj_type_t *exc_type, mp_obj_t arg) {
+static inline MAYBE_CUDA mp_obj_t mp_obj_new_exception_arg1_dyn(const mp_obj_type_t *exc_type, mp_obj_t arg) {
     mp_obj_t args[1] = { arg };
     return mp_call_function_n_kw(MP_OBJ_FROM_PTR(exc_type), 1, 0, &args[0]);
 }
@@ -301,12 +301,12 @@ static MP_NORETURN inline void mp_raise_dyn(mp_obj_t o) {
     }
 }
 
-static inline void mp_raise_OSError_dyn(int er) {
+static inline MAYBE_CUDA void mp_raise_OSError_dyn(int er) {
     mp_obj_t args[1] = { MP_OBJ_NEW_SMALL_INT(er) };
     nlr_raise(mp_call_function_n_kw(mp_load_global(MP_QSTR_OSError), 1, 0, &args[0]));
 }
 
-static inline void mp_obj_exception_init(mp_obj_full_type_t *exc, qstr name, const mp_obj_type_t *base) {
+static inline MAYBE_CUDA void mp_obj_exception_init(mp_obj_full_type_t *exc, qstr name, const mp_obj_type_t *base) {
     exc->base.type = &mp_type_type;
     exc->flags = MP_TYPE_FLAG_NONE;
     exc->name = name;
@@ -336,7 +336,7 @@ static inline void mp_obj_exception_init(mp_obj_full_type_t *exc, qstr name, con
 // Inline function definitions.
 
 // *items may point inside a GC block
-static inline void mp_obj_get_array_dyn(mp_obj_t o, size_t *len, mp_obj_t **items) {
+static inline MAYBE_CUDA void mp_obj_get_array_dyn(mp_obj_t o, size_t *len, mp_obj_t **items) {
     const mp_obj_type_t *type = mp_obj_get_type(o);
     if (type == &mp_type_tuple) {
         mp_obj_tuple_t *t = MP_OBJ_TO_PTR(o);

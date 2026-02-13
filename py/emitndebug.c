@@ -39,7 +39,7 @@ typedef struct _asm_debug_t {
     mp_asm_base_t base;
 } asm_debug_t;
 
-static const char *const reg_name_table[] = {
+static MAYBE_CUDA const char *const reg_name_table[] = {
     "r_ret",
     "r_arg1",
     "r_arg2",
@@ -54,7 +54,7 @@ static const char *const reg_name_table[] = {
     "r_fun_table",
 };
 
-static const char *const fun_name_table[MP_F_NUMBER_OF] = {
+static MAYBE_CUDA const char *const fun_name_table[MP_F_NUMBER_OF] = {
     [MP_F_CONVERT_OBJ_TO_NATIVE] = "convert_obj_to_native",
     [MP_F_CONVERT_NATIVE_TO_OBJ] = "convert_native_to_obj",
     [MP_F_NATIVE_SWAP_GLOBALS] = "native_swap_globals",
@@ -104,69 +104,69 @@ static const char *const fun_name_table[MP_F_NUMBER_OF] = {
     [MP_F_SETJMP] = "setjmp",
 };
 
-static void asm_debug_end_pass(asm_debug_t *as) {
+static MAYBE_CUDA void asm_debug_end_pass(asm_debug_t *as) {
     (void)as;
 }
 
-static void asm_debug_entry(asm_debug_t *as, int num_locals, char *name) {
+static MAYBE_CUDA void asm_debug_entry(asm_debug_t *as, int num_locals, char *name) {
     asm_debug_printf(as, "ENTRY(%s, num_locals=%d)\n", name != NULL ? name : "?", num_locals);
 }
 
-static void asm_debug_exit(asm_debug_t *as) {
+static MAYBE_CUDA void asm_debug_exit(asm_debug_t *as) {
     asm_debug_printf(as, "EXIT(%u)\n", 0);
 }
 
-static void asm_debug_fun(asm_debug_t *as, const char *op, int fun_idx) {
+static MAYBE_CUDA void asm_debug_fun(asm_debug_t *as, const char *op, int fun_idx) {
     asm_debug_printf(as, "%s(%s)\n", op, fun_name_table[fun_idx]);
 }
 
-static void asm_debug_reg(asm_debug_t *as, const char *op, int reg) {
+static MAYBE_CUDA void asm_debug_reg(asm_debug_t *as, const char *op, int reg) {
     asm_debug_printf(as, "%s(%s)\n", op, reg_name_table[reg]);
 }
 
-static void asm_debug_label(asm_debug_t *as, const char *op, unsigned int label) {
+static MAYBE_CUDA void asm_debug_label(asm_debug_t *as, const char *op, unsigned int label) {
     asm_debug_printf(as, "%s(label_%u)\n", op, label);
 }
 
-static void asm_debug_reg_imm(asm_debug_t *as, const char *op, int reg, int imm) {
+static MAYBE_CUDA void asm_debug_reg_imm(asm_debug_t *as, const char *op, int reg, int imm) {
     asm_debug_printf(as, "%s(%s, %d=0x%x)\n", op, reg_name_table[reg], imm, imm);
 }
 
 #if !MICROPY_PERSISTENT_CODE_SAVE
-static void asm_debug_reg_qstr(asm_debug_t *as, const char *op, int reg, int qst) {
+static MAYBE_CUDA void asm_debug_reg_qstr(asm_debug_t *as, const char *op, int reg, int qst) {
     asm_debug_printf(as, "%s(%s, %s)\n", op, reg_name_table[reg], qstr_str(qst));
 }
 #endif
 
-static void asm_debug_reg_reg(asm_debug_t *as, const char *op, int reg1, int reg2) {
+static MAYBE_CUDA void asm_debug_reg_reg(asm_debug_t *as, const char *op, int reg1, int reg2) {
     asm_debug_printf(as, "%s(%s, %s)\n", op, reg_name_table[reg1], reg_name_table[reg2]);
 }
 
-static void asm_debug_reg_local(asm_debug_t *as, const char *op, int reg, unsigned int local) {
+static MAYBE_CUDA void asm_debug_reg_local(asm_debug_t *as, const char *op, int reg, unsigned int local) {
     asm_debug_printf(as, "%s(%s, local_%u)\n", op, reg_name_table[reg], local);
 }
 
-static void asm_debug_reg_label(asm_debug_t *as, const char *op, int reg, unsigned int label) {
+static MAYBE_CUDA void asm_debug_reg_label(asm_debug_t *as, const char *op, int reg, unsigned int label) {
     asm_debug_printf(as, "%s(%s, label_%u)\n", op, reg_name_table[reg], label);
 }
 
-static void asm_debug_local_reg(asm_debug_t *as, const char *op, int local, int reg) {
+static MAYBE_CUDA void asm_debug_local_reg(asm_debug_t *as, const char *op, int local, int reg) {
     asm_debug_printf(as, "%s(local_%d, %s)\n", op, local, reg_name_table[reg]);
 }
 
-static void asm_debug_reg_label_bool(asm_debug_t *as, const char *op, int reg, unsigned int label, bool b) {
+static MAYBE_CUDA void asm_debug_reg_label_bool(asm_debug_t *as, const char *op, int reg, unsigned int label, bool b) {
     asm_debug_printf(as, "%s(%s, label_%u, %s)\n", op, reg_name_table[reg], label, b ? "true" : "false");
 }
 
-static void asm_debug_reg_reg_offset(asm_debug_t *as, const char *op, int reg1, int reg2, int offset) {
+static MAYBE_CUDA void asm_debug_reg_reg_offset(asm_debug_t *as, const char *op, int reg1, int reg2, int offset) {
     asm_debug_printf(as, "%s(%s, %s, %d)\n", op, reg_name_table[reg1], reg_name_table[reg2], offset);
 }
 
-static void asm_debug_reg_reg_label(asm_debug_t *as, const char *op, int reg1, int reg2, unsigned int label) {
+static MAYBE_CUDA void asm_debug_reg_reg_label(asm_debug_t *as, const char *op, int reg1, int reg2, unsigned int label) {
     asm_debug_printf(as, "%s(%s, %s, label_%u)\n", op, reg_name_table[reg1], reg_name_table[reg2], label);
 }
 
-static void asm_debug_setcc_reg_reg_reg(asm_debug_t *as, int op, int reg1, int reg2, int reg3) {
+static MAYBE_CUDA void asm_debug_setcc_reg_reg_reg(asm_debug_t *as, int op, int reg1, int reg2, int reg3) {
     asm_debug_printf(as, "setcc(%d, %s, %s, %s)\n", op, reg_name_table[reg1], reg_name_table[reg2], reg_name_table[reg3]);
 }
 

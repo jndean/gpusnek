@@ -50,7 +50,7 @@
 /******************************************************************************/
 /* builtin functions                                                          */
 
-static mp_obj_t fun_builtin_0_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t fun_builtin_0_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     (void)args;
     assert(mp_obj_is_type(self_in, &mp_type_fun_builtin_0));
     mp_obj_fun_builtin_fixed_t *self = (mp_obj_fun_builtin_fixed_t *)MP_OBJ_TO_PTR(self_in);
@@ -63,7 +63,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     call, fun_builtin_0_call
     );
 
-static mp_obj_t fun_builtin_1_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t fun_builtin_1_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     assert(mp_obj_is_type(self_in, &mp_type_fun_builtin_1));
     mp_obj_fun_builtin_fixed_t *self = (mp_obj_fun_builtin_fixed_t *)MP_OBJ_TO_PTR(self_in);
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
@@ -75,7 +75,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     call, fun_builtin_1_call
     );
 
-static mp_obj_t fun_builtin_2_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t fun_builtin_2_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     assert(mp_obj_is_type(self_in, &mp_type_fun_builtin_2));
     mp_obj_fun_builtin_fixed_t *self = (mp_obj_fun_builtin_fixed_t *)MP_OBJ_TO_PTR(self_in);
     mp_arg_check_num(n_args, n_kw, 2, 2, false);
@@ -87,7 +87,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     call, fun_builtin_2_call
     );
 
-static mp_obj_t fun_builtin_3_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t fun_builtin_3_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     assert(mp_obj_is_type(self_in, &mp_type_fun_builtin_3));
     mp_obj_fun_builtin_fixed_t *self = (mp_obj_fun_builtin_fixed_t *)MP_OBJ_TO_PTR(self_in);
     mp_arg_check_num(n_args, n_kw, 3, 3, false);
@@ -99,7 +99,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     call, fun_builtin_3_call
     );
 
-static mp_obj_t fun_builtin_var_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t fun_builtin_var_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     assert(mp_obj_is_type(self_in, &mp_type_fun_builtin_var));
     mp_obj_fun_builtin_var_t *self = (mp_obj_fun_builtin_var_t *)MP_OBJ_TO_PTR(self_in);
 
@@ -154,7 +154,7 @@ qstr mp_obj_fun_get_name(mp_const_obj_t fun_in) {
 }
 
 #if MICROPY_PY_FUNCTION_ATTRS_CODE
-static mp_obj_t fun_bc_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t fun_bc_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     (void)type;
     mp_arg_check_num(n_args, n_kw, 2, 2, false);
 
@@ -178,7 +178,7 @@ static mp_obj_t fun_bc_make_new(const mp_obj_type_t *type, size_t n_args, size_t
 #endif
 
 #if MICROPY_CPYTHON_COMPAT
-static void fun_bc_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
+static MAYBE_CUDA void fun_bc_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     (void)kind;
     mp_obj_fun_bc_t *o = MP_OBJ_TO_PTR(o_in);
     mp_printf(print, "<function %q at 0x%p>", mp_obj_fun_get_name(o_in), o);
@@ -186,7 +186,7 @@ static void fun_bc_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t
 #endif
 
 #if DEBUG_PRINT
-static void dump_args(const mp_obj_t *a, size_t sz) {
+static MAYBE_CUDA void dump_args(const mp_obj_t *a, size_t sz) {
     DEBUG_printf("%p: ", a);
     for (size_t i = 0; i < sz; i++) {
         DEBUG_printf("%p ", a[i]);
@@ -252,7 +252,7 @@ mp_code_state_t *mp_obj_fun_bc_prepare_codestate(mp_obj_t self_in, size_t n_args
 }
 #endif
 
-static mp_obj_t fun_bc_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t fun_bc_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_cstack_check();
 
     DEBUG_printf("Input n_args: " UINT_FMT ", n_kw: " UINT_FMT "\n", n_args, n_kw);
@@ -445,7 +445,7 @@ MAYBE_CUDA mp_obj_t mp_obj_new_fun_bc(const mp_obj_t *def_args, const byte *code
 
 #if MICROPY_EMIT_NATIVE
 
-static mp_obj_t fun_native_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t fun_native_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_cstack_check();
     mp_obj_fun_bc_t *self = MP_OBJ_TO_PTR(self_in);
     mp_call_fun_t fun = mp_obj_fun_native_get_function_start(self);
@@ -479,7 +479,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 
 #if MICROPY_EMIT_NATIVE
 
-static mp_obj_t fun_viper_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t fun_viper_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_cstack_check();
     mp_obj_fun_bc_t *self = MP_OBJ_TO_PTR(self_in);
     mp_call_fun_t fun = MICROPY_MAKE_POINTER_CALLABLE((void *)self->bytecode);
@@ -507,7 +507,7 @@ typedef mp_uint_t (*inline_asm_fun_3_t)(mp_uint_t, mp_uint_t, mp_uint_t);
 typedef mp_uint_t (*inline_asm_fun_4_t)(mp_uint_t, mp_uint_t, mp_uint_t, mp_uint_t);
 
 // convert a MicroPython object to a sensible value for inline asm
-static mp_uint_t convert_obj_for_inline_asm(mp_obj_t obj) {
+static MAYBE_CUDA mp_uint_t convert_obj_for_inline_asm(mp_obj_t obj) {
     // TODO for byte_array, pass pointer to the array
     if (mp_obj_is_small_int(obj)) {
         return MP_OBJ_SMALL_INT_VALUE(obj);
@@ -550,7 +550,7 @@ static mp_uint_t convert_obj_for_inline_asm(mp_obj_t obj) {
     }
 }
 
-static mp_obj_t fun_asm_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t fun_asm_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_obj_fun_asm_t *self = MP_OBJ_TO_PTR(self_in);
 
     mp_arg_check_num(n_args, n_kw, self->n_args, self->n_args, false);

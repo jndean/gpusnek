@@ -44,7 +44,7 @@
 const mp_obj_int_t mp_sys_maxsize_obj = {{&mp_type_int}, MP_SSIZE_MAX};
 #endif
 
-static void raise_long_long_overflow(void) {
+static MAYBE_CUDA void raise_long_long_overflow(void) {
     mp_raise_msg(&mp_type_OverflowError, MP_ERROR_TEXT("result overflows long long storage"));
 }
 
