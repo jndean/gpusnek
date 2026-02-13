@@ -106,13 +106,13 @@ char *mp_obj_int_formatted_impl(char **buf, size_t *buf_size, size_t *fmt_size, 
     return str;
 }
 
-mp_obj_t mp_obj_int_from_bytes_impl(bool big_endian, size_t len, const byte *buf) {
+MAYBE_CUDA mp_obj_t mp_obj_int_from_bytes_impl(bool big_endian, size_t len, const byte *buf) {
     mp_obj_int_t *o = mp_obj_int_new_mpz();
     mpz_set_from_bytes(&o->mpz, big_endian, len, buf);
     return MP_OBJ_FROM_PTR(o);
 }
 
-bool mp_obj_int_to_bytes_impl(mp_obj_t self_in, bool big_endian, size_t len, byte *buf) {
+MAYBE_CUDA bool mp_obj_int_to_bytes_impl(mp_obj_t self_in, bool big_endian, size_t len, byte *buf) {
     assert(mp_obj_is_exact_type(self_in, &mp_type_int));
     mp_obj_int_t *self = MP_OBJ_TO_PTR(self_in);
     return mpz_as_bytes(&self->mpz, big_endian, self->mpz.neg, len, buf);
@@ -139,7 +139,7 @@ int mp_obj_int_sign(mp_obj_t self_in) {
     }
 }
 
-mp_obj_t mp_obj_int_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
+MAYBE_CUDA mp_obj_t mp_obj_int_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
     mp_obj_int_t *o = MP_OBJ_TO_PTR(o_in);
     switch (op) {
         case MP_UNARY_OP_BOOL:
@@ -172,7 +172,7 @@ mp_obj_t mp_obj_int_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
     }
 }
 
-mp_obj_t mp_obj_int_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
+MAYBE_CUDA mp_obj_t mp_obj_int_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
     const mpz_t *zlhs;
     const mpz_t *zrhs;
     mpz_t z_int;
@@ -382,26 +382,26 @@ mp_obj_t mp_obj_int_pow3(mp_obj_t base, mp_obj_t exponent,  mp_obj_t modulus) {
 }
 #endif
 
-mp_obj_t mp_obj_new_int(mp_int_t value) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int(mp_int_t value) {
     if (MP_SMALL_INT_FITS(value)) {
         return MP_OBJ_NEW_SMALL_INT(value);
     }
     return mp_obj_new_int_from_ll(value);
 }
 
-mp_obj_t mp_obj_new_int_from_ll(long long val) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_ll(long long val) {
     mp_obj_int_t *o = mp_obj_int_new_mpz();
     mpz_set_from_ll(&o->mpz, val, true);
     return MP_OBJ_FROM_PTR(o);
 }
 
-mp_obj_t mp_obj_new_int_from_ull(unsigned long long val) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_ull(unsigned long long val) {
     mp_obj_int_t *o = mp_obj_int_new_mpz();
     mpz_set_from_ll(&o->mpz, val, false);
     return MP_OBJ_FROM_PTR(o);
 }
 
-mp_obj_t mp_obj_new_int_from_uint(mp_uint_t value) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_uint(mp_uint_t value) {
     // SMALL_INT accepts only signed numbers, so make sure the input
     // value fits completely in the small-int positive range.
     if ((value & ~MP_SMALL_INT_POSITIVE_MASK) == 0) {
@@ -410,14 +410,14 @@ mp_obj_t mp_obj_new_int_from_uint(mp_uint_t value) {
     return mp_obj_new_int_from_ull(value);
 }
 
-mp_obj_t mp_obj_new_int_from_str_len(const char **str, size_t len, bool neg, unsigned int base) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_str_len(const char **str, size_t len, bool neg, unsigned int base) {
     mp_obj_int_t *o = mp_obj_int_new_mpz();
     size_t n = mpz_set_from_str(&o->mpz, *str, len, neg, base);
     *str += n;
     return MP_OBJ_FROM_PTR(o);
 }
 
-mp_int_t mp_obj_int_get_truncated(mp_const_obj_t self_in) {
+MAYBE_CUDA mp_int_t mp_obj_int_get_truncated(mp_const_obj_t self_in) {
     if (mp_obj_is_small_int(self_in)) {
         return MP_OBJ_SMALL_INT_VALUE(self_in);
     } else {
@@ -427,7 +427,7 @@ mp_int_t mp_obj_int_get_truncated(mp_const_obj_t self_in) {
     }
 }
 
-mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in) {
+MAYBE_CUDA mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in) {
     if (mp_obj_is_small_int(self_in)) {
         return MP_OBJ_SMALL_INT_VALUE(self_in);
     } else {
@@ -446,7 +446,7 @@ mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in) {
     }
 }
 
-mp_uint_t mp_obj_int_get_uint_checked(mp_const_obj_t self_in) {
+MAYBE_CUDA mp_uint_t mp_obj_int_get_uint_checked(mp_const_obj_t self_in) {
     if (mp_obj_is_small_int(self_in)) {
         if (MP_OBJ_SMALL_INT_VALUE(self_in) >= 0) {
             return MP_OBJ_SMALL_INT_VALUE(self_in);
@@ -463,7 +463,7 @@ mp_uint_t mp_obj_int_get_uint_checked(mp_const_obj_t self_in) {
 }
 
 #if MICROPY_PY_BUILTINS_FLOAT
-mp_float_t mp_obj_int_as_float_impl(mp_obj_t self_in) {
+MAYBE_CUDA mp_float_t mp_obj_int_as_float_impl(mp_obj_t self_in) {
     assert(mp_obj_is_exact_type(self_in, &mp_type_int));
     mp_obj_int_t *self = MP_OBJ_TO_PTR(self_in);
     return mpz_as_float(&self->mpz);

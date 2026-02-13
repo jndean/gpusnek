@@ -34,7 +34,7 @@
 /******************************************************************************/
 /* tuple                                                                      */
 
-void mp_obj_tuple_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
+MAYBE_CUDA void mp_obj_tuple_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     mp_obj_tuple_t *o = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(o_in);
     const char *item_separator = ", ";
     if (MICROPY_PY_JSON && kind == PRINT_JSON) {
@@ -120,7 +120,7 @@ static mp_obj_t tuple_cmp_helper(mp_uint_t op, mp_obj_t self_in, mp_obj_t anothe
     return mp_obj_new_bool(mp_seq_cmp_objs(op, self->items, self->len, another->items, another->len));
 }
 
-mp_obj_t mp_obj_tuple_unary_op(mp_unary_op_t op, mp_obj_t self_in) {
+MAYBE_CUDA mp_obj_t mp_obj_tuple_unary_op(mp_unary_op_t op, mp_obj_t self_in) {
     mp_obj_tuple_t *self = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(self_in);
     switch (op) {
         case MP_UNARY_OP_BOOL:
@@ -140,7 +140,7 @@ mp_obj_t mp_obj_tuple_unary_op(mp_unary_op_t op, mp_obj_t self_in) {
     }
 }
 
-mp_obj_t mp_obj_tuple_binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs) {
+MAYBE_CUDA mp_obj_t mp_obj_tuple_binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs) {
     mp_obj_tuple_t *o = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(lhs);
     switch (op) {
         case MP_BINARY_OP_ADD:
@@ -178,7 +178,7 @@ mp_obj_t mp_obj_tuple_binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs) {
     }
 }
 
-mp_obj_t mp_obj_tuple_subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
+MAYBE_CUDA mp_obj_t mp_obj_tuple_subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
     if (value == MP_OBJ_SENTINEL) {
         // load
         mp_obj_tuple_t *self = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(self_in);
@@ -237,7 +237,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 // the zero-length tuple
 const mp_obj_tuple_t mp_const_empty_tuple_obj = {{&mp_type_tuple}, 0};
 
-mp_obj_t mp_obj_new_tuple(size_t n, const mp_obj_t *items) {
+MAYBE_CUDA mp_obj_t mp_obj_new_tuple(size_t n, const mp_obj_t *items) {
     if (n == 0) {
         return mp_const_empty_tuple;
     }
@@ -251,14 +251,14 @@ mp_obj_t mp_obj_new_tuple(size_t n, const mp_obj_t *items) {
     return MP_OBJ_FROM_PTR(o);
 }
 
-void mp_obj_tuple_get(mp_obj_t self_in, size_t *len, mp_obj_t **items) {
+MAYBE_CUDA void mp_obj_tuple_get(mp_obj_t self_in, size_t *len, mp_obj_t **items) {
     assert(mp_obj_is_tuple_compatible(self_in));
     mp_obj_tuple_t *self = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(self_in);
     *len = self->len;
     *items = &self->items[0];
 }
 
-void mp_obj_tuple_del(mp_obj_t self_in) {
+MAYBE_CUDA void mp_obj_tuple_del(mp_obj_t self_in) {
     assert(mp_obj_is_type(self_in, &mp_type_tuple));
     mp_obj_tuple_t *self = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(self_in);
     m_del_var(mp_obj_tuple_t, items, mp_obj_t, self->len, self);
@@ -285,7 +285,7 @@ static mp_obj_t tuple_it_iternext(mp_obj_t self_in) {
     }
 }
 
-mp_obj_t mp_obj_tuple_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
+MAYBE_CUDA mp_obj_t mp_obj_tuple_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
     assert(sizeof(mp_obj_tuple_it_t) <= sizeof(mp_obj_iter_buf_t));
     mp_obj_tuple_it_t *o = (mp_obj_tuple_it_t *)iter_buf;
     o->base.type = &mp_type_polymorph_iter;

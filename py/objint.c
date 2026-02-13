@@ -140,7 +140,7 @@ static mp_fp_as_int_class_t mp_classify_fp_as_int(mp_float_t val) {
 #undef MP_FLOAT_SIGN_SHIFT_I32
 #undef MP_FLOAT_EXP_SHIFT_I32
 
-mp_obj_t mp_obj_new_int_from_float(mp_float_t val) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_float(mp_float_t val) {
     mp_float_union_t u = {val};
     // IEEE-754: if biased exponent is all 1 bits...
     if (u.p.exp == ((1 << MP_FLOAT_EXP_BITS) - 1)) {
@@ -182,7 +182,7 @@ typedef mp_int_t fmt_int_t;
 typedef mp_uint_t fmt_uint_t;
 #endif
 
-void mp_obj_int_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
+MAYBE_CUDA void mp_obj_int_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     (void)kind;
     // The size of this buffer is rather arbitrary. If it's not large
     // enough, a dynamic one will be allocated.
@@ -212,7 +212,7 @@ static const uint8_t log_base2_floor[] = {
     */
 };
 
-size_t mp_int_format_size(size_t num_bits, int base, const char *prefix, char comma) {
+MAYBE_CUDA size_t mp_int_format_size(size_t num_bits, int base, const char *prefix, char comma) {
     assert(2 <= base && base <= 16);
     size_t num_digits = num_bits / log_base2_floor[base - 1] + 1;
     size_t num_commas = comma ? (base == 10 ? num_digits / 3 : num_digits / 4): 0;
@@ -321,34 +321,34 @@ int mp_obj_int_sign(mp_obj_t self_in) {
 }
 
 // This is called for operations on SMALL_INT that are not handled by mp_unary_op
-mp_obj_t mp_obj_int_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
+MAYBE_CUDA mp_obj_t mp_obj_int_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
     return MP_OBJ_NULL; // op not supported
 }
 
 // This is called for operations on SMALL_INT that are not handled by mp_binary_op
-mp_obj_t mp_obj_int_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
+MAYBE_CUDA mp_obj_t mp_obj_int_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
     return mp_obj_int_binary_op_extra_cases(op, lhs_in, rhs_in);
 }
 
 // This is called only with strings whose value doesn't fit in SMALL_INT
-mp_obj_t mp_obj_new_int_from_str_len(const char **str, size_t len, bool neg, unsigned int base) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_str_len(const char **str, size_t len, bool neg, unsigned int base) {
     mp_raise_msg(&mp_type_OverflowError, MP_ERROR_TEXT("long int not supported in this build"));
     return mp_const_none;
 }
 
 // This is called when an integer larger than a SMALL_INT is needed (although val might still fit in a SMALL_INT)
-mp_obj_t mp_obj_new_int_from_ll(long long val) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_ll(long long val) {
     mp_raise_msg(&mp_type_OverflowError, MP_ERROR_TEXT("small int overflow"));
     return mp_const_none;
 }
 
 // This is called when an integer larger than a SMALL_INT is needed (although val might still fit in a SMALL_INT)
-mp_obj_t mp_obj_new_int_from_ull(unsigned long long val) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_ull(unsigned long long val) {
     mp_raise_msg(&mp_type_OverflowError, MP_ERROR_TEXT("small int overflow"));
     return mp_const_none;
 }
 
-mp_obj_t mp_obj_new_int_from_uint(mp_uint_t value) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_uint(mp_uint_t value) {
     // SMALL_INT accepts only signed numbers, so make sure the input
     // value fits completely in the small-int positive range.
     if ((value & ~MP_SMALL_INT_POSITIVE_MASK) == 0) {
@@ -358,7 +358,7 @@ mp_obj_t mp_obj_new_int_from_uint(mp_uint_t value) {
     return mp_const_none;
 }
 
-mp_obj_t mp_obj_new_int(mp_int_t value) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int(mp_int_t value) {
     if (MP_SMALL_INT_FITS(value)) {
         return MP_OBJ_NEW_SMALL_INT(value);
     }
@@ -366,11 +366,11 @@ mp_obj_t mp_obj_new_int(mp_int_t value) {
     return mp_const_none;
 }
 
-mp_int_t mp_obj_int_get_truncated(mp_const_obj_t self_in) {
+MAYBE_CUDA mp_int_t mp_obj_int_get_truncated(mp_const_obj_t self_in) {
     return MP_OBJ_SMALL_INT_VALUE(self_in);
 }
 
-mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in) {
+MAYBE_CUDA mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in) {
     return MP_OBJ_SMALL_INT_VALUE(self_in);
 }
 
@@ -378,7 +378,7 @@ mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in) {
 
 // This dispatcher function is expected to be independent of the implementation of long int
 // It handles the extra cases for integer-like arithmetic
-mp_obj_t mp_obj_int_binary_op_extra_cases(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
+MAYBE_CUDA mp_obj_t mp_obj_int_binary_op_extra_cases(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
     if (rhs_in == mp_const_false) {
         // false acts as 0
         return mp_binary_op(op, lhs_in, MP_OBJ_NEW_SMALL_INT(0));

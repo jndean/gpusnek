@@ -34,7 +34,7 @@
 
 #if MICROPY_PY_SYS_PS1_PS2
 
-const char *mp_repl_get_psx(unsigned int entry);
+MAYBE_CUDA const char *mp_repl_get_psx(unsigned int entry);
 
 static inline const char *mp_repl_get_ps1(void) {
     return mp_repl_get_psx(MP_SYS_MUTABLE_PS1);
@@ -56,8 +56,8 @@ static inline const char *mp_repl_get_ps2(void) {
 
 #endif
 
-bool mp_repl_continue_with_input(const char *input);
-size_t mp_repl_autocomplete(const char *str, size_t len, const mp_print_t *print, const char **compl_str);
+MAYBE_CUDA bool mp_repl_continue_with_input(const char *input);
+MAYBE_CUDA size_t mp_repl_autocomplete(const char *str, size_t len, const mp_print_t *print, const char **compl_str);
 
 #endif
 

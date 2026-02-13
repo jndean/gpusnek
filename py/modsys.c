@@ -298,7 +298,7 @@ static const uint16_t sys_mutable_keys[] = {
     MP_QSTRnull,
 };
 
-void mp_module_sys_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+MAYBE_CUDA void mp_module_sys_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     MP_STATIC_ASSERT(MP_ARRAY_SIZE(sys_mutable_keys) == MP_SYS_MUTABLE_NUM + 1);
     MP_STATIC_ASSERT(MP_ARRAY_SIZE(MP_STATE_VM(sys_mutable)) == MP_SYS_MUTABLE_NUM);
     mp_module_generic_attr(attr, dest, sys_mutable_keys, MP_STATE_VM(sys_mutable));

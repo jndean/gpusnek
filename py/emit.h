@@ -181,7 +181,7 @@ static inline qstr_short_t mp_emit_common_use_qstr(mp_emit_common_t *emit, qstr 
 }
 #endif
 
-size_t mp_emit_common_use_const_obj(mp_emit_common_t *emit, mp_obj_t const_obj);
+MAYBE_CUDA size_t mp_emit_common_use_const_obj(mp_emit_common_t *emit, mp_obj_t const_obj);
 
 static inline size_t mp_emit_common_alloc_const_child(mp_emit_common_t *emit, mp_raw_code_t *rc) {
     if (emit->pass == MP_PASS_EMIT) {
@@ -195,7 +195,7 @@ static inline void mp_emit_common_get_id_for_load(scope_t *scope, qstr qst) {
 }
 
 id_info_t *mp_emit_common_get_id_for_modification(scope_t *scope, qstr qst);
-void mp_emit_common_id_op(emit_t *emit, const mp_emit_method_table_id_ops_t *emit_method_table, scope_t *scope, qstr qst);
+MAYBE_CUDA void mp_emit_common_id_op(emit_t *emit, const mp_emit_method_table_id_ops_t *emit_method_table, scope_t *scope, qstr qst);
 
 extern const emit_method_table_t emit_bc_method_table;
 extern const emit_method_table_t emit_native_x64_method_table;
@@ -233,64 +233,64 @@ void emit_native_xtensawin_free(emit_t *emit);
 void emit_native_rv32_free(emit_t *emit);
 void emit_native_debug_free(emit_t *emit);
 
-void mp_emit_bc_start_pass(emit_t *emit, pass_kind_t pass, scope_t *scope);
-bool mp_emit_bc_end_pass(emit_t *emit);
-void mp_emit_bc_adjust_stack_size(emit_t *emit, mp_int_t delta);
-void mp_emit_bc_set_source_line(emit_t *emit, mp_uint_t line);
+MAYBE_CUDA void mp_emit_bc_start_pass(emit_t *emit, pass_kind_t pass, scope_t *scope);
+MAYBE_CUDA bool mp_emit_bc_end_pass(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_adjust_stack_size(emit_t *emit, mp_int_t delta);
+MAYBE_CUDA void mp_emit_bc_set_source_line(emit_t *emit, mp_uint_t line);
 
-void mp_emit_bc_load_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind);
-void mp_emit_bc_load_global(emit_t *emit, qstr qst, int kind);
-void mp_emit_bc_store_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind);
-void mp_emit_bc_store_global(emit_t *emit, qstr qst, int kind);
-void mp_emit_bc_delete_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind);
-void mp_emit_bc_delete_global(emit_t *emit, qstr qst, int kind);
+MAYBE_CUDA void mp_emit_bc_load_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind);
+MAYBE_CUDA void mp_emit_bc_load_global(emit_t *emit, qstr qst, int kind);
+MAYBE_CUDA void mp_emit_bc_store_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind);
+MAYBE_CUDA void mp_emit_bc_store_global(emit_t *emit, qstr qst, int kind);
+MAYBE_CUDA void mp_emit_bc_delete_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind);
+MAYBE_CUDA void mp_emit_bc_delete_global(emit_t *emit, qstr qst, int kind);
 
-void mp_emit_bc_label_assign(emit_t *emit, mp_uint_t l);
-void mp_emit_bc_import(emit_t *emit, qstr qst, int kind);
-void mp_emit_bc_load_const_tok(emit_t *emit, mp_token_kind_t tok);
-void mp_emit_bc_load_const_small_int(emit_t *emit, mp_int_t arg);
-void mp_emit_bc_load_const_str(emit_t *emit, qstr qst);
-void mp_emit_bc_load_const_obj(emit_t *emit, mp_obj_t obj);
-void mp_emit_bc_load_null(emit_t *emit);
-void mp_emit_bc_load_method(emit_t *emit, qstr qst, bool is_super);
-void mp_emit_bc_load_build_class(emit_t *emit);
-void mp_emit_bc_subscr(emit_t *emit, int kind);
-void mp_emit_bc_attr(emit_t *emit, qstr qst, int kind);
-void mp_emit_bc_dup_top(emit_t *emit);
-void mp_emit_bc_dup_top_two(emit_t *emit);
-void mp_emit_bc_pop_top(emit_t *emit);
-void mp_emit_bc_rot_two(emit_t *emit);
-void mp_emit_bc_rot_three(emit_t *emit);
-void mp_emit_bc_jump(emit_t *emit, mp_uint_t label);
-void mp_emit_bc_pop_jump_if(emit_t *emit, bool cond, mp_uint_t label);
-void mp_emit_bc_jump_if_or_pop(emit_t *emit, bool cond, mp_uint_t label);
-void mp_emit_bc_unwind_jump(emit_t *emit, mp_uint_t label, mp_uint_t except_depth);
-void mp_emit_bc_setup_block(emit_t *emit, mp_uint_t label, int kind);
-void mp_emit_bc_with_cleanup(emit_t *emit, mp_uint_t label);
+MAYBE_CUDA void mp_emit_bc_label_assign(emit_t *emit, mp_uint_t l);
+MAYBE_CUDA void mp_emit_bc_import(emit_t *emit, qstr qst, int kind);
+MAYBE_CUDA void mp_emit_bc_load_const_tok(emit_t *emit, mp_token_kind_t tok);
+MAYBE_CUDA void mp_emit_bc_load_const_small_int(emit_t *emit, mp_int_t arg);
+MAYBE_CUDA void mp_emit_bc_load_const_str(emit_t *emit, qstr qst);
+MAYBE_CUDA void mp_emit_bc_load_const_obj(emit_t *emit, mp_obj_t obj);
+MAYBE_CUDA void mp_emit_bc_load_null(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_load_method(emit_t *emit, qstr qst, bool is_super);
+MAYBE_CUDA void mp_emit_bc_load_build_class(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_subscr(emit_t *emit, int kind);
+MAYBE_CUDA void mp_emit_bc_attr(emit_t *emit, qstr qst, int kind);
+MAYBE_CUDA void mp_emit_bc_dup_top(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_dup_top_two(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_pop_top(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_rot_two(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_rot_three(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_jump(emit_t *emit, mp_uint_t label);
+MAYBE_CUDA void mp_emit_bc_pop_jump_if(emit_t *emit, bool cond, mp_uint_t label);
+MAYBE_CUDA void mp_emit_bc_jump_if_or_pop(emit_t *emit, bool cond, mp_uint_t label);
+MAYBE_CUDA void mp_emit_bc_unwind_jump(emit_t *emit, mp_uint_t label, mp_uint_t except_depth);
+MAYBE_CUDA void mp_emit_bc_setup_block(emit_t *emit, mp_uint_t label, int kind);
+MAYBE_CUDA void mp_emit_bc_with_cleanup(emit_t *emit, mp_uint_t label);
 #if MICROPY_PY_ASYNC_AWAIT
-void mp_emit_bc_async_with_setup_finally(emit_t *emit, mp_uint_t label_aexit_no_exc, mp_uint_t label_finally_block, mp_uint_t label_ret_unwind_jump);
+MAYBE_CUDA void mp_emit_bc_async_with_setup_finally(emit_t *emit, mp_uint_t label_aexit_no_exc, mp_uint_t label_finally_block, mp_uint_t label_ret_unwind_jump);
 #endif
-void mp_emit_bc_end_finally(emit_t *emit);
-void mp_emit_bc_get_iter(emit_t *emit, bool use_stack);
-void mp_emit_bc_for_iter(emit_t *emit, mp_uint_t label);
-void mp_emit_bc_for_iter_end(emit_t *emit);
-void mp_emit_bc_pop_except_jump(emit_t *emit, mp_uint_t label, bool within_exc_handler);
-void mp_emit_bc_unary_op(emit_t *emit, mp_unary_op_t op);
-void mp_emit_bc_binary_op(emit_t *emit, mp_binary_op_t op);
-void mp_emit_bc_build(emit_t *emit, mp_uint_t n_args, int kind);
-void mp_emit_bc_store_map(emit_t *emit);
-void mp_emit_bc_store_comp(emit_t *emit, scope_kind_t kind, mp_uint_t list_stack_index);
-void mp_emit_bc_unpack_sequence(emit_t *emit, mp_uint_t n_args);
-void mp_emit_bc_unpack_ex(emit_t *emit, mp_uint_t n_left, mp_uint_t n_right);
-void mp_emit_bc_make_function(emit_t *emit, scope_t *scope, mp_uint_t n_pos_defaults, mp_uint_t n_kw_defaults);
-void mp_emit_bc_make_closure(emit_t *emit, scope_t *scope, mp_uint_t n_closed_over, mp_uint_t n_pos_defaults, mp_uint_t n_kw_defaults);
-void mp_emit_bc_call_function(emit_t *emit, mp_uint_t n_positional, mp_uint_t n_keyword, mp_uint_t star_flags);
-void mp_emit_bc_call_method(emit_t *emit, mp_uint_t n_positional, mp_uint_t n_keyword, mp_uint_t star_flags);
-void mp_emit_bc_return_value(emit_t *emit);
-void mp_emit_bc_raise_varargs(emit_t *emit, mp_uint_t n_args);
-void mp_emit_bc_yield(emit_t *emit, int kind);
-void mp_emit_bc_start_except_handler(emit_t *emit);
-void mp_emit_bc_end_except_handler(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_end_finally(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_get_iter(emit_t *emit, bool use_stack);
+MAYBE_CUDA void mp_emit_bc_for_iter(emit_t *emit, mp_uint_t label);
+MAYBE_CUDA void mp_emit_bc_for_iter_end(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_pop_except_jump(emit_t *emit, mp_uint_t label, bool within_exc_handler);
+MAYBE_CUDA void mp_emit_bc_unary_op(emit_t *emit, mp_unary_op_t op);
+MAYBE_CUDA void mp_emit_bc_binary_op(emit_t *emit, mp_binary_op_t op);
+MAYBE_CUDA void mp_emit_bc_build(emit_t *emit, mp_uint_t n_args, int kind);
+MAYBE_CUDA void mp_emit_bc_store_map(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_store_comp(emit_t *emit, scope_kind_t kind, mp_uint_t list_stack_index);
+MAYBE_CUDA void mp_emit_bc_unpack_sequence(emit_t *emit, mp_uint_t n_args);
+MAYBE_CUDA void mp_emit_bc_unpack_ex(emit_t *emit, mp_uint_t n_left, mp_uint_t n_right);
+MAYBE_CUDA void mp_emit_bc_make_function(emit_t *emit, scope_t *scope, mp_uint_t n_pos_defaults, mp_uint_t n_kw_defaults);
+MAYBE_CUDA void mp_emit_bc_make_closure(emit_t *emit, scope_t *scope, mp_uint_t n_closed_over, mp_uint_t n_pos_defaults, mp_uint_t n_kw_defaults);
+MAYBE_CUDA void mp_emit_bc_call_function(emit_t *emit, mp_uint_t n_positional, mp_uint_t n_keyword, mp_uint_t star_flags);
+MAYBE_CUDA void mp_emit_bc_call_method(emit_t *emit, mp_uint_t n_positional, mp_uint_t n_keyword, mp_uint_t star_flags);
+MAYBE_CUDA void mp_emit_bc_return_value(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_raise_varargs(emit_t *emit, mp_uint_t n_args);
+MAYBE_CUDA void mp_emit_bc_yield(emit_t *emit, int kind);
+MAYBE_CUDA void mp_emit_bc_start_except_handler(emit_t *emit);
+MAYBE_CUDA void mp_emit_bc_end_except_handler(emit_t *emit);
 
 typedef struct _emit_inline_asm_t emit_inline_asm_t;
 
@@ -320,7 +320,7 @@ void emit_inline_thumb_free(emit_inline_asm_t *emit);
 void emit_inline_xtensa_free(emit_inline_asm_t *emit);
 
 #if MICROPY_WARNINGS
-void mp_emitter_warning(pass_kind_t pass, const char *msg);
+MAYBE_CUDA void mp_emitter_warning(pass_kind_t pass, const char *msg);
 #else
 #define mp_emitter_warning(pass, msg)
 #endif

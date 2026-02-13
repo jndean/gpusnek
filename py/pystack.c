@@ -30,7 +30,7 @@
 
 #if MICROPY_ENABLE_PYSTACK
 
-void mp_pystack_init(void *start, void *end) {
+MAYBE_CUDA void mp_pystack_init(void *start, void *end) {
     MP_STATE_THREAD(pystack_start) = start;
     MP_STATE_THREAD(pystack_end) = end;
     MP_STATE_THREAD(pystack_cur) = start;

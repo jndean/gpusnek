@@ -61,7 +61,7 @@ mp_raw_code_t *mp_emit_glue_new_raw_code(void) {
     return rc;
 }
 
-void mp_emit_glue_assign_bytecode(mp_raw_code_t *rc, const byte *code,
+MAYBE_CUDA void mp_emit_glue_assign_bytecode(mp_raw_code_t *rc, const byte *code,
     mp_raw_code_t **children,
     #if MICROPY_PERSISTENT_CODE_SAVE
     size_t len,
@@ -93,7 +93,7 @@ void mp_emit_glue_assign_bytecode(mp_raw_code_t *rc, const byte *code,
 }
 
 #if MICROPY_EMIT_MACHINE_CODE
-void mp_emit_glue_assign_native(mp_raw_code_t *rc, mp_raw_code_kind_t kind, const void *fun_data, mp_uint_t fun_len,
+MAYBE_CUDA void mp_emit_glue_assign_native(mp_raw_code_t *rc, mp_raw_code_kind_t kind, const void *fun_data, mp_uint_t fun_len,
     mp_raw_code_t **children,
     #if MICROPY_PERSISTENT_CODE_SAVE
     uint16_t n_children,
@@ -173,7 +173,7 @@ void mp_emit_glue_assign_native(mp_raw_code_t *rc, mp_raw_code_kind_t kind, cons
 }
 #endif
 
-mp_obj_t mp_make_function_from_proto_fun(mp_proto_fun_t proto_fun, const mp_module_context_t *context, const mp_obj_t *def_args) {
+MAYBE_CUDA mp_obj_t mp_make_function_from_proto_fun(mp_proto_fun_t proto_fun, const mp_module_context_t *context, const mp_obj_t *def_args) {
     DEBUG_OP_printf("make_function_from_proto_fun %p\n", proto_fun);
     assert(proto_fun != NULL);
 
@@ -238,7 +238,7 @@ mp_obj_t mp_make_function_from_proto_fun(mp_proto_fun_t proto_fun, const mp_modu
     return fun;
 }
 
-mp_obj_t mp_make_closure_from_proto_fun(mp_proto_fun_t proto_fun, const mp_module_context_t *context, mp_uint_t n_closed_over, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_make_closure_from_proto_fun(mp_proto_fun_t proto_fun, const mp_module_context_t *context, mp_uint_t n_closed_over, const mp_obj_t *args) {
     DEBUG_OP_printf("make_closure_from_proto_fun %p " UINT_FMT " %p\n", proto_fun, n_closed_over, args);
     // make function object
     mp_obj_t ffun;

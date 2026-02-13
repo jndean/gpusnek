@@ -44,7 +44,7 @@ uint mp_prof_bytecode_lineno(const mp_raw_code_t *rc, size_t bc) {
     return mp_bytecode_get_source_line(prelude->line_info, prelude->line_info_top, bc);
 }
 
-void mp_prof_extract_prelude(const byte *bytecode, mp_bytecode_prelude_t *prelude) {
+MAYBE_CUDA void mp_prof_extract_prelude(const byte *bytecode, mp_bytecode_prelude_t *prelude) {
     const byte *ip = bytecode;
 
     MP_BC_PRELUDE_SIG_DECODE(ip);
@@ -123,7 +123,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     attr, frame_attr
     );
 
-mp_obj_t mp_obj_new_frame(const mp_code_state_t *code_state) {
+MAYBE_CUDA mp_obj_t mp_obj_new_frame(const mp_code_state_t *code_state) {
     if (gc_is_locked()) {
         return MP_OBJ_NULL;
     }
@@ -178,7 +178,7 @@ static mp_obj_t mp_prof_callback_invoke(mp_obj_t callback, prof_callback_args_t 
     return top;
 }
 
-mp_obj_t mp_prof_settrace(mp_obj_t callback) {
+MAYBE_CUDA mp_obj_t mp_prof_settrace(mp_obj_t callback) {
     if (mp_obj_is_callable(callback)) {
         prof_trace_cb = callback;
     } else {
@@ -187,7 +187,7 @@ mp_obj_t mp_prof_settrace(mp_obj_t callback) {
     return mp_const_none;
 }
 
-mp_obj_t mp_prof_frame_enter(mp_code_state_t *code_state) {
+MAYBE_CUDA mp_obj_t mp_prof_frame_enter(mp_code_state_t *code_state) {
     assert(!mp_prof_is_executing);
 
     mp_obj_frame_t *frame = MP_OBJ_TO_PTR(mp_obj_new_frame(code_state));
@@ -229,7 +229,7 @@ mp_obj_t mp_prof_frame_enter(mp_code_state_t *code_state) {
     return top;
 }
 
-mp_obj_t mp_prof_frame_update(const mp_code_state_t *code_state) {
+MAYBE_CUDA mp_obj_t mp_prof_frame_update(const mp_code_state_t *code_state) {
     mp_obj_frame_t *frame = code_state->frame;
     if (frame == NULL) {
         // Frame was not allocated (eg because there was no memory available)
@@ -249,7 +249,7 @@ mp_obj_t mp_prof_frame_update(const mp_code_state_t *code_state) {
     return MP_OBJ_FROM_PTR(o);
 }
 
-mp_obj_t mp_prof_instr_tick(mp_code_state_t *code_state, bool is_exception) {
+MAYBE_CUDA mp_obj_t mp_prof_instr_tick(mp_code_state_t *code_state, bool is_exception) {
     // Detect execution recursion
     assert(!mp_prof_is_executing);
     assert(code_state->frame);
@@ -802,7 +802,7 @@ static const byte *mp_prof_opcode_decode(const byte *ip, const mp_uint_t *const_
     return ip;
 }
 
-void mp_prof_print_instr(const byte *ip, mp_code_state_t *code_state) {
+MAYBE_CUDA void mp_prof_print_instr(const byte *ip, mp_code_state_t *code_state) {
     mp_dis_instruction_t _instruction, *instruction = &_instruction;
     mp_prof_opcode_decode(ip, code_state->fun_bc->rc->const_table, instruction);
     const mp_raw_code_t *rc = code_state->fun_bc->rc;

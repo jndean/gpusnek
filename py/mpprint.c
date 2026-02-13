@@ -40,9 +40,9 @@
 #include "py/formatfloat.h"
 #endif
 
-static const char pad_spaces[16] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
+static MAYBE_CUDA const char pad_spaces[16] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
 #define pad_spaces_size  (sizeof(pad_spaces))
-static const char pad_common[23] = {'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '_', '0', '0', '0', ',', '0', '0'};
+static MAYBE_CUDA const char pad_common[23] = {'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '_', '0', '0', '0', ',', '0', '0'};
 // The contents of pad_common is arranged to provide the following padding
 // strings with minimal flash size:
 //     0000000000000000 <- pad_zeroes
@@ -55,14 +55,14 @@ static const char pad_common[23] = {'0', '0', '0', '0', '0', '0', '0', '0', '0',
 #define pad_zeroes_comma (pad_common + 17)
 #define pad_zeroes_comma_size  (4)
 
-static void plat_print_strn(void *env, const char *str, size_t len) {
+static MAYBE_CUDA void plat_print_strn(void *env, const char *str, size_t len) {
     (void)env;
     MP_PLAT_PRINT_STRN(str, len);
 }
 
 const mp_print_t mp_plat_print = {NULL, plat_print_strn};
 
-int mp_print_str(const mp_print_t *print, const char *str) {
+MAYBE_CUDA int mp_print_str(const mp_print_t *print, const char *str) {
     size_t len = strlen(str);
     if (len) {
         print->print_strn(print->data, str, len);
@@ -70,7 +70,7 @@ int mp_print_str(const mp_print_t *print, const char *str) {
     return len;
 }
 
-int mp_print_strn(const mp_print_t *print, const char *str, size_t len, unsigned int flags, char fill, int width) {
+MAYBE_CUDA int mp_print_strn(const mp_print_t *print, const char *str, size_t len, unsigned int flags, char fill, int width) {
     int left_pad = 0;
     int right_pad = 0;
     int pad = width - len;
@@ -156,7 +156,7 @@ int mp_print_strn(const mp_print_t *print, const char *str, size_t len, unsigned
 
 // This function is used exclusively by mp_vprintf to format ints.
 // It needs to be a separate function to mp_print_mp_int, since converting to a mp_int looses the MSB.
-static int mp_print_int(const mp_print_t *print, mp_uint_t x, int sgn, int base, int base_char, int flags, char fill, int width) {
+static MAYBE_CUDA int mp_print_int(const mp_print_t *print, mp_uint_t x, int sgn, int base, int base_char, int flags, char fill, int width) {
     char sign = 0;
     if (sgn) {
         if ((mp_int_t)x < 0) {
@@ -230,7 +230,7 @@ static int mp_print_int(const mp_print_t *print, mp_uint_t x, int sgn, int base,
     return len;
 }
 
-int mp_print_mp_int(const mp_print_t *print, mp_obj_t x, unsigned int base, int base_char, int flags, char fill, int width, int prec) {
+MAYBE_CUDA int mp_print_mp_int(const mp_print_t *print, mp_obj_t x, unsigned int base, int base_char, int flags, char fill, int width, int prec) {
     // These are the only values for "base" that are required to be supported by this
     // function, since Python only allows the user to format integers in these bases.
     // If needed this function could be generalised to handle other values.
@@ -366,7 +366,7 @@ int mp_print_mp_int(const mp_print_t *print, mp_obj_t x, unsigned int base, int 
 }
 
 #if MICROPY_PY_BUILTINS_FLOAT
-int mp_print_float(const mp_print_t *print, mp_float_t f, char fmt, unsigned int flags, char fill, int width, int prec) {
+MAYBE_CUDA int mp_print_float(const mp_print_t *print, mp_float_t f, char fmt, unsigned int flags, char fill, int width, int prec) {
     char buf[36];
     char sign = '\0';
     int chrs = 0;
@@ -408,7 +408,7 @@ int mp_print_float(const mp_print_t *print, mp_float_t f, char fmt, unsigned int
 }
 #endif
 
-int mp_printf(const mp_print_t *print, const char *fmt, ...) {
+MAYBE_CUDA int mp_printf(const mp_print_t *print, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     int ret = mp_vprintf(print, fmt, ap);
@@ -416,7 +416,7 @@ int mp_printf(const mp_print_t *print, const char *fmt, ...) {
     return ret;
 }
 
-int mp_vprintf(const mp_print_t *print, const char *fmt, va_list args) {
+MAYBE_CUDA int mp_vprintf(const mp_print_t *print, const char *fmt, va_list args) {
     int chrs = 0;
     for (;;) {
         {

@@ -71,7 +71,7 @@ static mp_obj_t list_extend_from_iter(mp_obj_t list, mp_obj_t iterable) {
     return list;
 }
 
-mp_obj_t mp_obj_list_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_obj_list_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     (void)type_in;
     mp_arg_check_num(n_args, n_kw, 0, 1, false);
 
@@ -225,7 +225,7 @@ static mp_obj_t list_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
     return mp_obj_new_list_iterator(o_in, 0, iter_buf);
 }
 
-mp_obj_t mp_obj_list_append(mp_obj_t self_in, mp_obj_t arg) {
+MAYBE_CUDA mp_obj_t mp_obj_list_append(mp_obj_t self_in, mp_obj_t arg) {
     mp_check_self(mp_obj_is_type(self_in, &mp_type_list));
     mp_obj_list_t *self = (mp_obj_list_t *)MP_OBJ_TO_PTR(self_in);
     if (self->len >= self->alloc) {
@@ -322,7 +322,7 @@ static void mp_quicksort(mp_obj_t *head, mp_obj_t *tail, mp_obj_t key_fn, mp_obj
 }
 
 // TODO Python defines sort to be stable but ours is not
-mp_obj_t mp_obj_list_sort(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+MAYBE_CUDA mp_obj_t mp_obj_list_sort(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_key, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_rom_obj = MP_ROM_NONE} },
         { MP_QSTR_reverse, MP_ARG_KW_ONLY | MP_ARG_BOOL, {.u_bool = false} },
@@ -400,7 +400,7 @@ static mp_obj_t list_insert(mp_obj_t self_in, mp_obj_t idx, mp_obj_t obj) {
     return mp_const_none;
 }
 
-mp_obj_t mp_obj_list_remove(mp_obj_t self_in, mp_obj_t value) {
+MAYBE_CUDA mp_obj_t mp_obj_list_remove(mp_obj_t self_in, mp_obj_t value) {
     mp_check_self(mp_obj_is_type(self_in, &mp_type_list));
     mp_obj_t args[] = {self_in, value};
     args[1] = list_index(2, args);
@@ -465,7 +465,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     );
 
 
-void mp_obj_list_init(mp_obj_list_t *o, size_t n) {
+MAYBE_CUDA void mp_obj_list_init(mp_obj_list_t *o, size_t n) {
     o->base.type = &mp_type_list;
     o->alloc = n < LIST_MIN_ALLOC ? LIST_MIN_ALLOC : n;
     o->len = n;
@@ -479,7 +479,7 @@ static mp_obj_list_t *list_new(size_t n) {
     return o;
 }
 
-mp_obj_t mp_obj_new_list(size_t n, mp_obj_t *items) {
+MAYBE_CUDA mp_obj_t mp_obj_new_list(size_t n, mp_obj_t *items) {
     mp_obj_list_t *o = list_new(n);
     if (items != NULL) {
         for (size_t i = 0; i < n; i++) {
@@ -489,20 +489,20 @@ mp_obj_t mp_obj_new_list(size_t n, mp_obj_t *items) {
     return MP_OBJ_FROM_PTR(o);
 }
 
-void mp_obj_list_get(mp_obj_t self_in, size_t *len, mp_obj_t **items) {
+MAYBE_CUDA void mp_obj_list_get(mp_obj_t self_in, size_t *len, mp_obj_t **items) {
     mp_obj_list_t *self = (mp_obj_list_t *)MP_OBJ_TO_PTR(self_in);
     *len = self->len;
     *items = self->items;
 }
 
-void mp_obj_list_set_len(mp_obj_t self_in, size_t len) {
+MAYBE_CUDA void mp_obj_list_set_len(mp_obj_t self_in, size_t len) {
     // trust that the caller knows what it's doing
     // TODO realloc if len got much smaller than alloc
     mp_obj_list_t *self = (mp_obj_list_t *)MP_OBJ_TO_PTR(self_in);
     self->len = len;
 }
 
-void mp_obj_list_store(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
+MAYBE_CUDA void mp_obj_list_store(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
     mp_obj_list_t *self = (mp_obj_list_t *)MP_OBJ_TO_PTR(self_in);
     size_t i = mp_get_index(self->base.type, self->len, index, false);
     self->items[i] = value;
@@ -530,7 +530,7 @@ static mp_obj_t list_it_iternext(mp_obj_t self_in) {
     }
 }
 
-mp_obj_t mp_obj_new_list_iterator(mp_obj_t list, size_t cur, mp_obj_iter_buf_t *iter_buf) {
+MAYBE_CUDA mp_obj_t mp_obj_new_list_iterator(mp_obj_t list, size_t cur, mp_obj_iter_buf_t *iter_buf) {
     assert(sizeof(mp_obj_list_it_t) <= sizeof(mp_obj_iter_buf_t));
     mp_obj_list_it_t *o = (mp_obj_list_it_t *)iter_buf;
     o->base.type = &mp_type_polymorph_iter;

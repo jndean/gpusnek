@@ -119,7 +119,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     attr, module_attr
     );
 
-mp_obj_t mp_obj_new_module(qstr module_name) {
+MAYBE_CUDA mp_obj_t mp_obj_new_module(qstr module_name) {
     mp_map_t *mp_loaded_modules_map = &MP_STATE_VM(mp_loaded_modules_dict).map;
     mp_map_elem_t *el = mp_map_lookup(mp_loaded_modules_map, MP_OBJ_NEW_QSTR(module_name), MP_MAP_LOOKUP_ADD_IF_NOT_FOUND);
     // We could error out if module already exists, but let C extensions
@@ -174,7 +174,7 @@ static const mp_module_delegation_entry_t mp_builtin_module_delegation_table[] =
 
 // Attempts to find (and initialise) a built-in, otherwise returns
 // MP_OBJ_NULL.
-mp_obj_t mp_module_get_builtin(qstr module_name, bool extensible) {
+MAYBE_CUDA mp_obj_t mp_module_get_builtin(qstr module_name, bool extensible) {
     #if MICROPY_HAVE_REGISTERED_EXTENSIBLE_MODULES
     const mp_map_t *map = extensible ? &mp_builtin_extensible_module_map : &mp_builtin_module_map;
     #else
@@ -251,7 +251,7 @@ static void module_attr_try_delegation(mp_obj_t self_in, qstr attr, mp_obj_t *de
     #endif
 }
 
-void mp_module_generic_attr(qstr attr, mp_obj_t *dest, const uint16_t *keys, mp_obj_t *values) {
+MAYBE_CUDA void mp_module_generic_attr(qstr attr, mp_obj_t *dest, const uint16_t *keys, mp_obj_t *values) {
     for (size_t i = 0; keys[i] != MP_QSTRnull; ++i) {
         if (attr == keys[i]) {
             if (dest[0] == MP_OBJ_NULL) {

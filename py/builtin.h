@@ -41,7 +41,7 @@ typedef enum {
 #define mp_builtin_open_obj mp_vfs_open_obj
 
 mp_import_stat_t mp_vfs_import_stat(const char *path);
-mp_obj_t mp_vfs_open(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs);
+MAYBE_CUDA mp_obj_t mp_vfs_open(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs);
 
 MP_DECLARE_CONST_FUN_OBJ_KW(mp_vfs_open_obj);
 
@@ -57,7 +57,7 @@ static inline mp_obj_t mp_builtin_open(size_t n_args, const mp_obj_t *args, mp_m
 
 // A port can provide implementations of these functions.
 mp_import_stat_t mp_import_stat(const char *path);
-mp_obj_t mp_builtin_open(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs);
+MAYBE_CUDA mp_obj_t mp_builtin_open(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs);
 
 // A port can provide this object.
 MP_DECLARE_CONST_FUN_OBJ_KW(mp_builtin_open_obj);
@@ -68,10 +68,10 @@ MP_DECLARE_CONST_FUN_OBJ_KW(mp_builtin_open_obj);
 #ifndef mp_builtin___import__
 #define mp_builtin___import__ mp_builtin___import___default
 #endif
-mp_obj_t mp_builtin___import__(size_t n_args, const mp_obj_t *args);
-mp_obj_t mp_builtin___import___default(size_t n_args, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_builtin___import__(size_t n_args, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_builtin___import___default(size_t n_args, const mp_obj_t *args);
 
-mp_obj_t mp_micropython_mem_info(size_t n_args, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_micropython_mem_info(size_t n_args, const mp_obj_t *args);
 
 MP_DECLARE_CONST_FUN_OBJ_VAR(mp_builtin___build_class___obj);
 MP_DECLARE_CONST_FUN_OBJ_VAR_BETWEEN(mp_builtin___import___obj);

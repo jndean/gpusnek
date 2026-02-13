@@ -46,24 +46,24 @@ typedef struct _mp_obj_frame_t {
 } mp_obj_frame_t;
 
 uint mp_prof_bytecode_lineno(const mp_raw_code_t *rc, size_t bc);
-void mp_prof_extract_prelude(const byte *bytecode, mp_bytecode_prelude_t *prelude);
+MAYBE_CUDA void mp_prof_extract_prelude(const byte *bytecode, mp_bytecode_prelude_t *prelude);
 
-mp_obj_t mp_obj_new_frame(const mp_code_state_t *code_state);
+MAYBE_CUDA mp_obj_t mp_obj_new_frame(const mp_code_state_t *code_state);
 
 // This is the implementation for the sys.settrace
-mp_obj_t mp_prof_settrace(mp_obj_t callback);
+MAYBE_CUDA mp_obj_t mp_prof_settrace(mp_obj_t callback);
 
-mp_obj_t mp_prof_frame_enter(mp_code_state_t *code_state);
-mp_obj_t mp_prof_frame_update(const mp_code_state_t *code_state);
+MAYBE_CUDA mp_obj_t mp_prof_frame_enter(mp_code_state_t *code_state);
+MAYBE_CUDA mp_obj_t mp_prof_frame_update(const mp_code_state_t *code_state);
 
 // For every VM instruction tick this function deduces events from the state
-mp_obj_t mp_prof_instr_tick(mp_code_state_t *code_state, bool is_exception);
+MAYBE_CUDA mp_obj_t mp_prof_instr_tick(mp_code_state_t *code_state, bool is_exception);
 
 // This section is for debugging the settrace feature itself, and is not intended
 // to be included in production/release builds.
 #define MICROPY_PROF_INSTR_DEBUG_PRINT_ENABLE 0
 #if MICROPY_PROF_INSTR_DEBUG_PRINT_ENABLE
-void mp_prof_print_instr(const byte *ip, mp_code_state_t *code_state);
+MAYBE_CUDA void mp_prof_print_instr(const byte *ip, mp_code_state_t *code_state);
 #define MP_PROF_INSTR_DEBUG_PRINT(current_ip) mp_prof_print_instr((current_ip), code_state)
 #else
 #define MP_PROF_INSTR_DEBUG_PRINT(current_ip)

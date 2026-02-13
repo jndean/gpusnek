@@ -578,7 +578,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     );
 #endif
 
-mp_obj_t mp_obj_new_set(size_t n_args, mp_obj_t *items) {
+MAYBE_CUDA mp_obj_t mp_obj_new_set(size_t n_args, mp_obj_t *items) {
     mp_obj_set_t *o = mp_obj_malloc(mp_obj_set_t, &mp_type_set);
     mp_set_init(&o->set, n_args);
     for (size_t i = 0; i < n_args; i++) {
@@ -587,7 +587,7 @@ mp_obj_t mp_obj_new_set(size_t n_args, mp_obj_t *items) {
     return MP_OBJ_FROM_PTR(o);
 }
 
-void mp_obj_set_store(mp_obj_t self_in, mp_obj_t item) {
+MAYBE_CUDA void mp_obj_set_store(mp_obj_t self_in, mp_obj_t item) {
     mp_check_self(mp_obj_is_type(self_in, &mp_type_set));
     mp_obj_set_t *self = MP_OBJ_TO_PTR(self_in);
     mp_set_lookup(&self->set, item, MP_MAP_LOOKUP_ADD_IF_NOT_FOUND);

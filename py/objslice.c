@@ -115,7 +115,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     print, slice_print
     );
 
-mp_obj_t mp_obj_new_slice(mp_obj_t ostart, mp_obj_t ostop, mp_obj_t ostep) {
+MAYBE_CUDA mp_obj_t mp_obj_new_slice(mp_obj_t ostart, mp_obj_t ostop, mp_obj_t ostep) {
     mp_obj_slice_t *o = mp_obj_malloc(mp_obj_slice_t, &mp_type_slice);
     o->start = ostart;
     o->stop = ostop;
@@ -126,7 +126,7 @@ mp_obj_t mp_obj_new_slice(mp_obj_t ostart, mp_obj_t ostop, mp_obj_t ostep) {
 // Return the real index and step values for a slice when applied to a sequence of
 // the given length, resolving missing components, negative values and values off
 // the end of the sequence.
-void mp_obj_slice_indices(mp_obj_t self_in, mp_int_t length, mp_bound_slice_t *result) {
+MAYBE_CUDA void mp_obj_slice_indices(mp_obj_t self_in, mp_int_t length, mp_bound_slice_t *result) {
     mp_obj_slice_t *self = MP_OBJ_TO_PTR(self_in);
     mp_int_t start, stop, step;
 

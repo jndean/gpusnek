@@ -26,7 +26,7 @@
 
 #include "py/smallint.h"
 
-mp_int_t mp_small_int_modulo(mp_int_t dividend, mp_int_t divisor) {
+MAYBE_CUDA mp_int_t mp_small_int_modulo(mp_int_t dividend, mp_int_t divisor) {
     // Python specs require that mod has same sign as second operand
     dividend %= divisor;
     if ((dividend < 0 && divisor > 0) || (dividend > 0 && divisor < 0)) {
@@ -35,7 +35,7 @@ mp_int_t mp_small_int_modulo(mp_int_t dividend, mp_int_t divisor) {
     return dividend;
 }
 
-mp_int_t mp_small_int_floor_divide(mp_int_t num, mp_int_t denom) {
+MAYBE_CUDA mp_int_t mp_small_int_floor_divide(mp_int_t num, mp_int_t denom) {
     if (num >= 0) {
         if (denom < 0) {
             num += -denom - 1;

@@ -354,7 +354,7 @@ static mp_obj_t fun_bc_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const 
 }
 
 #if MICROPY_PY_FUNCTION_ATTRS
-void mp_obj_fun_bc_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+MAYBE_CUDA void mp_obj_fun_bc_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     if (dest[0] != MP_OBJ_NULL) {
         // not load attribute
         return;
@@ -411,7 +411,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     call, fun_bc_call
     );
 
-mp_obj_t mp_obj_new_fun_bc(const mp_obj_t *def_args, const byte *code, const mp_module_context_t *context, struct _mp_raw_code_t *const *child_table) {
+MAYBE_CUDA mp_obj_t mp_obj_new_fun_bc(const mp_obj_t *def_args, const byte *code, const mp_module_context_t *context, struct _mp_raw_code_t *const *child_table) {
     size_t n_def_args = 0;
     size_t n_extra_args = 0;
     mp_obj_tuple_t *def_pos_args = NULL;

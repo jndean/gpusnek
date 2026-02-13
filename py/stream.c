@@ -43,7 +43,7 @@ static mp_obj_t stream_readall(mp_obj_t self_in);
 // Returns error condition in *errcode, if non-zero, return value is number of bytes written
 // before error condition occurred. If *errcode == 0, returns total bytes written (which will
 // be equal to input size).
-mp_uint_t mp_stream_rw(mp_obj_t stream, void *buf_, mp_uint_t size, int *errcode, byte flags) {
+MAYBE_CUDA mp_uint_t mp_stream_rw(mp_obj_t stream, void *buf_, mp_uint_t size, int *errcode, byte flags) {
     byte *buf = (byte *)buf_;
     typedef mp_uint_t (*io_func_t)(mp_obj_t obj, void *buf, mp_uint_t size, int *errcode);
     io_func_t io_func;
@@ -240,7 +240,7 @@ static mp_obj_t stream_read1(size_t n_args, const mp_obj_t *args) {
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_stream_read1_obj, 1, 2, stream_read1);
 
-mp_obj_t mp_stream_write(mp_obj_t self_in, const void *buf, size_t len, byte flags) {
+MAYBE_CUDA mp_obj_t mp_stream_write(mp_obj_t self_in, const void *buf, size_t len, byte flags) {
     int error;
     mp_uint_t out_sz = mp_stream_rw(self_in, (void *)buf, len, &error, flags);
     if (error != 0) {
@@ -257,7 +257,7 @@ mp_obj_t mp_stream_write(mp_obj_t self_in, const void *buf, size_t len, byte fla
 }
 
 // This is used to adapt a stream object to an mp_print_t interface
-void mp_stream_write_adaptor(void *self, const char *buf, size_t len) {
+MAYBE_CUDA void mp_stream_write_adaptor(void *self, const char *buf, size_t len) {
     mp_stream_write(MP_OBJ_FROM_PTR(self), buf, len, MP_STREAM_RW_WRITE);
 }
 
@@ -422,7 +422,7 @@ static mp_obj_t stream_unbuffered_readlines(mp_obj_t self) {
 }
 MP_DEFINE_CONST_FUN_OBJ_1(mp_stream_unbuffered_readlines_obj, stream_unbuffered_readlines);
 
-mp_obj_t mp_stream_unbuffered_iter(mp_obj_t self) {
+MAYBE_CUDA mp_obj_t mp_stream_unbuffered_iter(mp_obj_t self) {
     mp_obj_t l_in = stream_unbuffered_readline(1, &self);
     if (mp_obj_is_true(l_in)) {
         return l_in;
@@ -430,7 +430,7 @@ mp_obj_t mp_stream_unbuffered_iter(mp_obj_t self) {
     return MP_OBJ_STOP_ITERATION;
 }
 
-mp_obj_t mp_stream_close(mp_obj_t stream) {
+MAYBE_CUDA mp_obj_t mp_stream_close(mp_obj_t stream) {
     const mp_stream_p_t *stream_p = mp_get_stream(stream);
     int error;
     mp_uint_t res = stream_p->ioctl(stream, MP_STREAM_CLOSE, 0, &error);

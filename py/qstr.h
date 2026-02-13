@@ -106,15 +106,15 @@ qstr qstr_from_strn_static(const char *str, size_t len);
 #endif
 
 mp_uint_t qstr_hash(qstr q);
-const char *qstr_str(qstr q);
-size_t qstr_len(qstr q);
-const byte *qstr_data(qstr q, size_t *len);
+MAYBE_CUDA const char *qstr_str(qstr q);
+MAYBE_CUDA size_t qstr_len(qstr q);
+MAYBE_CUDA const byte *qstr_data(qstr q, size_t *len);
 
 void qstr_pool_info(size_t *n_pool, size_t *n_qstr, size_t *n_str_data_bytes, size_t *n_total_bytes);
 void qstr_dump_data(void);
 
 #if MICROPY_ROM_TEXT_COMPRESSION
-void mp_decompress_rom_string(byte *dst, const mp_rom_error_text_t src);
+MAYBE_CUDA void mp_decompress_rom_string(byte *dst, const mp_rom_error_text_t src);
 #define MP_IS_COMPRESSED_ROM_STRING(s) (*(byte *)(s) == 0xff)
 #endif
 

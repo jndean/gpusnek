@@ -32,7 +32,7 @@
 #if !MICROPY_PY_COLLECTIONS
 static
 #endif
-void mp_obj_attrtuple_print_helper(const mp_print_t *print, const qstr *fields, mp_obj_tuple_t *o) {
+MAYBE_CUDA void mp_obj_attrtuple_print_helper(const mp_print_t *print, const qstr *fields, mp_obj_tuple_t *o) {
     mp_print_str(print, "(");
     for (size_t i = 0; i < o->len; i++) {
         if (i > 0) {
@@ -70,7 +70,7 @@ static void mp_obj_attrtuple_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     }
 }
 
-mp_obj_t mp_obj_new_attrtuple(const qstr *fields, size_t n, const mp_obj_t *items) {
+MAYBE_CUDA mp_obj_t mp_obj_new_attrtuple(const qstr *fields, size_t n, const mp_obj_t *items) {
     mp_obj_tuple_t *o = mp_obj_malloc_var(mp_obj_tuple_t, items, mp_obj_t, n + 1, &mp_type_attrtuple);
     o->len = n;
     for (size_t i = 0; i < n; i++) {

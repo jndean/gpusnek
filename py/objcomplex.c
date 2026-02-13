@@ -149,21 +149,21 @@ MP_DEFINE_CONST_OBJ_TYPE(
     attr, complex_attr
     );
 
-mp_obj_t mp_obj_new_complex(mp_float_t real, mp_float_t imag) {
+MAYBE_CUDA mp_obj_t mp_obj_new_complex(mp_float_t real, mp_float_t imag) {
     mp_obj_complex_t *o = mp_obj_malloc(mp_obj_complex_t, &mp_type_complex);
     o->real = real;
     o->imag = imag;
     return MP_OBJ_FROM_PTR(o);
 }
 
-void mp_obj_complex_get(mp_obj_t self_in, mp_float_t *real, mp_float_t *imag) {
+MAYBE_CUDA void mp_obj_complex_get(mp_obj_t self_in, mp_float_t *real, mp_float_t *imag) {
     assert(mp_obj_is_type(self_in, &mp_type_complex));
     mp_obj_complex_t *self = MP_OBJ_TO_PTR(self_in);
     *real = self->real;
     *imag = self->imag;
 }
 
-mp_obj_t mp_obj_complex_binary_op(mp_binary_op_t op, mp_float_t lhs_real, mp_float_t lhs_imag, mp_obj_t rhs_in) {
+MAYBE_CUDA mp_obj_t mp_obj_complex_binary_op(mp_binary_op_t op, mp_float_t lhs_real, mp_float_t lhs_imag, mp_obj_t rhs_in) {
     mp_float_t rhs_real, rhs_imag;
     if (!mp_obj_get_complex_maybe(rhs_in, &rhs_real, &rhs_imag)) {
         return MP_OBJ_NULL; // op not supported

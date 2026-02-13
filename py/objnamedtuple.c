@@ -34,7 +34,7 @@
 
 #if MICROPY_PY_COLLECTIONS
 
-size_t mp_obj_namedtuple_find_field(const mp_obj_namedtuple_type_t *type, qstr name) {
+MAYBE_CUDA size_t mp_obj_namedtuple_find_field(const mp_obj_namedtuple_type_t *type, qstr name) {
     for (size_t i = 0; i < type->n_fields; i++) {
         if (type->fields[i] == name) {
             return i;

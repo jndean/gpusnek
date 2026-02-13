@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "py/bumpalloc.h"
+
 #include "py/mpconfig.h"
 #include "py/misc.h"
 #include "py/mpstate.h"
@@ -63,13 +65,24 @@
 #define realloc_ext(ptr, n, mv) gc_realloc(ptr, n, mv)
 #else
 
-// GC is disabled.  Use system malloc/realloc/free.
+// GC is disabled.
 
 #if MICROPY_ENABLE_FINALISER
 #error MICROPY_ENABLE_FINALISER requires MICROPY_ENABLE_GC
 #endif
 
-static void *realloc_ext(void *ptr, size_t n_bytes, bool allow_move) {
+// On CUDA device, redirect standard alloc functions to bump allocator.
+#ifdef __CUDA_ARCH__
+#undef malloc
+#undef free
+#undef realloc
+#define malloc(b) bump_malloc(b)
+#define free(p) bump_free(p)
+#define realloc(ptr, n) bump_realloc(ptr, n)
+#endif // __CUDA_ARCH__
+// On host, leave system allocators unchanged
+
+static MAYBE_CUDA void *realloc_ext(void *ptr, size_t n_bytes, bool allow_move) {
     if (allow_move) {
         return realloc(ptr, n_bytes);
     } else {
@@ -82,7 +95,7 @@ static void *realloc_ext(void *ptr, size_t n_bytes, bool allow_move) {
 
 #endif // MICROPY_ENABLE_GC
 
-void *m_malloc(size_t num_bytes) {
+MAYBE_CUDA void *m_malloc(size_t num_bytes) {
     void *ptr = malloc(num_bytes);
     if (ptr == NULL && num_bytes != 0) {
         m_malloc_fail(num_bytes);
@@ -96,7 +109,7 @@ void *m_malloc(size_t num_bytes) {
     return ptr;
 }
 
-void *m_malloc_maybe(size_t num_bytes) {
+MAYBE_CUDA void *m_malloc_maybe(size_t num_bytes) {
     void *ptr = malloc(num_bytes);
     #if MICROPY_MEM_STATS
     MP_STATE_MEM(total_bytes_allocated) += num_bytes;
@@ -108,7 +121,7 @@ void *m_malloc_maybe(size_t num_bytes) {
 }
 
 #if MICROPY_ENABLE_FINALISER
-void *m_malloc_with_finaliser(size_t num_bytes) {
+MAYBE_CUDA void *m_malloc_with_finaliser(size_t num_bytes) {
     void *ptr = malloc_with_finaliser(num_bytes);
     if (ptr == NULL && num_bytes != 0) {
         m_malloc_fail(num_bytes);
@@ -123,7 +136,7 @@ void *m_malloc_with_finaliser(size_t num_bytes) {
 }
 #endif
 
-void *m_malloc0(size_t num_bytes) {
+MAYBE_CUDA void *m_malloc0(size_t num_bytes) {
     void *ptr = m_malloc(num_bytes);
     // If this config is set then the GC clears all memory, so we don't need to.
     #if !MICROPY_GC_CONSERVATIVE_CLEAR
@@ -133,9 +146,9 @@ void *m_malloc0(size_t num_bytes) {
 }
 
 #if MICROPY_MALLOC_USES_ALLOCATED_SIZE
-void *m_realloc(void *ptr, size_t old_num_bytes, size_t new_num_bytes)
+MAYBE_CUDA void *m_realloc(void *ptr, size_t old_num_bytes, size_t new_num_bytes)
 #else
-void *m_realloc(void *ptr, size_t new_num_bytes)
+MAYBE_CUDA void *m_realloc(void *ptr, size_t new_num_bytes)
 #endif
 {
     void *new_ptr = realloc(ptr, new_num_bytes);
@@ -162,9 +175,9 @@ void *m_realloc(void *ptr, size_t new_num_bytes)
 }
 
 #if MICROPY_MALLOC_USES_ALLOCATED_SIZE
-void *m_realloc_maybe(void *ptr, size_t old_num_bytes, size_t new_num_bytes, bool allow_move)
+MAYBE_CUDA void *m_realloc_maybe(void *ptr, size_t old_num_bytes, size_t new_num_bytes, bool allow_move)
 #else
-void *m_realloc_maybe(void *ptr, size_t new_num_bytes, bool allow_move)
+MAYBE_CUDA void *m_realloc_maybe(void *ptr, size_t new_num_bytes, bool allow_move)
 #endif
 {
     void *new_ptr = realloc_ext(ptr, new_num_bytes, allow_move);
@@ -191,9 +204,9 @@ void *m_realloc_maybe(void *ptr, size_t new_num_bytes, bool allow_move)
 }
 
 #if MICROPY_MALLOC_USES_ALLOCATED_SIZE
-void m_free(void *ptr, size_t num_bytes)
+MAYBE_CUDA void m_free(void *ptr, size_t num_bytes)
 #else
-void m_free(void *ptr)
+MAYBE_CUDA void m_free(void *ptr)
 #endif
 {
     free(ptr);
@@ -265,7 +278,7 @@ static size_t m_tracked_count_links(size_t *nb) {
 }
 #endif
 
-void *m_tracked_calloc(size_t nmemb, size_t size) {
+MAYBE_CUDA void *m_tracked_calloc(size_t nmemb, size_t size) {
     m_tracked_node_t *node = m_malloc_maybe(sizeof(m_tracked_node_t) + nmemb * size);
     if (node == NULL) {
         return NULL;
@@ -292,7 +305,7 @@ void *m_tracked_calloc(size_t nmemb, size_t size) {
     return &node->data[0];
 }
 
-void m_tracked_free(void *ptr_in) {
+MAYBE_CUDA void m_tracked_free(void *ptr_in) {
     if (ptr_in == NULL) {
         return;
     }

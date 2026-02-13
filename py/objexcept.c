@@ -72,7 +72,7 @@
 #if MICROPY_EMERGENCY_EXCEPTION_BUF_SIZE > 0
 #define mp_emergency_exception_buf_size MICROPY_EMERGENCY_EXCEPTION_BUF_SIZE
 
-void mp_init_emergency_exception_buf(void) {
+MAYBE_CUDA void mp_init_emergency_exception_buf(void) {
     // Nothing to do since the buffer was declared statically. We put this
     // definition here so that the calling code can call this function
     // regardless of how its configured (makes the calling code a bit cleaner).
@@ -83,12 +83,12 @@ void mp_init_emergency_exception_buf(void) {
 
 #include "py/mphal.h" // for MICROPY_BEGIN_ATOMIC_SECTION/MICROPY_END_ATOMIC_SECTION
 
-void mp_init_emergency_exception_buf(void) {
+MAYBE_CUDA void mp_init_emergency_exception_buf(void) {
     mp_emergency_exception_buf_size = 0;
     MP_STATE_VM(mp_emergency_exception_buf) = NULL;
 }
 
-mp_obj_t mp_alloc_emergency_exception_buf(mp_obj_t size_in) {
+MAYBE_CUDA mp_obj_t mp_alloc_emergency_exception_buf(mp_obj_t size_in) {
     mp_int_t size = mp_obj_get_int(size_in);
     void *buf = NULL;
     if (size > 0) {
@@ -113,7 +113,7 @@ mp_obj_t mp_alloc_emergency_exception_buf(mp_obj_t size_in) {
 #endif
 #endif  // MICROPY_ENABLE_EMERGENCY_EXCEPTION_BUF
 
-bool mp_obj_is_native_exception_instance(mp_obj_t self_in) {
+MAYBE_CUDA bool mp_obj_is_native_exception_instance(mp_obj_t self_in) {
     return MP_OBJ_TYPE_GET_SLOT_OR_NULL(mp_obj_get_type(self_in), make_new) == mp_obj_exception_make_new;
 }
 
@@ -160,7 +160,7 @@ static void decompress_error_text_maybe(mp_obj_exception_t *o) {
     #endif
 }
 
-void mp_obj_exception_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
+MAYBE_CUDA void mp_obj_exception_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     mp_obj_exception_t *o = (mp_obj_exception_t *)MP_OBJ_TO_PTR(o_in);
     mp_print_kind_t k = (mp_print_kind_t)(kind & ~PRINT_EXC_SUBCLASS);
     bool is_subclass = kind & PRINT_EXC_SUBCLASS;
@@ -204,7 +204,7 @@ void mp_obj_exception_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kin
     mp_obj_tuple_print(print, MP_OBJ_FROM_PTR(o->args), kind);
 }
 
-mp_obj_t mp_obj_exception_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_obj_exception_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_arg_check_num(n_args, n_kw, 0, MP_OBJ_FUN_ARGS_MAX, false);
 
     // Try to allocate memory for the exception, with fallback to emergency exception object
@@ -254,7 +254,7 @@ mp_obj_t mp_obj_exception_make_new(const mp_obj_type_t *type, size_t n_args, siz
 }
 
 // Get exception "value" - that is, first argument, or None
-mp_obj_t mp_obj_exception_get_value(mp_obj_t self_in) {
+MAYBE_CUDA mp_obj_t mp_obj_exception_get_value(mp_obj_t self_in) {
     mp_obj_exception_t *self = get_native_exception(self_in);
     if (self->args->len == 0) {
         return mp_const_none;
@@ -264,7 +264,7 @@ mp_obj_t mp_obj_exception_get_value(mp_obj_t self_in) {
     }
 }
 
-void mp_obj_exception_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+MAYBE_CUDA void mp_obj_exception_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     mp_obj_exception_t *self = (mp_obj_exception_t *)MP_OBJ_TO_PTR(self_in);
     if (dest[0] != MP_OBJ_NULL) {
         // store/delete attribute
@@ -380,19 +380,19 @@ MP_DEFINE_EXCEPTION(Exception, BaseException)
 
 // *FORMAT-ON*
 
-mp_obj_t mp_obj_new_exception(const mp_obj_type_t *exc_type) {
+MAYBE_CUDA mp_obj_t mp_obj_new_exception(const mp_obj_type_t *exc_type) {
     assert(MP_OBJ_TYPE_GET_SLOT_OR_NULL(exc_type, make_new) == mp_obj_exception_make_new);
     return mp_obj_exception_make_new(exc_type, 0, 0, NULL);
 }
 
-mp_obj_t mp_obj_new_exception_args(const mp_obj_type_t *exc_type, size_t n_args, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_obj_new_exception_args(const mp_obj_type_t *exc_type, size_t n_args, const mp_obj_t *args) {
     assert(MP_OBJ_TYPE_GET_SLOT_OR_NULL(exc_type, make_new) == mp_obj_exception_make_new);
     return mp_obj_exception_make_new(exc_type, n_args, 0, args);
 }
 
 #if MICROPY_ERROR_REPORTING != MICROPY_ERROR_REPORTING_NONE
 
-mp_obj_t mp_obj_new_exception_msg(const mp_obj_type_t *exc_type, mp_rom_error_text_t msg) {
+MAYBE_CUDA mp_obj_t mp_obj_new_exception_msg(const mp_obj_type_t *exc_type, mp_rom_error_text_t msg) {
     // Check that the given type is an exception type
     assert(MP_OBJ_TYPE_GET_SLOT_OR_NULL(exc_type, make_new) == mp_obj_exception_make_new);
 
@@ -461,7 +461,7 @@ static void exc_add_strn(void *data, const char *str, size_t len) {
     pr->len += len;
 }
 
-mp_obj_t mp_obj_new_exception_msg_varg(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, ...) {
+MAYBE_CUDA mp_obj_t mp_obj_new_exception_msg_varg(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, ...) {
     va_list args;
     va_start(args, fmt);
     mp_obj_t exc = mp_obj_new_exception_msg_vlist(exc_type, fmt, args);
@@ -469,7 +469,7 @@ mp_obj_t mp_obj_new_exception_msg_varg(const mp_obj_type_t *exc_type, mp_rom_err
     return exc;
 }
 
-mp_obj_t mp_obj_new_exception_msg_vlist(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, va_list args) {
+MAYBE_CUDA mp_obj_t mp_obj_new_exception_msg_vlist(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, va_list args) {
     assert(fmt != NULL);
 
     // Check that the given type is an exception type
@@ -540,7 +540,7 @@ mp_obj_t mp_obj_new_exception_msg_vlist(const mp_obj_type_t *exc_type, mp_rom_er
 #endif
 
 // return true if the given object is an exception type
-bool mp_obj_is_exception_type(mp_obj_t self_in) {
+MAYBE_CUDA bool mp_obj_is_exception_type(mp_obj_t self_in) {
     if (mp_obj_is_type(self_in, &mp_type_type)) {
         // optimisation when self_in is a builtin exception
         mp_obj_type_t *self = (mp_obj_type_t *)MP_OBJ_TO_PTR(self_in);
@@ -552,14 +552,14 @@ bool mp_obj_is_exception_type(mp_obj_t self_in) {
 }
 
 // return true if the given object is an instance of an exception type
-bool mp_obj_is_exception_instance(mp_obj_t self_in) {
+MAYBE_CUDA bool mp_obj_is_exception_instance(mp_obj_t self_in) {
     return mp_obj_is_exception_type(MP_OBJ_FROM_PTR(mp_obj_get_type(self_in)));
 }
 
 // Return true if exception (type or instance) is a subclass of given
 // exception type.  Assumes exc_type is a subclass of BaseException, as
 // defined by mp_obj_is_exception_type(exc_type).
-bool mp_obj_exception_match(mp_obj_t exc, mp_const_obj_t exc_type) {
+MAYBE_CUDA bool mp_obj_exception_match(mp_obj_t exc, mp_const_obj_t exc_type) {
     // if exc is an instance of an exception, then extract and use its type
     if (mp_obj_is_exception_instance(exc)) {
         exc = MP_OBJ_FROM_PTR(mp_obj_get_type(exc));
@@ -569,14 +569,14 @@ bool mp_obj_exception_match(mp_obj_t exc, mp_const_obj_t exc_type) {
 
 // traceback handling functions
 
-void mp_obj_exception_clear_traceback(mp_obj_t self_in) {
+MAYBE_CUDA void mp_obj_exception_clear_traceback(mp_obj_t self_in) {
     mp_obj_exception_t *self = get_native_exception(self_in);
     // just set the traceback to the null object
     // we don't want to call any memory management functions here
     self->traceback_data = NULL;
 }
 
-void mp_obj_exception_add_traceback(mp_obj_t self_in, qstr file, size_t line, qstr block) {
+MAYBE_CUDA void mp_obj_exception_add_traceback(mp_obj_t self_in, qstr file, size_t line, qstr block) {
     mp_obj_exception_t *self = get_native_exception(self_in);
 
     // append this traceback info to traceback data
@@ -639,7 +639,7 @@ void mp_obj_exception_add_traceback(mp_obj_t self_in, qstr file, size_t line, qs
     tb_data[2] = block;
 }
 
-void mp_obj_exception_get_traceback(mp_obj_t self_in, size_t *n, size_t **values) {
+MAYBE_CUDA void mp_obj_exception_get_traceback(mp_obj_t self_in, size_t *n, size_t **values) {
     mp_obj_exception_t *self = get_native_exception(self_in);
 
     if (self->traceback_data == NULL) {

@@ -99,7 +99,7 @@ typedef struct _reloc_info_t {
     uint8_t *bss;
 } reloc_info_t;
 
-void mp_native_relocate(void *ri_in, uint8_t *text, uintptr_t reloc_text) {
+MAYBE_CUDA void mp_native_relocate(void *ri_in, uint8_t *text, uintptr_t reloc_text) {
     // Relocate native code
     reloc_info_t *ri = ri_in;
     uint8_t op;
@@ -461,7 +461,7 @@ static mp_raw_code_t *load_raw_code(mp_reader_t *reader, mp_module_context_t *co
     return rc;
 }
 
-void mp_raw_code_load(mp_reader_t *reader, mp_compiled_module_t *cm) {
+MAYBE_CUDA void mp_raw_code_load(mp_reader_t *reader, mp_compiled_module_t *cm) {
     // Set exception handler to close the reader if an exception is raised.
     MP_DEFINE_NLR_JUMP_CALLBACK_FUNCTION_1(ctx, reader->close, reader->data);
     nlr_push_jump_callback(&ctx.callback, mp_call_function_1_from_nlr_jump_callback);
@@ -532,7 +532,7 @@ void mp_raw_code_load(mp_reader_t *reader, mp_compiled_module_t *cm) {
     nlr_pop_jump_callback(true);
 }
 
-void mp_raw_code_load_mem(const byte *buf, size_t len, mp_compiled_module_t *context) {
+MAYBE_CUDA void mp_raw_code_load_mem(const byte *buf, size_t len, mp_compiled_module_t *context) {
     mp_reader_t reader;
     mp_reader_new_mem(&reader, buf, len, 0);
     mp_raw_code_load(&reader, context);
@@ -540,7 +540,7 @@ void mp_raw_code_load_mem(const byte *buf, size_t len, mp_compiled_module_t *con
 
 #if MICROPY_HAS_FILE_READER
 
-void mp_raw_code_load_file(qstr filename, mp_compiled_module_t *context) {
+MAYBE_CUDA void mp_raw_code_load_file(qstr filename, mp_compiled_module_t *context) {
     mp_reader_t reader;
     mp_reader_new_file(&reader, filename);
     mp_raw_code_load(&reader, context);
@@ -685,7 +685,7 @@ static void save_raw_code(mp_print_t *print, const mp_raw_code_t *rc) {
     }
 }
 
-void mp_raw_code_save(mp_compiled_module_t *cm, mp_print_t *print) {
+MAYBE_CUDA void mp_raw_code_save(mp_compiled_module_t *cm, mp_print_t *print) {
     // header contains:
     //  byte  'M'
     //  byte  version
@@ -741,7 +741,7 @@ static void fd_print_strn(void *env, const char *str, size_t len) {
     (void)ret;
 }
 
-void mp_raw_code_save_file(mp_compiled_module_t *cm, qstr filename) {
+MAYBE_CUDA void mp_raw_code_save_file(mp_compiled_module_t *cm, qstr filename) {
     MP_THREAD_GIL_EXIT();
     int fd = open(qstr_str(filename), O_WRONLY | O_CREAT | O_TRUNC, 0644);
     MP_THREAD_GIL_ENTER();
@@ -844,7 +844,7 @@ static mp_opcode_t mp_opcode_decode(const uint8_t *ip) {
     return op;
 }
 
-mp_obj_t mp_raw_code_save_fun_to_bytes(const mp_module_constants_t *consts, const uint8_t *bytecode) {
+MAYBE_CUDA mp_obj_t mp_raw_code_save_fun_to_bytes(const mp_module_constants_t *consts, const uint8_t *bytecode) {
     const uint8_t *fun_data = bytecode;
     const uint8_t *fun_data_top = fun_data + gc_nbytes(fun_data);
 

@@ -33,7 +33,7 @@
 
 #if MICROPY_WARNINGS
 
-void mp_warning(const char *category, const char *msg, ...) {
+MAYBE_CUDA void mp_warning(const char *category, const char *msg, ...) {
     if (category == NULL) {
         category = "Warning";
     }
@@ -47,7 +47,7 @@ void mp_warning(const char *category, const char *msg, ...) {
     va_end(args);
 }
 
-void mp_emitter_warning(pass_kind_t pass, const char *msg) {
+MAYBE_CUDA void mp_emitter_warning(pass_kind_t pass, const char *msg) {
     if (pass == MP_PASS_CODE_SIZE) {
         mp_warning(NULL, msg);
     }

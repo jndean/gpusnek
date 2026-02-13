@@ -62,19 +62,19 @@ typedef struct _mp_print_ext_t {
 
 // All (non-debug) prints go through one of the two interfaces below.
 // 1) Wrapper for platform print function, which wraps MP_PLAT_PRINT_STRN.
-extern const mp_print_t mp_plat_print;
+MAYBE_CUDA extern const mp_print_t mp_plat_print;
 #if MICROPY_PY_IO && MICROPY_PY_SYS_STDFILES
 // 2) Wrapper for printing to sys.stdout.
-extern const mp_print_t mp_sys_stdout_print;
+MAYBE_CUDA extern const mp_print_t mp_sys_stdout_print;
 #endif
 
-int mp_print_str(const mp_print_t *print, const char *str);
-int mp_print_strn(const mp_print_t *print, const char *str, size_t len, unsigned int flags, char fill, int width);
+MAYBE_CUDA int mp_print_str(const mp_print_t *print, const char *str);
+MAYBE_CUDA int mp_print_strn(const mp_print_t *print, const char *str, size_t len, unsigned int flags, char fill, int width);
 #if MICROPY_PY_BUILTINS_FLOAT
 int mp_print_float(const mp_print_t *print, mp_float_t f, char fmt, unsigned int flags, char fill, int width, int prec);
 #endif
 
-int mp_printf(const mp_print_t *print, const char *fmt, ...);
+MAYBE_CUDA int mp_printf(const mp_print_t *print, const char *fmt, ...);
 #ifdef va_start
 int mp_vprintf(const mp_print_t *print, const char *fmt, va_list args);
 #endif

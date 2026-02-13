@@ -118,26 +118,26 @@ typedef unsigned int uint;
 #endif
 #define m_del_obj(type, ptr) (m_del(type, ptr, 1))
 
-void *m_malloc(size_t num_bytes);
-void *m_malloc_maybe(size_t num_bytes);
-void *m_malloc_with_finaliser(size_t num_bytes);
-void *m_malloc0(size_t num_bytes);
+MAYBE_CUDA void *m_malloc(size_t num_bytes);
+MAYBE_CUDA void *m_malloc_maybe(size_t num_bytes);
+MAYBE_CUDA void *m_malloc_with_finaliser(size_t num_bytes);
+MAYBE_CUDA void *m_malloc0(size_t num_bytes);
 #if MICROPY_MALLOC_USES_ALLOCATED_SIZE
-void *m_realloc(void *ptr, size_t old_num_bytes, size_t new_num_bytes);
-void *m_realloc_maybe(void *ptr, size_t old_num_bytes, size_t new_num_bytes, bool allow_move);
-void m_free(void *ptr, size_t num_bytes);
+MAYBE_CUDA void *m_realloc(void *ptr, size_t old_num_bytes, size_t new_num_bytes);
+MAYBE_CUDA void *m_realloc_maybe(void *ptr, size_t old_num_bytes, size_t new_num_bytes, bool allow_move);
+MAYBE_CUDA void m_free(void *ptr, size_t num_bytes);
 #else
-void *m_realloc(void *ptr, size_t new_num_bytes);
-void *m_realloc_maybe(void *ptr, size_t new_num_bytes, bool allow_move);
-void m_free(void *ptr);
+MAYBE_CUDA void *m_realloc(void *ptr, size_t new_num_bytes);
+MAYBE_CUDA void *m_realloc_maybe(void *ptr, size_t new_num_bytes, bool allow_move);
+MAYBE_CUDA void m_free(void *ptr);
 #endif
-MP_NORETURN void m_malloc_fail(size_t num_bytes);
+MAYBE_CUDA MP_NORETURN void m_malloc_fail(size_t num_bytes);
 
 #if MICROPY_TRACKED_ALLOC
 // These alloc/free functions track the pointers in a linked list so the GC does not reclaim
 // them.  They can be used by code that requires traditional C malloc/free semantics.
-void *m_tracked_calloc(size_t nmemb, size_t size);
-void m_tracked_free(void *ptr_in);
+MAYBE_CUDA void *m_tracked_calloc(size_t nmemb, size_t size);
+MAYBE_CUDA void m_tracked_free(void *ptr_in);
 #endif
 
 #if MICROPY_MEM_STATS
@@ -488,8 +488,8 @@ static inline bool mp_mul_mp_int_t_overflow(mp_int_t x, mp_int_t y, mp_int_t *re
 
 #else
 
-bool mp_mul_ll_overflow(long long int x, long long int y, long long int *res);
-bool mp_mul_mp_int_t_overflow(mp_int_t x, mp_int_t y, mp_int_t *res);
+MAYBE_CUDA bool mp_mul_ll_overflow(long long int x, long long int y, long long int *res);
+MAYBE_CUDA bool mp_mul_mp_int_t_overflow(mp_int_t x, mp_int_t y, mp_int_t *res);
 static inline bool mp_mul_ull_overflow(unsigned long long int x, unsigned long long int y, unsigned long long int *res) {
     if (y > 0 && x > (ULLONG_MAX / y)) {
         return true; // overflow

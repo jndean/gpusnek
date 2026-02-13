@@ -120,14 +120,14 @@ enum {
     MP_PERSISTENT_OBJ_TUPLE,
 };
 
-void mp_raw_code_load(mp_reader_t *reader, mp_compiled_module_t *ctx);
-void mp_raw_code_load_mem(const byte *buf, size_t len, mp_compiled_module_t *ctx);
-void mp_raw_code_load_file(qstr filename, mp_compiled_module_t *ctx);
+MAYBE_CUDA void mp_raw_code_load(mp_reader_t *reader, mp_compiled_module_t *ctx);
+MAYBE_CUDA void mp_raw_code_load_mem(const byte *buf, size_t len, mp_compiled_module_t *ctx);
+MAYBE_CUDA void mp_raw_code_load_file(qstr filename, mp_compiled_module_t *ctx);
 
-void mp_raw_code_save(mp_compiled_module_t *cm, mp_print_t *print);
-void mp_raw_code_save_file(mp_compiled_module_t *cm, qstr filename);
-mp_obj_t mp_raw_code_save_fun_to_bytes(const mp_module_constants_t *consts, const uint8_t *bytecode);
+MAYBE_CUDA void mp_raw_code_save(mp_compiled_module_t *cm, mp_print_t *print);
+MAYBE_CUDA void mp_raw_code_save_file(mp_compiled_module_t *cm, qstr filename);
+MAYBE_CUDA mp_obj_t mp_raw_code_save_fun_to_bytes(const mp_module_constants_t *consts, const uint8_t *bytecode);
 
-void mp_native_relocate(void *reloc, uint8_t *text, uintptr_t reloc_text);
+MAYBE_CUDA void mp_native_relocate(void *reloc, uint8_t *text, uintptr_t reloc_text);
 
 #endif // MICROPY_INCLUDED_PY_PERSISTENTCODE_H
