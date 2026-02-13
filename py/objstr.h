@@ -84,17 +84,17 @@ const byte *mp_obj_str_get_data_no_check(mp_obj_t self_in, size_t *len);
     }
 #endif
 
-mp_obj_t mp_obj_str_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args);
-void mp_str_print_json(const mp_print_t *print, const byte *str_data, size_t str_len);
-mp_obj_t mp_obj_str_format(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs);
-mp_obj_t mp_obj_str_split(size_t n_args, const mp_obj_t *args);
-mp_obj_t mp_obj_new_str_copy(const mp_obj_type_t *type, const byte *data, size_t len); // for type=str, input data must be valid utf-8
-mp_obj_t mp_obj_new_str_of_type(const mp_obj_type_t *type, const byte *data, size_t len); // for type=str, will check utf-8 (raises UnicodeError)
+MAYBE_CUDA mp_obj_t mp_obj_str_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args);
+MAYBE_CUDA void mp_str_print_json(const mp_print_t *print, const byte *str_data, size_t str_len);
+MAYBE_CUDA mp_obj_t mp_obj_str_format(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs);
+MAYBE_CUDA mp_obj_t mp_obj_str_split(size_t n_args, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_obj_new_str_copy(const mp_obj_type_t *type, const byte *data, size_t len); // for type=str, input data must be valid utf-8
+MAYBE_CUDA mp_obj_t mp_obj_new_str_of_type(const mp_obj_type_t *type, const byte *data, size_t len); // for type=str, will check utf-8 (raises UnicodeError)
 
-mp_obj_t mp_obj_str_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in);
-mp_int_t mp_obj_str_get_buffer(mp_obj_t self_in, mp_buffer_info_t *bufinfo, mp_uint_t flags);
+MAYBE_CUDA mp_obj_t mp_obj_str_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in);
+MAYBE_CUDA mp_int_t mp_obj_str_get_buffer(mp_obj_t self_in, mp_buffer_info_t *bufinfo, mp_uint_t flags);
 
-void mp_obj_str_set_data(mp_obj_str_t *str, const byte *data, size_t len);
+MAYBE_CUDA void mp_obj_str_set_data(mp_obj_str_t *str, const byte *data, size_t len);
 
 const byte *str_index_to_ptr(const mp_obj_type_t *type, const byte *self_data, size_t self_len,
     mp_obj_t index, bool is_slice);
@@ -102,8 +102,8 @@ const byte *find_subbytes(const byte *haystack, size_t hlen, const byte *needle,
 
 #define MP_DEFINE_BYTES_OBJ(obj_name, target, len) mp_obj_str_t obj_name = {{&mp_type_bytes}, 0, (len), (const byte *)(target)}
 
-mp_obj_t mp_obj_bytes_hex(size_t n_args, const mp_obj_t *args, const mp_obj_type_t *type);
-mp_obj_t mp_obj_bytes_fromhex(mp_obj_t type_in, mp_obj_t data);
+MAYBE_CUDA mp_obj_t mp_obj_bytes_hex(size_t n_args, const mp_obj_t *args, const mp_obj_type_t *type);
+MAYBE_CUDA mp_obj_t mp_obj_bytes_fromhex(mp_obj_t type_in, mp_obj_t data);
 
 extern const mp_obj_dict_t mp_obj_str_locals_dict;
 

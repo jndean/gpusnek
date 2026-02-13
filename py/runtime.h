@@ -98,16 +98,16 @@ typedef struct _nlr_jump_callback_node_call_function_1_t {
 extern const byte mp_unary_op_method_name[];
 extern const byte mp_binary_op_method_name[];
 
-void mp_init(void);
-void mp_deinit(void);
+MAYBE_CUDA void mp_init(void);
+MAYBE_CUDA void mp_deinit(void);
 
-void mp_sched_exception(mp_obj_t exc);
-void mp_sched_keyboard_interrupt(void);
+MAYBE_CUDA void mp_sched_exception(mp_obj_t exc);
+MAYBE_CUDA void mp_sched_keyboard_interrupt(void);
 #if MICROPY_ENABLE_VM_ABORT
-void mp_sched_vm_abort(void);
+MAYBE_CUDA void mp_sched_vm_abort(void);
 #endif
 
-void mp_handle_pending_internal(mp_handle_pending_behaviour_t behavior);
+MAYBE_CUDA void mp_handle_pending_internal(mp_handle_pending_behaviour_t behavior);
 
 static inline void mp_handle_pending(bool raise_exc) {
     mp_handle_pending_internal(raise_exc ?
@@ -116,15 +116,15 @@ static inline void mp_handle_pending(bool raise_exc) {
 }
 
 #if MICROPY_ENABLE_SCHEDULER
-void mp_sched_lock(void);
-void mp_sched_unlock(void);
+MAYBE_CUDA void mp_sched_lock(void);
+MAYBE_CUDA void mp_sched_unlock(void);
 #define mp_sched_num_pending() (MP_STATE_VM(sched_len))
-bool mp_sched_schedule(mp_obj_t function, mp_obj_t arg);
-bool mp_sched_schedule_node(mp_sched_node_t *node, mp_sched_callback_t callback);
+MAYBE_CUDA bool mp_sched_schedule(mp_obj_t function, mp_obj_t arg);
+MAYBE_CUDA bool mp_sched_schedule_node(mp_sched_node_t *node, mp_sched_callback_t callback);
 #endif
 
 // Handles any pending MicroPython events without waiting for an interrupt or event.
-void mp_event_handle_nowait(void);
+MAYBE_CUDA void mp_event_handle_nowait(void);
 
 // Handles any pending MicroPython events and then suspends execution until the
 // next interrupt or event.
@@ -132,23 +132,23 @@ void mp_event_handle_nowait(void);
 // Note: on "tickless" ports this can suspend execution for a long time,
 // don't call unless you know an interrupt is coming to continue execution.
 // On "ticked" ports it may return early due to the tick interrupt.
-void mp_event_wait_indefinite(void);
+MAYBE_CUDA void mp_event_wait_indefinite(void);
 
 // Handle any pending MicroPython events and then suspends execution until the
 // next interrupt or event, or until timeout_ms milliseconds have elapsed.
 //
 // On "ticked" ports it may return early due to the tick interrupt.
-void mp_event_wait_ms(mp_uint_t timeout_ms);
+MAYBE_CUDA void mp_event_wait_ms(mp_uint_t timeout_ms);
 
 // extra printing method specifically for mp_obj_t's which are integral type
 int mp_print_mp_int(const mp_print_t *print, mp_obj_t x, unsigned base, int base_char, int flags, char fill, int width, int prec);
 
-void mp_arg_check_num_sig(size_t n_args, size_t n_kw, uint32_t sig);
+MAYBE_CUDA void mp_arg_check_num_sig(size_t n_args, size_t n_kw, uint32_t sig);
 static inline void mp_arg_check_num(size_t n_args, size_t n_kw, size_t n_args_min, size_t n_args_max, bool takes_kw) {
     mp_arg_check_num_sig(n_args, n_kw, MP_OBJ_FUN_MAKE_SIG(n_args_min, n_args_max, takes_kw));
 }
-void mp_arg_parse_all(size_t n_pos, const mp_obj_t *pos, mp_map_t *kws, size_t n_allowed, const mp_arg_t *allowed, mp_arg_val_t *out_vals);
-void mp_arg_parse_all_kw_array(size_t n_pos, size_t n_kw, const mp_obj_t *args, size_t n_allowed, const mp_arg_t *allowed, mp_arg_val_t *out_vals);
+MAYBE_CUDA void mp_arg_parse_all(size_t n_pos, const mp_obj_t *pos, mp_map_t *kws, size_t n_allowed, const mp_arg_t *allowed, mp_arg_val_t *out_vals);
+MAYBE_CUDA void mp_arg_parse_all_kw_array(size_t n_pos, size_t n_kw, const mp_obj_t *args, size_t n_allowed, const mp_arg_t *allowed, mp_arg_val_t *out_vals);
 MP_NORETURN void mp_arg_error_terse_mismatch(void);
 MP_NORETURN void mp_arg_error_unimpl_kw(void);
 
@@ -165,7 +165,7 @@ static inline void mp_globals_set(mp_obj_dict_t *d) {
     MP_STATE_THREAD(dict_globals) = d;
 }
 
-void mp_globals_locals_set_from_nlr_jump_callback(void *ctx_in);
+MAYBE_CUDA void mp_globals_locals_set_from_nlr_jump_callback(void *ctx_in);
 void mp_call_function_1_from_nlr_jump_callback(void *ctx_in);
 
 #if MICROPY_PY_THREAD
@@ -200,24 +200,24 @@ static inline void mp_thread_init_state(mp_state_thread_t *ts, size_t stack_size
 }
 #endif
 
-mp_obj_t mp_load_name(qstr qst);
-mp_obj_t mp_load_global(qstr qst);
-mp_obj_t mp_load_build_class(void);
-void mp_store_name(qstr qst, mp_obj_t obj);
-void mp_store_global(qstr qst, mp_obj_t obj);
-void mp_delete_name(qstr qst);
-void mp_delete_global(qstr qst);
+MAYBE_CUDA mp_obj_t mp_load_name(qstr qst);
+MAYBE_CUDA mp_obj_t mp_load_global(qstr qst);
+MAYBE_CUDA mp_obj_t mp_load_build_class(void);
+MAYBE_CUDA void mp_store_name(qstr qst, mp_obj_t obj);
+MAYBE_CUDA void mp_store_global(qstr qst, mp_obj_t obj);
+MAYBE_CUDA void mp_delete_name(qstr qst);
+MAYBE_CUDA void mp_delete_global(qstr qst);
 
-mp_obj_t mp_unary_op(mp_unary_op_t op, mp_obj_t arg);
-mp_obj_t mp_binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs);
+MAYBE_CUDA mp_obj_t mp_unary_op(mp_unary_op_t op, mp_obj_t arg);
+MAYBE_CUDA mp_obj_t mp_binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs);
 
 mp_obj_t mp_call_function_0(mp_obj_t fun);
 mp_obj_t mp_call_function_1(mp_obj_t fun, mp_obj_t arg);
 mp_obj_t mp_call_function_2(mp_obj_t fun, mp_obj_t arg1, mp_obj_t arg2);
-mp_obj_t mp_call_function_n_kw(mp_obj_t fun, size_t n_args, size_t n_kw, const mp_obj_t *args);
-mp_obj_t mp_call_method_n_kw(size_t n_args, size_t n_kw, const mp_obj_t *args);
-mp_obj_t mp_call_method_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_obj_t *args);
-mp_obj_t mp_call_method_self_n_kw(mp_obj_t meth, mp_obj_t self, size_t n_args, size_t n_kw, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_call_function_n_kw(mp_obj_t fun, size_t n_args, size_t n_kw, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_call_method_n_kw(size_t n_args, size_t n_kw, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_call_method_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_call_method_self_n_kw(mp_obj_t meth, mp_obj_t self, size_t n_args, size_t n_kw, const mp_obj_t *args);
 // Call function and catch/dump exception - for Python callbacks from C code
 // (return MP_OBJ_NULL in case of exception).
 mp_obj_t mp_call_function_1_protected(mp_obj_t fun, mp_obj_t arg);
@@ -234,23 +234,23 @@ typedef struct _mp_call_args_t {
 // prepares argument array suitable for passing to ->call() method of a
 // function object (and mp_call_function_n_kw()).
 // (Only needed in stackless mode.)
-void mp_call_prepare_args_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_obj_t *args, mp_call_args_t *out_args);
+MAYBE_CUDA void mp_call_prepare_args_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_obj_t *args, mp_call_args_t *out_args);
 #endif
 
-void mp_unpack_sequence(mp_obj_t seq, size_t num, mp_obj_t *items);
-void mp_unpack_ex(mp_obj_t seq, size_t num, mp_obj_t *items);
-mp_obj_t mp_store_map(mp_obj_t map, mp_obj_t key, mp_obj_t value);
-mp_obj_t mp_load_attr(mp_obj_t base, qstr attr);
-void mp_convert_member_lookup(mp_obj_t obj, const mp_obj_type_t *type, mp_obj_t member, mp_obj_t *dest);
-void mp_load_method(mp_obj_t base, qstr attr, mp_obj_t *dest);
-void mp_load_method_maybe(mp_obj_t base, qstr attr, mp_obj_t *dest);
-void mp_load_method_protected(mp_obj_t obj, qstr attr, mp_obj_t *dest, bool catch_all_exc);
-void mp_load_super_method(qstr attr, mp_obj_t *dest);
-void mp_store_attr(mp_obj_t base, qstr attr, mp_obj_t val);
+MAYBE_CUDA void mp_unpack_sequence(mp_obj_t seq, size_t num, mp_obj_t *items);
+MAYBE_CUDA void mp_unpack_ex(mp_obj_t seq, size_t num, mp_obj_t *items);
+MAYBE_CUDA mp_obj_t mp_store_map(mp_obj_t map, mp_obj_t key, mp_obj_t value);
+MAYBE_CUDA mp_obj_t mp_load_attr(mp_obj_t base, qstr attr);
+MAYBE_CUDA void mp_convert_member_lookup(mp_obj_t obj, const mp_obj_type_t *type, mp_obj_t member, mp_obj_t *dest);
+MAYBE_CUDA void mp_load_method(mp_obj_t base, qstr attr, mp_obj_t *dest);
+MAYBE_CUDA void mp_load_method_maybe(mp_obj_t base, qstr attr, mp_obj_t *dest);
+MAYBE_CUDA void mp_load_method_protected(mp_obj_t obj, qstr attr, mp_obj_t *dest, bool catch_all_exc);
+MAYBE_CUDA void mp_load_super_method(qstr attr, mp_obj_t *dest);
+MAYBE_CUDA void mp_store_attr(mp_obj_t base, qstr attr, mp_obj_t val);
 
-mp_obj_t mp_getiter(mp_obj_t o, mp_obj_iter_buf_t *iter_buf);
-mp_obj_t mp_iternext_allow_raise(mp_obj_t o); // may return MP_OBJ_STOP_ITERATION instead of raising StopIteration()
-mp_obj_t mp_iternext(mp_obj_t o); // will always return MP_OBJ_STOP_ITERATION instead of raising StopIteration(...)
+MAYBE_CUDA mp_obj_t mp_getiter(mp_obj_t o, mp_obj_iter_buf_t *iter_buf);
+MAYBE_CUDA mp_obj_t mp_iternext_allow_raise(mp_obj_t o); // may return MP_OBJ_STOP_ITERATION instead of raising StopIteration()
+MAYBE_CUDA mp_obj_t mp_iternext(mp_obj_t o); // will always return MP_OBJ_STOP_ITERATION instead of raising StopIteration(...)
 mp_vm_return_kind_t mp_resume(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, mp_obj_t *ret_val);
 
 static inline mp_obj_t mp_make_stop_iteration(mp_obj_t o) {
@@ -258,17 +258,17 @@ static inline mp_obj_t mp_make_stop_iteration(mp_obj_t o) {
     return MP_OBJ_STOP_ITERATION;
 }
 
-mp_obj_t mp_make_raise_obj(mp_obj_t o);
+MAYBE_CUDA mp_obj_t mp_make_raise_obj(mp_obj_t o);
 
-mp_obj_t mp_import_name(qstr name, mp_obj_t fromlist, mp_obj_t level);
-mp_obj_t mp_import_from(mp_obj_t module, qstr name);
-void mp_import_all(mp_obj_t module);
+MAYBE_CUDA mp_obj_t mp_import_name(qstr name, mp_obj_t fromlist, mp_obj_t level);
+MAYBE_CUDA mp_obj_t mp_import_from(mp_obj_t module, qstr name);
+MAYBE_CUDA void mp_import_all(mp_obj_t module);
 
 #if MICROPY_ERROR_REPORTING == MICROPY_ERROR_REPORTING_NONE
-MP_NORETURN void mp_raise_type(const mp_obj_type_t *exc_type);
-MP_NORETURN void mp_raise_ValueError_no_msg(void);
-MP_NORETURN void mp_raise_TypeError_no_msg(void);
-MP_NORETURN void mp_raise_NotImplementedError_no_msg(void);
+MAYBE_CUDA MP_NORETURN void mp_raise_type(const mp_obj_type_t *exc_type);
+MAYBE_CUDA MP_NORETURN void mp_raise_ValueError_no_msg(void);
+MAYBE_CUDA MP_NORETURN void mp_raise_TypeError_no_msg(void);
+MAYBE_CUDA MP_NORETURN void mp_raise_NotImplementedError_no_msg(void);
 #define mp_raise_msg(exc_type, msg) mp_raise_type(exc_type)
 #define mp_raise_msg_varg(exc_type, ...) mp_raise_type(exc_type)
 #define mp_raise_ValueError(msg) mp_raise_ValueError_no_msg()
@@ -276,19 +276,19 @@ MP_NORETURN void mp_raise_NotImplementedError_no_msg(void);
 #define mp_raise_NotImplementedError(msg) mp_raise_NotImplementedError_no_msg()
 #else
 #define mp_raise_type(exc_type) mp_raise_msg(exc_type, NULL)
-MP_NORETURN void mp_raise_msg(const mp_obj_type_t *exc_type, mp_rom_error_text_t msg);
-MP_NORETURN void mp_raise_msg_varg(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, ...);
-MP_NORETURN void mp_raise_ValueError(mp_rom_error_text_t msg);
-MP_NORETURN void mp_raise_TypeError(mp_rom_error_text_t msg);
-MP_NORETURN void mp_raise_NotImplementedError(mp_rom_error_text_t msg);
+MAYBE_CUDA MP_NORETURN void mp_raise_msg(const mp_obj_type_t *exc_type, mp_rom_error_text_t msg);
+MAYBE_CUDA MP_NORETURN void mp_raise_msg_varg(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, ...);
+MAYBE_CUDA MP_NORETURN void mp_raise_ValueError(mp_rom_error_text_t msg);
+MAYBE_CUDA MP_NORETURN void mp_raise_TypeError(mp_rom_error_text_t msg);
+MAYBE_CUDA MP_NORETURN void mp_raise_NotImplementedError(mp_rom_error_text_t msg);
 #endif
 
-MP_NORETURN void mp_raise_type_arg(const mp_obj_type_t *exc_type, mp_obj_t arg);
-MP_NORETURN void mp_raise_StopIteration(mp_obj_t arg);
-MP_NORETURN void mp_raise_TypeError_int_conversion(mp_const_obj_t arg);
-MP_NORETURN void mp_raise_OSError(int errno_);
-MP_NORETURN void mp_raise_OSError_with_filename(int errno_, const char *filename);
-MP_NORETURN void mp_raise_recursion_depth(void);
+MAYBE_CUDA MP_NORETURN void mp_raise_type_arg(const mp_obj_type_t *exc_type, mp_obj_t arg);
+MAYBE_CUDA MP_NORETURN void mp_raise_StopIteration(mp_obj_t arg);
+MAYBE_CUDA MP_NORETURN void mp_raise_TypeError_int_conversion(mp_const_obj_t arg);
+MAYBE_CUDA MP_NORETURN void mp_raise_OSError(int errno_);
+MAYBE_CUDA MP_NORETURN void mp_raise_OSError_with_filename(int errno_, const char *filename);
+MAYBE_CUDA MP_NORETURN void mp_raise_recursion_depth(void);
 
 #if MICROPY_BUILTIN_METHOD_CHECK_SELF_ARG
 #undef mp_check_self
@@ -302,8 +302,8 @@ MP_NORETURN void mp_raise_recursion_depth(void);
 
 // helper functions for native/viper code
 int mp_native_type_from_qstr(qstr qst);
-mp_uint_t mp_native_from_obj(mp_obj_t obj, mp_uint_t type);
-mp_obj_t mp_native_to_obj(mp_uint_t val, mp_uint_t type);
+MAYBE_CUDA mp_uint_t mp_native_from_obj(mp_obj_t obj, mp_uint_t type);
+MAYBE_CUDA mp_obj_t mp_native_to_obj(mp_uint_t val, mp_uint_t type);
 
 #if MICROPY_PY_SYS_PATH
 #define mp_sys_path (MP_STATE_VM(sys_mutable[MP_SYS_MUTABLE_PATH]))
@@ -315,7 +315,7 @@ mp_obj_t mp_native_to_obj(mp_uint_t val, mp_uint_t type);
 
 #if MICROPY_WARNINGS
 #ifndef mp_warning
-void mp_warning(const char *category, const char *msg, ...);
+MAYBE_CUDA void mp_warning(const char *category, const char *msg, ...);
 #endif
 #else
 #define mp_warning(...)

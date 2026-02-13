@@ -40,13 +40,13 @@ typedef struct _mp_rom_obj_tuple_t {
     mp_rom_obj_t items[];
 } mp_rom_obj_tuple_t;
 
-void mp_obj_tuple_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind);
-mp_obj_t mp_obj_tuple_unary_op(mp_unary_op_t op, mp_obj_t self_in);
-mp_obj_t mp_obj_tuple_binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs);
-mp_obj_t mp_obj_tuple_subscr(mp_obj_t base, mp_obj_t index, mp_obj_t value);
-mp_obj_t mp_obj_tuple_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf);
+MAYBE_CUDA void mp_obj_tuple_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind);
+MAYBE_CUDA mp_obj_t mp_obj_tuple_unary_op(mp_unary_op_t op, mp_obj_t self_in);
+MAYBE_CUDA mp_obj_t mp_obj_tuple_binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs);
+MAYBE_CUDA mp_obj_t mp_obj_tuple_subscr(mp_obj_t base, mp_obj_t index, mp_obj_t value);
+MAYBE_CUDA mp_obj_t mp_obj_tuple_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf);
 
-extern const mp_obj_type_t mp_type_attrtuple;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_attrtuple;
 
 #define MP_DEFINE_ATTRTUPLE(tuple_obj_name, fields, nitems, ...) \
     const mp_rom_obj_tuple_t tuple_obj_name = { \
@@ -56,10 +56,10 @@ extern const mp_obj_type_t mp_type_attrtuple;
     }
 
 #if MICROPY_PY_COLLECTIONS
-void mp_obj_attrtuple_print_helper(const mp_print_t *print, const qstr *fields, mp_obj_tuple_t *o);
+MAYBE_CUDA void mp_obj_attrtuple_print_helper(const mp_print_t *print, const qstr *fields, mp_obj_tuple_t *o);
 #endif
 
-mp_obj_t mp_obj_new_attrtuple(const qstr *fields, size_t n, const mp_obj_t *items);
+MAYBE_CUDA mp_obj_t mp_obj_new_attrtuple(const qstr *fields, size_t n, const mp_obj_t *items);
 
 // type check is done on getiter method to allow tuple, namedtuple, attrtuple
 #define mp_obj_is_tuple_compatible(o) (MP_OBJ_TYPE_GET_SLOT_OR_NULL(mp_obj_get_type(o), iter) == mp_obj_tuple_getiter)

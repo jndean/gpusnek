@@ -91,11 +91,11 @@ static inline mp_obj_t mp_parse_node_extract_const_object(mp_parse_node_struct_t
     #endif
 }
 
-bool mp_parse_node_is_const_false(mp_parse_node_t pn);
-bool mp_parse_node_is_const_true(mp_parse_node_t pn);
-bool mp_parse_node_get_int_maybe(mp_parse_node_t pn, mp_obj_t *o);
-size_t mp_parse_node_extract_list(mp_parse_node_t *pn, size_t pn_kind, mp_parse_node_t **nodes);
-void mp_parse_node_print(const mp_print_t *print, mp_parse_node_t pn, size_t indent);
+MAYBE_CUDA bool mp_parse_node_is_const_false(mp_parse_node_t pn);
+MAYBE_CUDA bool mp_parse_node_is_const_true(mp_parse_node_t pn);
+MAYBE_CUDA bool mp_parse_node_get_int_maybe(mp_parse_node_t pn, mp_obj_t *o);
+MAYBE_CUDA size_t mp_parse_node_extract_list(mp_parse_node_t *pn, size_t pn_kind, mp_parse_node_t **nodes);
+MAYBE_CUDA void mp_parse_node_print(const mp_print_t *print, mp_parse_node_t pn, size_t indent);
 
 typedef enum {
     MP_PARSE_SINGLE_INPUT,
@@ -111,6 +111,6 @@ typedef struct _mp_parse_t {
 // the parser will raise an exception if an error occurred
 // the parser will free the lexer before it returns
 mp_parse_tree_t mp_parse(struct _mp_lexer_t *lex, mp_parse_input_kind_t input_kind);
-void mp_parse_tree_clear(mp_parse_tree_t *tree);
+MAYBE_CUDA void mp_parse_tree_clear(mp_parse_tree_t *tree);
 
 #endif // MICROPY_INCLUDED_PY_PARSE_H

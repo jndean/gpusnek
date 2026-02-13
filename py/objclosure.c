@@ -104,7 +104,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     call, closure_call
     );
 
-mp_obj_t mp_obj_new_closure(mp_obj_t fun, size_t n_closed_over, const mp_obj_t *closed) {
+MAYBE_CUDA mp_obj_t mp_obj_new_closure(mp_obj_t fun, size_t n_closed_over, const mp_obj_t *closed) {
     mp_obj_closure_t *o = mp_obj_malloc_var(mp_obj_closure_t, closed, mp_obj_t, n_closed_over, &mp_type_closure);
     o->fun = fun;
     o->n_closed = n_closed_over;

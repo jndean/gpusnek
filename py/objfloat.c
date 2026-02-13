@@ -74,7 +74,7 @@ const mp_obj_float_t mp_const_float_nan_obj = {{&mp_type_float}, (mp_float_t)NAN
 
 #if MICROPY_FLOAT_HIGH_QUALITY_HASH
 // must return actual integer value if it fits in mp_int_t
-mp_int_t mp_float_hash(mp_float_t src) {
+MAYBE_CUDA mp_int_t mp_float_hash(mp_float_t src) {
     mp_float_union_t u = {.f = src};
     mp_int_t val;
     const int adj_exp = (int)u.p.exp - MP_FLOAT_EXP_BIAS;
@@ -181,7 +181,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 
 #if MICROPY_OBJ_REPR != MICROPY_OBJ_REPR_C && MICROPY_OBJ_REPR != MICROPY_OBJ_REPR_D
 
-mp_obj_t mp_obj_new_float(mp_float_t value) {
+MAYBE_CUDA mp_obj_t mp_obj_new_float(mp_float_t value) {
     // Don't use mp_obj_malloc here to avoid extra function call overhead.
     mp_obj_float_t *o = m_new_obj(mp_obj_float_t);
     o->base.type = &mp_type_float;
@@ -189,7 +189,7 @@ mp_obj_t mp_obj_new_float(mp_float_t value) {
     return MP_OBJ_FROM_PTR(o);
 }
 
-mp_float_t mp_obj_float_get(mp_obj_t self_in) {
+MAYBE_CUDA mp_float_t mp_obj_float_get(mp_obj_t self_in) {
     assert(mp_obj_is_float(self_in));
     mp_obj_float_t *self = MP_OBJ_TO_PTR(self_in);
     return self->value;
@@ -232,7 +232,7 @@ static void mp_obj_float_divmod(mp_float_t *x, mp_float_t *y) {
     *y = mod;
 }
 
-mp_obj_t mp_obj_float_binary_op(mp_binary_op_t op, mp_float_t lhs_val, mp_obj_t rhs_in) {
+MAYBE_CUDA mp_obj_t mp_obj_float_binary_op(mp_binary_op_t op, mp_float_t lhs_val, mp_obj_t rhs_in) {
     mp_float_t rhs_val;
     if (!mp_obj_get_float_maybe(rhs_in, &rhs_val)) {
         return MP_OBJ_NULL; // op not supported

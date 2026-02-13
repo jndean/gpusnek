@@ -40,7 +40,7 @@
 #define DEBUG_printf(...) (void)0
 #endif
 
-void mp_encode_uint(void *env, mp_encode_uint_allocator_t allocator, mp_uint_t val) {
+MAYBE_CUDA void mp_encode_uint(void *env, mp_encode_uint_allocator_t allocator, mp_uint_t val) {
     // We store each 7 bits in a separate byte, and that's how many bytes needed
     byte buf[MP_ENCODE_UINT_MAX_BYTES];
     byte *p = buf + sizeof(buf);
@@ -58,7 +58,7 @@ void mp_encode_uint(void *env, mp_encode_uint_allocator_t allocator, mp_uint_t v
     }
 }
 
-mp_uint_t mp_decode_uint(const byte **ptr) {
+MAYBE_CUDA mp_uint_t mp_decode_uint(const byte **ptr) {
     mp_uint_t unum = 0;
     byte val;
     const byte *p = *ptr;
@@ -76,7 +76,7 @@ mp_uint_t mp_decode_uint(const byte **ptr) {
 // must allocate a slot on the stack for ptr, and this slot cannot be reused for
 // anything else in the function because the pointer may have been stored in a global
 // and reused later in the function.
-mp_uint_t mp_decode_uint_value(const byte *ptr) {
+MAYBE_CUDA mp_uint_t mp_decode_uint_value(const byte *ptr) {
     return mp_decode_uint(&ptr);
 }
 
@@ -322,7 +322,7 @@ static void mp_setup_code_state_helper(mp_code_state_t *code_state, size_t n_arg
 // contain the following valid entries:
 //    - code_state->fun_bc should contain a pointer to the function object
 //    - code_state->n_state should be the number of objects in the local state
-void mp_setup_code_state(mp_code_state_t *code_state, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MAYBE_CUDA void mp_setup_code_state(mp_code_state_t *code_state, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     code_state->ip = code_state->fun_bc->bytecode;
     code_state->sp = &code_state->state[0] - 1;
     #if MICROPY_STACKLESS
@@ -340,7 +340,7 @@ void mp_setup_code_state(mp_code_state_t *code_state, size_t n_args, size_t n_kw
 // contain the following valid entries:
 //    - code_state->fun_bc should contain a pointer to the function object
 //    - code_state->n_state should be the number of objects in the local state
-void mp_setup_code_state_native(mp_code_state_native_t *code_state, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MAYBE_CUDA void mp_setup_code_state_native(mp_code_state_native_t *code_state, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     code_state->ip = mp_obj_fun_native_get_prelude_ptr(code_state->fun_bc);
     code_state->sp = &code_state->state[0] - 1;
     mp_setup_code_state_helper((mp_code_state_t *)code_state, n_args, n_kw, args);

@@ -91,7 +91,7 @@ static const byte *get_substring_data(const mp_obj_t obj, size_t n_args, const m
 /******************************************************************************/
 /* str                                                                        */
 
-void mp_str_print_quoted(const mp_print_t *print, const byte *str_data, size_t str_len, bool is_bytes) {
+MAYBE_CUDA void mp_str_print_quoted(const mp_print_t *print, const byte *str_data, size_t str_len, bool is_bytes) {
     // this escapes characters, but it will be very slow to print (calling print many times)
     bool has_single_quote = false;
     bool has_double_quote = false;
@@ -131,7 +131,7 @@ void mp_str_print_quoted(const mp_print_t *print, const byte *str_data, size_t s
 }
 
 #if MICROPY_PY_JSON
-void mp_str_print_json(const mp_print_t *print, const byte *str_data, size_t str_len) {
+MAYBE_CUDA void mp_str_print_json(const mp_print_t *print, const byte *str_data, size_t str_len) {
     // for JSON spec, see http://www.ietf.org/rfc/rfc4627.txt
     // if we are given a valid utf8-encoded string, we will print it in a JSON-conforming way
     mp_print_str(print, "\"");
@@ -179,7 +179,7 @@ static void str_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t
     }
 }
 
-mp_obj_t mp_obj_str_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_obj_str_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     #if MICROPY_CPYTHON_COMPAT
     if (n_kw != 0) {
         mp_arg_error_unimpl_kw();
@@ -355,7 +355,7 @@ const byte *find_subbytes(const byte *haystack, size_t hlen, const byte *needle,
 // Note: this function is used to check if an object is a str or bytes, which
 // works because both those types use it as their binary_op method.  Revisit
 // mp_obj_is_str_or_bytes if this fact changes.
-mp_obj_t mp_obj_str_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
+MAYBE_CUDA mp_obj_t mp_obj_str_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
     // check for modulo
     if (op == MP_BINARY_OP_MODULO) {
         #if MICROPY_PY_BUILTINS_STR_OP_MODULO
@@ -571,7 +571,7 @@ static mp_obj_t str_join(mp_obj_t self_in, mp_obj_t arg) {
 }
 MP_DEFINE_CONST_FUN_OBJ_2(str_join_obj, str_join);
 
-mp_obj_t mp_obj_str_split(size_t n_args, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_obj_str_split(size_t n_args, const mp_obj_t *args) {
     const mp_obj_type_t *self_type = mp_obj_get_type(args[0]);
     mp_int_t splits = -1;
     mp_obj_t sep = mp_const_none;
@@ -1461,7 +1461,7 @@ static vstr_t mp_obj_str_format_helper(const char *str, const char *top, int *ar
     return vstr;
 }
 
-mp_obj_t mp_obj_str_format(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs) {
+MAYBE_CUDA mp_obj_t mp_obj_str_format(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs) {
     check_is_str_or_bytes(args[0]);
 
     GET_STR_DATA_LEN(args[0], str, len);
@@ -1993,7 +1993,7 @@ MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(str_encode_obj, 1, 3, str_encode);
 #endif
 
 #if MICROPY_PY_BUILTINS_BYTES_HEX
-mp_obj_t mp_obj_bytes_hex(size_t n_args, const mp_obj_t *args, const mp_obj_type_t *type) {
+MAYBE_CUDA mp_obj_t mp_obj_bytes_hex(size_t n_args, const mp_obj_t *args, const mp_obj_type_t *type) {
     // First argument is the data to convert.
     // Second argument is an optional separator to be used between values.
     const char *sep = NULL;
@@ -2033,7 +2033,7 @@ mp_obj_t mp_obj_bytes_hex(size_t n_args, const mp_obj_t *args, const mp_obj_type
     return mp_obj_new_str_type_from_vstr(type, &vstr);
 }
 
-mp_obj_t mp_obj_bytes_fromhex(mp_obj_t type_in, mp_obj_t data) {
+MAYBE_CUDA mp_obj_t mp_obj_bytes_fromhex(mp_obj_t type_in, mp_obj_t data) {
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(data, &bufinfo, MP_BUFFER_READ);
 
@@ -2064,7 +2064,7 @@ static MP_DEFINE_CONST_FUN_OBJ_2(bytes_fromhex_obj, mp_obj_bytes_fromhex);
 static MP_DEFINE_CONST_CLASSMETHOD_OBJ(bytes_fromhex_classmethod_obj, MP_ROM_PTR(&bytes_fromhex_obj));
 #endif // MICROPY_PY_BUILTINS_BYTES_HEX
 
-mp_int_t mp_obj_str_get_buffer(mp_obj_t self_in, mp_buffer_info_t *bufinfo, mp_uint_t flags) {
+MAYBE_CUDA mp_int_t mp_obj_str_get_buffer(mp_obj_t self_in, mp_buffer_info_t *bufinfo, mp_uint_t flags) {
     if (flags == MP_BUFFER_READ) {
         GET_STR_DATA_LEN(self_in, str_data, str_len);
         bufinfo->buf = (void *)str_data;
@@ -2077,7 +2077,7 @@ mp_int_t mp_obj_str_get_buffer(mp_obj_t self_in, mp_buffer_info_t *bufinfo, mp_u
     }
 }
 
-void mp_obj_str_set_data(mp_obj_str_t *str, const byte *data, size_t len) {
+MAYBE_CUDA void mp_obj_str_set_data(mp_obj_str_t *str, const byte *data, size_t len) {
     str->data = data;
     str->len = len;
     str->hash = qstr_compute_hash(data, len);
@@ -2221,7 +2221,7 @@ const mp_obj_str_t mp_const_empty_bytes_obj = {{&mp_type_bytes}, 0, 0, (const by
 // Create a str/bytes object using the given data.  New memory is allocated and
 // the data is copied across.  This function should only be used if the type is bytes,
 // or if the type is str and the string data is known to be not interned.
-mp_obj_t mp_obj_new_str_copy(const mp_obj_type_t *type, const byte *data, size_t len) {
+MAYBE_CUDA mp_obj_t mp_obj_new_str_copy(const mp_obj_type_t *type, const byte *data, size_t len) {
     mp_obj_str_t *o = mp_obj_malloc(mp_obj_str_t, type);
     o->len = len;
     if (data) {
@@ -2237,7 +2237,7 @@ mp_obj_t mp_obj_new_str_copy(const mp_obj_type_t *type, const byte *data, size_t
 // Create a str/bytes object using the given data.  If the type is str and the string
 // data is already interned, then a qstr object is returned.  Otherwise new memory is
 // allocated for the object and the data is copied across.
-mp_obj_t mp_obj_new_str_of_type(const mp_obj_type_t *type, const byte *data, size_t len) {
+MAYBE_CUDA mp_obj_t mp_obj_new_str_of_type(const mp_obj_type_t *type, const byte *data, size_t len) {
     if (type == &mp_type_str) {
         return mp_obj_new_str((const char *)data, len);
     #if MICROPY_PY_BUILTINS_BYTEARRAY
@@ -2250,7 +2250,7 @@ mp_obj_t mp_obj_new_str_of_type(const mp_obj_type_t *type, const byte *data, siz
 }
 
 // Create a str using a qstr to store the data; may use existing or new qstr.
-mp_obj_t mp_obj_new_str_via_qstr(const char *data, size_t len) {
+MAYBE_CUDA mp_obj_t mp_obj_new_str_via_qstr(const char *data, size_t len) {
     return MP_OBJ_NEW_QSTR(qstr_from_strn(data, len));
 }
 
@@ -2289,7 +2289,7 @@ static mp_obj_t mp_obj_new_str_type_from_vstr(const mp_obj_type_t *type, vstr_t 
     return MP_OBJ_FROM_PTR(o);
 }
 
-mp_obj_t mp_obj_new_str_from_vstr(vstr_t *vstr) {
+MAYBE_CUDA mp_obj_t mp_obj_new_str_from_vstr(vstr_t *vstr) {
     #if MICROPY_PY_BUILTINS_STR_UNICODE && MICROPY_PY_BUILTINS_STR_UNICODE_CHECK
     if (!utf8_check((byte *)vstr->buf, vstr->len)) {
         mp_raise_msg(&mp_type_UnicodeError, NULL);
@@ -2305,11 +2305,11 @@ mp_obj_t mp_obj_new_str_from_utf8_vstr(vstr_t *vstr) {
 }
 #endif // MICROPY_PY_BUILTINS_STR_UNICODE && MICROPY_PY_BUILTINS_STR_UNICODE_CHECK
 
-mp_obj_t mp_obj_new_bytes_from_vstr(vstr_t *vstr) {
+MAYBE_CUDA mp_obj_t mp_obj_new_bytes_from_vstr(vstr_t *vstr) {
     return mp_obj_new_str_type_from_vstr(&mp_type_bytes, vstr);
 }
 
-mp_obj_t mp_obj_new_str(const char *data, size_t len) {
+MAYBE_CUDA mp_obj_t mp_obj_new_str(const char *data, size_t len) {
     #if MICROPY_PY_BUILTINS_STR_UNICODE && MICROPY_PY_BUILTINS_STR_UNICODE_CHECK
     if (!utf8_check((byte *)data, len)) {
         mp_raise_msg(&mp_type_UnicodeError, NULL);
@@ -2325,26 +2325,26 @@ mp_obj_t mp_obj_new_str(const char *data, size_t len) {
     }
 }
 
-mp_obj_t mp_obj_new_str_from_cstr(const char *str) {
+MAYBE_CUDA mp_obj_t mp_obj_new_str_from_cstr(const char *str) {
     return mp_obj_new_str(str, strlen(str));
 }
 
-mp_obj_t mp_obj_str_intern(mp_obj_t str) {
+MAYBE_CUDA mp_obj_t mp_obj_str_intern(mp_obj_t str) {
     GET_STR_DATA_LEN(str, data, len);
     return mp_obj_new_str_via_qstr((const char *)data, len);
 }
 
-mp_obj_t mp_obj_str_intern_checked(mp_obj_t obj) {
+MAYBE_CUDA mp_obj_t mp_obj_str_intern_checked(mp_obj_t obj) {
     size_t len;
     const char *data = mp_obj_str_get_data(obj, &len);
     return mp_obj_new_str_via_qstr((const char *)data, len);
 }
 
-mp_obj_t mp_obj_new_bytes(const byte *data, size_t len) {
+MAYBE_CUDA mp_obj_t mp_obj_new_bytes(const byte *data, size_t len) {
     return mp_obj_new_str_copy(&mp_type_bytes, data, len);
 }
 
-bool mp_obj_str_equal(mp_obj_t s1, mp_obj_t s2) {
+MAYBE_CUDA bool mp_obj_str_equal(mp_obj_t s1, mp_obj_t s2) {
     if (mp_obj_is_qstr(s1) && mp_obj_is_qstr(s2)) {
         return s1 == s2;
     } else {
@@ -2389,7 +2389,7 @@ qstr mp_obj_str_get_qstr(mp_obj_t self_in) {
 
 // only use this function if you need the str data to be zero terminated
 // at the moment all strings are zero terminated to help with C ASCIIZ compatibility
-const char *mp_obj_str_get_str(mp_obj_t self_in) {
+MAYBE_CUDA const char *mp_obj_str_get_str(mp_obj_t self_in) {
     if (mp_obj_is_str_or_bytes(self_in)) {
         GET_STR_DATA_LEN(self_in, s, l);
         (void)l; // len unused
@@ -2399,7 +2399,7 @@ const char *mp_obj_str_get_str(mp_obj_t self_in) {
     }
 }
 
-const char *mp_obj_str_get_data(mp_obj_t self_in, size_t *len) {
+MAYBE_CUDA const char *mp_obj_str_get_data(mp_obj_t self_in, size_t *len) {
     if (mp_obj_is_str_or_bytes(self_in)) {
         GET_STR_DATA_LEN(self_in, s, l);
         *len = l;
@@ -2467,7 +2467,7 @@ static mp_obj_t bytes_it_iternext(mp_obj_t self_in) {
     }
 }
 
-mp_obj_t mp_obj_new_bytes_iterator(mp_obj_t str, mp_obj_iter_buf_t *iter_buf) {
+MAYBE_CUDA mp_obj_t mp_obj_new_bytes_iterator(mp_obj_t str, mp_obj_iter_buf_t *iter_buf) {
     assert(sizeof(mp_obj_str8_it_t) <= sizeof(mp_obj_iter_buf_t));
     mp_obj_str8_it_t *o = (mp_obj_str8_it_t *)iter_buf;
     o->base.type = &mp_type_polymorph_iter;

@@ -92,7 +92,7 @@ void emit_bc_free(emit_t *emit) {
 }
 
 // all functions must go through this one to emit code info
-static uint8_t *emit_get_cur_to_write_code_info(void *emit_in, size_t num_bytes_to_write) {
+static MAYBE_CUDA uint8_t *emit_get_cur_to_write_code_info(void *emit_in, size_t num_bytes_to_write) {
     emit_t *emit = (emit_t *)emit_in;
     if (emit->pass < MP_PASS_EMIT) {
         emit->code_info_offset += num_bytes_to_write;
@@ -105,16 +105,16 @@ static uint8_t *emit_get_cur_to_write_code_info(void *emit_in, size_t num_bytes_
     }
 }
 
-static void emit_write_code_info_byte(emit_t *emit, byte val) {
+static MAYBE_CUDA void emit_write_code_info_byte(emit_t *emit, byte val) {
     *emit_get_cur_to_write_code_info(emit, 1) = val;
 }
 
-static void emit_write_code_info_qstr(emit_t *emit, qstr qst) {
+static MAYBE_CUDA void emit_write_code_info_qstr(emit_t *emit, qstr qst) {
     mp_encode_uint(emit, emit_get_cur_to_write_code_info, mp_emit_common_use_qstr(emit->emit_common, qst));
 }
 
 #if MICROPY_ENABLE_SOURCE_LINE
-static void emit_write_code_info_bytes_lines(emit_t *emit, mp_uint_t bytes_to_skip, mp_uint_t lines_to_skip) {
+static MAYBE_CUDA void emit_write_code_info_bytes_lines(emit_t *emit, mp_uint_t bytes_to_skip, mp_uint_t lines_to_skip) {
     assert(bytes_to_skip > 0 || lines_to_skip > 0);
     while (bytes_to_skip > 0 || lines_to_skip > 0) {
         mp_uint_t b, l;
@@ -143,7 +143,7 @@ static void emit_write_code_info_bytes_lines(emit_t *emit, mp_uint_t bytes_to_sk
 #endif
 
 // all functions must go through this one to emit byte code
-static uint8_t *emit_get_cur_to_write_bytecode(void *emit_in, size_t num_bytes_to_write) {
+static MAYBE_CUDA uint8_t *emit_get_cur_to_write_bytecode(void *emit_in, size_t num_bytes_to_write) {
     emit_t *emit = (emit_t *)emit_in;
     if (emit->suppress) {
         return emit->dummy_data;
@@ -159,19 +159,19 @@ static uint8_t *emit_get_cur_to_write_bytecode(void *emit_in, size_t num_bytes_t
     }
 }
 
-static void emit_write_bytecode_raw_byte(emit_t *emit, byte b1) {
+static MAYBE_CUDA void emit_write_bytecode_raw_byte(emit_t *emit, byte b1) {
     byte *c = emit_get_cur_to_write_bytecode(emit, 1);
     c[0] = b1;
 }
 
-static void emit_write_bytecode_byte(emit_t *emit, int stack_adj, byte b1) {
+static MAYBE_CUDA void emit_write_bytecode_byte(emit_t *emit, int stack_adj, byte b1) {
     mp_emit_bc_adjust_stack_size(emit, stack_adj);
     byte *c = emit_get_cur_to_write_bytecode(emit, 1);
     c[0] = b1;
 }
 
 // Similar to mp_encode_uint(), just some extra handling to encode sign
-static void emit_write_bytecode_byte_int(emit_t *emit, int stack_adj, byte b1, mp_int_t num) {
+static MAYBE_CUDA void emit_write_bytecode_byte_int(emit_t *emit, int stack_adj, byte b1, mp_int_t num) {
     emit_write_bytecode_byte(emit, stack_adj, b1);
 
     // We store each 7 bits in a separate byte, and that's how many bytes needed
@@ -197,24 +197,24 @@ static void emit_write_bytecode_byte_int(emit_t *emit, int stack_adj, byte b1, m
     *c = *p;
 }
 
-static void emit_write_bytecode_byte_uint(emit_t *emit, int stack_adj, byte b, mp_uint_t val) {
+static MAYBE_CUDA void emit_write_bytecode_byte_uint(emit_t *emit, int stack_adj, byte b, mp_uint_t val) {
     emit_write_bytecode_byte(emit, stack_adj, b);
     mp_encode_uint(emit, emit_get_cur_to_write_bytecode, val);
 }
 
-static void emit_write_bytecode_byte_const(emit_t *emit, int stack_adj, byte b, mp_uint_t n) {
+static MAYBE_CUDA void emit_write_bytecode_byte_const(emit_t *emit, int stack_adj, byte b, mp_uint_t n) {
     emit_write_bytecode_byte_uint(emit, stack_adj, b, n);
 }
 
-static void emit_write_bytecode_byte_qstr(emit_t *emit, int stack_adj, byte b, qstr qst) {
+static MAYBE_CUDA void emit_write_bytecode_byte_qstr(emit_t *emit, int stack_adj, byte b, qstr qst) {
     emit_write_bytecode_byte_uint(emit, stack_adj, b, mp_emit_common_use_qstr(emit->emit_common, qst));
 }
 
-static void emit_write_bytecode_byte_obj(emit_t *emit, int stack_adj, byte b, mp_obj_t obj) {
+static MAYBE_CUDA void emit_write_bytecode_byte_obj(emit_t *emit, int stack_adj, byte b, mp_obj_t obj) {
     emit_write_bytecode_byte_const(emit, stack_adj, b, mp_emit_common_use_const_obj(emit->emit_common, obj));
 }
 
-static void emit_write_bytecode_byte_child(emit_t *emit, int stack_adj, byte b, mp_raw_code_t *rc) {
+static MAYBE_CUDA void emit_write_bytecode_byte_child(emit_t *emit, int stack_adj, byte b, mp_raw_code_t *rc) {
     emit_write_bytecode_byte_const(emit, stack_adj, b,
         mp_emit_common_alloc_const_child(emit->emit_common, rc));
     #if MICROPY_PY_SYS_SETTRACE
@@ -227,7 +227,7 @@ static void emit_write_bytecode_byte_child(emit_t *emit, int stack_adj, byte b, 
 // The offset is encoded as either 1 or 2 bytes, depending on how big it is.
 // The encoding of this jump opcode can change size from one pass to the next,
 // but it must only ever decrease in size on successive passes.
-static void emit_write_bytecode_byte_label(emit_t *emit, int stack_adj, byte b1, mp_uint_t label) {
+static MAYBE_CUDA void emit_write_bytecode_byte_label(emit_t *emit, int stack_adj, byte b1, mp_uint_t label) {
     mp_emit_bc_adjust_stack_size(emit, stack_adj);
 
     if (emit->suppress) {
@@ -280,7 +280,7 @@ static void emit_write_bytecode_byte_label(emit_t *emit, int stack_adj, byte b1,
     }
 }
 
-void mp_emit_bc_start_pass(emit_t *emit, pass_kind_t pass, scope_t *scope) {
+MAYBE_CUDA void mp_emit_bc_start_pass(emit_t *emit, pass_kind_t pass, scope_t *scope) {
     emit->pass = pass;
     emit->stack_size = 0;
     emit->suppress = false;
@@ -347,7 +347,7 @@ void mp_emit_bc_start_pass(emit_t *emit, pass_kind_t pass, scope_t *scope) {
     }
 }
 
-bool mp_emit_bc_end_pass(emit_t *emit) {
+MAYBE_CUDA bool mp_emit_bc_end_pass(emit_t *emit) {
     if (emit->pass == MP_PASS_SCOPE) {
         return true;
     }
@@ -413,7 +413,7 @@ bool mp_emit_bc_end_pass(emit_t *emit) {
     return true;
 }
 
-void mp_emit_bc_adjust_stack_size(emit_t *emit, mp_int_t delta) {
+MAYBE_CUDA void mp_emit_bc_adjust_stack_size(emit_t *emit, mp_int_t delta) {
     if (emit->pass == MP_PASS_SCOPE) {
         return;
     }
@@ -424,7 +424,7 @@ void mp_emit_bc_adjust_stack_size(emit_t *emit, mp_int_t delta) {
     }
 }
 
-void mp_emit_bc_set_source_line(emit_t *emit, mp_uint_t source_line) {
+MAYBE_CUDA void mp_emit_bc_set_source_line(emit_t *emit, mp_uint_t source_line) {
     #if MICROPY_ENABLE_SOURCE_LINE
     if (MP_STATE_VM(mp_optimise_value) >= 3) {
         // If we compile with -O3, don't store line numbers.
@@ -443,7 +443,7 @@ void mp_emit_bc_set_source_line(emit_t *emit, mp_uint_t source_line) {
     #endif
 }
 
-void mp_emit_bc_label_assign(emit_t *emit, mp_uint_t l) {
+MAYBE_CUDA void mp_emit_bc_label_assign(emit_t *emit, mp_uint_t l) {
     // Assigning a label ends any dead-code region, and all following opcodes
     // should be emitted (until another unconditional flow control).
     emit->suppress = false;
@@ -463,7 +463,7 @@ void mp_emit_bc_label_assign(emit_t *emit, mp_uint_t l) {
     emit->label_offsets[l] = emit->bytecode_offset;
 }
 
-void mp_emit_bc_import(emit_t *emit, qstr qst, int kind) {
+MAYBE_CUDA void mp_emit_bc_import(emit_t *emit, qstr qst, int kind) {
     MP_STATIC_ASSERT(MP_BC_IMPORT_NAME + MP_EMIT_IMPORT_NAME == MP_BC_IMPORT_NAME);
     MP_STATIC_ASSERT(MP_BC_IMPORT_NAME + MP_EMIT_IMPORT_FROM == MP_BC_IMPORT_FROM);
     int stack_adj = kind == MP_EMIT_IMPORT_FROM ? 1 : -1;
@@ -474,7 +474,7 @@ void mp_emit_bc_import(emit_t *emit, qstr qst, int kind) {
     }
 }
 
-void mp_emit_bc_load_const_tok(emit_t *emit, mp_token_kind_t tok) {
+MAYBE_CUDA void mp_emit_bc_load_const_tok(emit_t *emit, mp_token_kind_t tok) {
     MP_STATIC_ASSERT(MP_BC_LOAD_CONST_FALSE + (MP_TOKEN_KW_NONE - MP_TOKEN_KW_FALSE) == MP_BC_LOAD_CONST_NONE);
     MP_STATIC_ASSERT(MP_BC_LOAD_CONST_FALSE + (MP_TOKEN_KW_TRUE - MP_TOKEN_KW_FALSE) == MP_BC_LOAD_CONST_TRUE);
     if (tok == MP_TOKEN_ELLIPSIS) {
@@ -484,7 +484,7 @@ void mp_emit_bc_load_const_tok(emit_t *emit, mp_token_kind_t tok) {
     }
 }
 
-void mp_emit_bc_load_const_small_int(emit_t *emit, mp_int_t arg) {
+MAYBE_CUDA void mp_emit_bc_load_const_small_int(emit_t *emit, mp_int_t arg) {
     assert(MP_SMALL_INT_FITS(arg));
     if (-MP_BC_LOAD_CONST_SMALL_INT_MULTI_EXCESS <= arg
         && arg < MP_BC_LOAD_CONST_SMALL_INT_MULTI_NUM - MP_BC_LOAD_CONST_SMALL_INT_MULTI_EXCESS) {
@@ -495,19 +495,19 @@ void mp_emit_bc_load_const_small_int(emit_t *emit, mp_int_t arg) {
     }
 }
 
-void mp_emit_bc_load_const_str(emit_t *emit, qstr qst) {
+MAYBE_CUDA void mp_emit_bc_load_const_str(emit_t *emit, qstr qst) {
     emit_write_bytecode_byte_qstr(emit, 1, MP_BC_LOAD_CONST_STRING, qst);
 }
 
-void mp_emit_bc_load_const_obj(emit_t *emit, mp_obj_t obj) {
+MAYBE_CUDA void mp_emit_bc_load_const_obj(emit_t *emit, mp_obj_t obj) {
     emit_write_bytecode_byte_obj(emit, 1, MP_BC_LOAD_CONST_OBJ, obj);
 }
 
-void mp_emit_bc_load_null(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_load_null(emit_t *emit) {
     emit_write_bytecode_byte(emit, 1, MP_BC_LOAD_NULL);
 }
 
-void mp_emit_bc_load_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind) {
+MAYBE_CUDA void mp_emit_bc_load_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind) {
     MP_STATIC_ASSERT(MP_BC_LOAD_FAST_N + MP_EMIT_IDOP_LOCAL_FAST == MP_BC_LOAD_FAST_N);
     MP_STATIC_ASSERT(MP_BC_LOAD_FAST_N + MP_EMIT_IDOP_LOCAL_DEREF == MP_BC_LOAD_DEREF);
     (void)qst;
@@ -518,23 +518,23 @@ void mp_emit_bc_load_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind
     }
 }
 
-void mp_emit_bc_load_global(emit_t *emit, qstr qst, int kind) {
+MAYBE_CUDA void mp_emit_bc_load_global(emit_t *emit, qstr qst, int kind) {
     MP_STATIC_ASSERT(MP_BC_LOAD_NAME + MP_EMIT_IDOP_GLOBAL_NAME == MP_BC_LOAD_NAME);
     MP_STATIC_ASSERT(MP_BC_LOAD_NAME + MP_EMIT_IDOP_GLOBAL_GLOBAL == MP_BC_LOAD_GLOBAL);
     (void)qst;
     emit_write_bytecode_byte_qstr(emit, 1, MP_BC_LOAD_NAME + kind, qst);
 }
 
-void mp_emit_bc_load_method(emit_t *emit, qstr qst, bool is_super) {
+MAYBE_CUDA void mp_emit_bc_load_method(emit_t *emit, qstr qst, bool is_super) {
     int stack_adj = 1 - 2 * is_super;
     emit_write_bytecode_byte_qstr(emit, stack_adj, is_super ? MP_BC_LOAD_SUPER_METHOD : MP_BC_LOAD_METHOD, qst);
 }
 
-void mp_emit_bc_load_build_class(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_load_build_class(emit_t *emit) {
     emit_write_bytecode_byte(emit, 1, MP_BC_LOAD_BUILD_CLASS);
 }
 
-void mp_emit_bc_subscr(emit_t *emit, int kind) {
+MAYBE_CUDA void mp_emit_bc_subscr(emit_t *emit, int kind) {
     if (kind == MP_EMIT_SUBSCR_LOAD) {
         emit_write_bytecode_byte(emit, -1, MP_BC_LOAD_SUBSCR);
     } else {
@@ -546,7 +546,7 @@ void mp_emit_bc_subscr(emit_t *emit, int kind) {
     }
 }
 
-void mp_emit_bc_attr(emit_t *emit, qstr qst, int kind) {
+MAYBE_CUDA void mp_emit_bc_attr(emit_t *emit, qstr qst, int kind) {
     if (kind == MP_EMIT_ATTR_LOAD) {
         emit_write_bytecode_byte_qstr(emit, 0, MP_BC_LOAD_ATTR, qst);
     } else {
@@ -558,7 +558,7 @@ void mp_emit_bc_attr(emit_t *emit, qstr qst, int kind) {
     }
 }
 
-void mp_emit_bc_store_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind) {
+MAYBE_CUDA void mp_emit_bc_store_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind) {
     MP_STATIC_ASSERT(MP_BC_STORE_FAST_N + MP_EMIT_IDOP_LOCAL_FAST == MP_BC_STORE_FAST_N);
     MP_STATIC_ASSERT(MP_BC_STORE_FAST_N + MP_EMIT_IDOP_LOCAL_DEREF == MP_BC_STORE_DEREF);
     (void)qst;
@@ -569,51 +569,51 @@ void mp_emit_bc_store_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kin
     }
 }
 
-void mp_emit_bc_store_global(emit_t *emit, qstr qst, int kind) {
+MAYBE_CUDA void mp_emit_bc_store_global(emit_t *emit, qstr qst, int kind) {
     MP_STATIC_ASSERT(MP_BC_STORE_NAME + MP_EMIT_IDOP_GLOBAL_NAME == MP_BC_STORE_NAME);
     MP_STATIC_ASSERT(MP_BC_STORE_NAME + MP_EMIT_IDOP_GLOBAL_GLOBAL == MP_BC_STORE_GLOBAL);
     emit_write_bytecode_byte_qstr(emit, -1, MP_BC_STORE_NAME + kind, qst);
 }
 
-void mp_emit_bc_delete_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind) {
+MAYBE_CUDA void mp_emit_bc_delete_local(emit_t *emit, qstr qst, mp_uint_t local_num, int kind) {
     MP_STATIC_ASSERT(MP_BC_DELETE_FAST + MP_EMIT_IDOP_LOCAL_FAST == MP_BC_DELETE_FAST);
     MP_STATIC_ASSERT(MP_BC_DELETE_FAST + MP_EMIT_IDOP_LOCAL_DEREF == MP_BC_DELETE_DEREF);
     (void)qst;
     emit_write_bytecode_byte_uint(emit, 0, MP_BC_DELETE_FAST + kind, local_num);
 }
 
-void mp_emit_bc_delete_global(emit_t *emit, qstr qst, int kind) {
+MAYBE_CUDA void mp_emit_bc_delete_global(emit_t *emit, qstr qst, int kind) {
     MP_STATIC_ASSERT(MP_BC_DELETE_NAME + MP_EMIT_IDOP_GLOBAL_NAME == MP_BC_DELETE_NAME);
     MP_STATIC_ASSERT(MP_BC_DELETE_NAME + MP_EMIT_IDOP_GLOBAL_GLOBAL == MP_BC_DELETE_GLOBAL);
     emit_write_bytecode_byte_qstr(emit, 0, MP_BC_DELETE_NAME + kind, qst);
 }
 
-void mp_emit_bc_dup_top(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_dup_top(emit_t *emit) {
     emit_write_bytecode_byte(emit, 1, MP_BC_DUP_TOP);
 }
 
-void mp_emit_bc_dup_top_two(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_dup_top_two(emit_t *emit) {
     emit_write_bytecode_byte(emit, 2, MP_BC_DUP_TOP_TWO);
 }
 
-void mp_emit_bc_pop_top(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_pop_top(emit_t *emit) {
     emit_write_bytecode_byte(emit, -1, MP_BC_POP_TOP);
 }
 
-void mp_emit_bc_rot_two(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_rot_two(emit_t *emit) {
     emit_write_bytecode_byte(emit, 0, MP_BC_ROT_TWO);
 }
 
-void mp_emit_bc_rot_three(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_rot_three(emit_t *emit) {
     emit_write_bytecode_byte(emit, 0, MP_BC_ROT_THREE);
 }
 
-void mp_emit_bc_jump(emit_t *emit, mp_uint_t label) {
+MAYBE_CUDA void mp_emit_bc_jump(emit_t *emit, mp_uint_t label) {
     emit_write_bytecode_byte_label(emit, 0, MP_BC_JUMP, label);
     emit->suppress = true;
 }
 
-void mp_emit_bc_pop_jump_if(emit_t *emit, bool cond, mp_uint_t label) {
+MAYBE_CUDA void mp_emit_bc_pop_jump_if(emit_t *emit, bool cond, mp_uint_t label) {
     if (cond) {
         emit_write_bytecode_byte_label(emit, -1, MP_BC_POP_JUMP_IF_TRUE, label);
     } else {
@@ -621,7 +621,7 @@ void mp_emit_bc_pop_jump_if(emit_t *emit, bool cond, mp_uint_t label) {
     }
 }
 
-void mp_emit_bc_jump_if_or_pop(emit_t *emit, bool cond, mp_uint_t label) {
+MAYBE_CUDA void mp_emit_bc_jump_if_or_pop(emit_t *emit, bool cond, mp_uint_t label) {
     if (cond) {
         emit_write_bytecode_byte_label(emit, -1, MP_BC_JUMP_IF_TRUE_OR_POP, label);
     } else {
@@ -629,7 +629,7 @@ void mp_emit_bc_jump_if_or_pop(emit_t *emit, bool cond, mp_uint_t label) {
     }
 }
 
-void mp_emit_bc_unwind_jump(emit_t *emit, mp_uint_t label, mp_uint_t except_depth) {
+MAYBE_CUDA void mp_emit_bc_unwind_jump(emit_t *emit, mp_uint_t label, mp_uint_t except_depth) {
     if (except_depth == 0) {
         if (label & MP_EMIT_BREAK_FROM_FOR) {
             // need to pop the iterator if we are breaking out of a for loop
@@ -647,7 +647,7 @@ void mp_emit_bc_unwind_jump(emit_t *emit, mp_uint_t label, mp_uint_t except_dept
     emit->suppress = true;
 }
 
-void mp_emit_bc_setup_block(emit_t *emit, mp_uint_t label, int kind) {
+MAYBE_CUDA void mp_emit_bc_setup_block(emit_t *emit, mp_uint_t label, int kind) {
     MP_STATIC_ASSERT(MP_BC_SETUP_WITH + MP_EMIT_SETUP_BLOCK_WITH == MP_BC_SETUP_WITH);
     MP_STATIC_ASSERT(MP_BC_SETUP_WITH + MP_EMIT_SETUP_BLOCK_EXCEPT == MP_BC_SETUP_EXCEPT);
     MP_STATIC_ASSERT(MP_BC_SETUP_WITH + MP_EMIT_SETUP_BLOCK_FINALLY == MP_BC_SETUP_FINALLY);
@@ -657,7 +657,7 @@ void mp_emit_bc_setup_block(emit_t *emit, mp_uint_t label, int kind) {
     emit_write_bytecode_byte_label(emit, stack_adj, MP_BC_SETUP_WITH + kind, label);
 }
 
-void mp_emit_bc_with_cleanup(emit_t *emit, mp_uint_t label) {
+MAYBE_CUDA void mp_emit_bc_with_cleanup(emit_t *emit, mp_uint_t label) {
     mp_emit_bc_load_const_tok(emit, MP_TOKEN_KW_NONE);
     mp_emit_bc_label_assign(emit, label);
     // The +2 is to ensure we have enough stack space to call the __exit__ method
@@ -667,7 +667,7 @@ void mp_emit_bc_with_cleanup(emit_t *emit, mp_uint_t label) {
 }
 
 #if MICROPY_PY_ASYNC_AWAIT
-void mp_emit_bc_async_with_setup_finally(emit_t *emit, mp_uint_t label_aexit_no_exc, mp_uint_t label_finally_block, mp_uint_t label_ret_unwind_jump) {
+MAYBE_CUDA void mp_emit_bc_async_with_setup_finally(emit_t *emit, mp_uint_t label_aexit_no_exc, mp_uint_t label_finally_block, mp_uint_t label_ret_unwind_jump) {
     // The async-with body has executed and no exception was raised, the execution fell through to this point.
     // Stack: (..., ctx_mgr)
 
@@ -687,34 +687,34 @@ void mp_emit_bc_async_with_setup_finally(emit_t *emit, mp_uint_t label_aexit_no_
 }
 #endif
 
-void mp_emit_bc_end_finally(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_end_finally(emit_t *emit) {
     emit_write_bytecode_byte(emit, -1, MP_BC_END_FINALLY);
 }
 
-void mp_emit_bc_get_iter(emit_t *emit, bool use_stack) {
+MAYBE_CUDA void mp_emit_bc_get_iter(emit_t *emit, bool use_stack) {
     int stack_adj = use_stack ? MP_OBJ_ITER_BUF_NSLOTS - 1 : 0;
     emit_write_bytecode_byte(emit, stack_adj, use_stack ? MP_BC_GET_ITER_STACK : MP_BC_GET_ITER);
 }
 
-void mp_emit_bc_for_iter(emit_t *emit, mp_uint_t label) {
+MAYBE_CUDA void mp_emit_bc_for_iter(emit_t *emit, mp_uint_t label) {
     emit_write_bytecode_byte_label(emit, 1, MP_BC_FOR_ITER, label);
 }
 
-void mp_emit_bc_for_iter_end(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_for_iter_end(emit_t *emit) {
     mp_emit_bc_adjust_stack_size(emit, -MP_OBJ_ITER_BUF_NSLOTS);
 }
 
-void mp_emit_bc_pop_except_jump(emit_t *emit, mp_uint_t label, bool within_exc_handler) {
+MAYBE_CUDA void mp_emit_bc_pop_except_jump(emit_t *emit, mp_uint_t label, bool within_exc_handler) {
     (void)within_exc_handler;
     emit_write_bytecode_byte_label(emit, 0, MP_BC_POP_EXCEPT_JUMP, label);
     emit->suppress = true;
 }
 
-void mp_emit_bc_unary_op(emit_t *emit, mp_unary_op_t op) {
+MAYBE_CUDA void mp_emit_bc_unary_op(emit_t *emit, mp_unary_op_t op) {
     emit_write_bytecode_byte(emit, 0, MP_BC_UNARY_OP_MULTI + op);
 }
 
-void mp_emit_bc_binary_op(emit_t *emit, mp_binary_op_t op) {
+MAYBE_CUDA void mp_emit_bc_binary_op(emit_t *emit, mp_binary_op_t op) {
     bool invert = false;
     if (op == MP_BINARY_OP_NOT_IN) {
         invert = true;
@@ -729,7 +729,7 @@ void mp_emit_bc_binary_op(emit_t *emit, mp_binary_op_t op) {
     }
 }
 
-void mp_emit_bc_build(emit_t *emit, mp_uint_t n_args, int kind) {
+MAYBE_CUDA void mp_emit_bc_build(emit_t *emit, mp_uint_t n_args, int kind) {
     MP_STATIC_ASSERT(MP_BC_BUILD_TUPLE + MP_EMIT_BUILD_TUPLE == MP_BC_BUILD_TUPLE);
     MP_STATIC_ASSERT(MP_BC_BUILD_TUPLE + MP_EMIT_BUILD_LIST == MP_BC_BUILD_LIST);
     MP_STATIC_ASSERT(MP_BC_BUILD_TUPLE + MP_EMIT_BUILD_MAP == MP_BC_BUILD_MAP);
@@ -739,11 +739,11 @@ void mp_emit_bc_build(emit_t *emit, mp_uint_t n_args, int kind) {
     emit_write_bytecode_byte_uint(emit, stack_adj, MP_BC_BUILD_TUPLE + kind, n_args);
 }
 
-void mp_emit_bc_store_map(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_store_map(emit_t *emit) {
     emit_write_bytecode_byte(emit, -2, MP_BC_STORE_MAP);
 }
 
-void mp_emit_bc_store_comp(emit_t *emit, scope_kind_t kind, mp_uint_t collection_stack_index) {
+MAYBE_CUDA void mp_emit_bc_store_comp(emit_t *emit, scope_kind_t kind, mp_uint_t collection_stack_index) {
     int t;
     int n;
     if (kind == SCOPE_LIST_COMP) {
@@ -760,15 +760,15 @@ void mp_emit_bc_store_comp(emit_t *emit, scope_kind_t kind, mp_uint_t collection
     emit_write_bytecode_byte_uint(emit, -1 - n, MP_BC_STORE_COMP, ((collection_stack_index + n) << 2) | t);
 }
 
-void mp_emit_bc_unpack_sequence(emit_t *emit, mp_uint_t n_args) {
+MAYBE_CUDA void mp_emit_bc_unpack_sequence(emit_t *emit, mp_uint_t n_args) {
     emit_write_bytecode_byte_uint(emit, -1 + n_args, MP_BC_UNPACK_SEQUENCE, n_args);
 }
 
-void mp_emit_bc_unpack_ex(emit_t *emit, mp_uint_t n_left, mp_uint_t n_right) {
+MAYBE_CUDA void mp_emit_bc_unpack_ex(emit_t *emit, mp_uint_t n_left, mp_uint_t n_right) {
     emit_write_bytecode_byte_uint(emit, -1 + n_left + n_right + 1, MP_BC_UNPACK_EX, n_left | (n_right << 8));
 }
 
-void mp_emit_bc_make_function(emit_t *emit, scope_t *scope, mp_uint_t n_pos_defaults, mp_uint_t n_kw_defaults) {
+MAYBE_CUDA void mp_emit_bc_make_function(emit_t *emit, scope_t *scope, mp_uint_t n_pos_defaults, mp_uint_t n_kw_defaults) {
     if (n_pos_defaults == 0 && n_kw_defaults == 0) {
         emit_write_bytecode_byte_child(emit, 1, MP_BC_MAKE_FUNCTION, scope->raw_code);
     } else {
@@ -776,7 +776,7 @@ void mp_emit_bc_make_function(emit_t *emit, scope_t *scope, mp_uint_t n_pos_defa
     }
 }
 
-void mp_emit_bc_make_closure(emit_t *emit, scope_t *scope, mp_uint_t n_closed_over, mp_uint_t n_pos_defaults, mp_uint_t n_kw_defaults) {
+MAYBE_CUDA void mp_emit_bc_make_closure(emit_t *emit, scope_t *scope, mp_uint_t n_closed_over, mp_uint_t n_pos_defaults, mp_uint_t n_kw_defaults) {
     if (n_pos_defaults == 0 && n_kw_defaults == 0) {
         int stack_adj = -n_closed_over + 1;
         emit_write_bytecode_byte_child(emit, stack_adj, MP_BC_MAKE_CLOSURE, scope->raw_code);
@@ -789,7 +789,7 @@ void mp_emit_bc_make_closure(emit_t *emit, scope_t *scope, mp_uint_t n_closed_ov
     }
 }
 
-static void emit_bc_call_function_method_helper(emit_t *emit, int stack_adj, mp_uint_t bytecode_base, mp_uint_t n_positional, mp_uint_t n_keyword, mp_uint_t star_flags) {
+static MAYBE_CUDA void emit_bc_call_function_method_helper(emit_t *emit, int stack_adj, mp_uint_t bytecode_base, mp_uint_t n_positional, mp_uint_t n_keyword, mp_uint_t star_flags) {
     if (star_flags) {
         // each positional arg is one object, each kwarg is two objects, the key
         // and the value and one extra object for the star args bitmap.
@@ -801,20 +801,20 @@ static void emit_bc_call_function_method_helper(emit_t *emit, int stack_adj, mp_
     }
 }
 
-void mp_emit_bc_call_function(emit_t *emit, mp_uint_t n_positional, mp_uint_t n_keyword, mp_uint_t star_flags) {
+MAYBE_CUDA void mp_emit_bc_call_function(emit_t *emit, mp_uint_t n_positional, mp_uint_t n_keyword, mp_uint_t star_flags) {
     emit_bc_call_function_method_helper(emit, 0, MP_BC_CALL_FUNCTION, n_positional, n_keyword, star_flags);
 }
 
-void mp_emit_bc_call_method(emit_t *emit, mp_uint_t n_positional, mp_uint_t n_keyword, mp_uint_t star_flags) {
+MAYBE_CUDA void mp_emit_bc_call_method(emit_t *emit, mp_uint_t n_positional, mp_uint_t n_keyword, mp_uint_t star_flags) {
     emit_bc_call_function_method_helper(emit, -1, MP_BC_CALL_METHOD, n_positional, n_keyword, star_flags);
 }
 
-void mp_emit_bc_return_value(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_return_value(emit_t *emit) {
     emit_write_bytecode_byte(emit, -1, MP_BC_RETURN_VALUE);
     emit->suppress = true;
 }
 
-void mp_emit_bc_raise_varargs(emit_t *emit, mp_uint_t n_args) {
+MAYBE_CUDA void mp_emit_bc_raise_varargs(emit_t *emit, mp_uint_t n_args) {
     MP_STATIC_ASSERT(MP_BC_RAISE_LAST + 1 == MP_BC_RAISE_OBJ);
     MP_STATIC_ASSERT(MP_BC_RAISE_LAST + 2 == MP_BC_RAISE_FROM);
     assert(n_args <= 2);
@@ -822,17 +822,17 @@ void mp_emit_bc_raise_varargs(emit_t *emit, mp_uint_t n_args) {
     emit->suppress = true;
 }
 
-void mp_emit_bc_yield(emit_t *emit, int kind) {
+MAYBE_CUDA void mp_emit_bc_yield(emit_t *emit, int kind) {
     MP_STATIC_ASSERT(MP_BC_YIELD_VALUE + 1 == MP_BC_YIELD_FROM);
     emit_write_bytecode_byte(emit, -kind, MP_BC_YIELD_VALUE + kind);
     emit->scope->scope_flags |= MP_SCOPE_FLAG_GENERATOR;
 }
 
-void mp_emit_bc_start_except_handler(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_start_except_handler(emit_t *emit) {
     mp_emit_bc_adjust_stack_size(emit, 4); // stack adjust for the exception instance, +3 for possible UNWIND_JUMP state
 }
 
-void mp_emit_bc_end_except_handler(emit_t *emit) {
+MAYBE_CUDA void mp_emit_bc_end_except_handler(emit_t *emit) {
     mp_emit_bc_adjust_stack_size(emit, -3); // stack adjust
 }
 

@@ -52,7 +52,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
     CELL_TYPE_PRINT
     );
 
-mp_obj_t mp_obj_new_cell(mp_obj_t obj) {
+MAYBE_CUDA mp_obj_t mp_obj_new_cell(mp_obj_t obj) {
     mp_obj_cell_t *o = mp_obj_malloc(mp_obj_cell_t, &mp_type_cell);
     o->obj = obj;
     return MP_OBJ_FROM_PTR(o);

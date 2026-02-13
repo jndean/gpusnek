@@ -67,7 +67,7 @@ int mp_native_type_from_qstr(qstr qst) {
 }
 
 // convert a MicroPython object to a valid native value based on type
-mp_uint_t mp_native_from_obj(mp_obj_t obj, mp_uint_t type) {
+MAYBE_CUDA mp_uint_t mp_native_from_obj(mp_obj_t obj, mp_uint_t type) {
     DEBUG_printf("mp_native_from_obj(%p, " UINT_FMT ")\n", obj, type);
     switch (type & 0xf) {
         case MP_NATIVE_TYPE_OBJ:
@@ -94,7 +94,7 @@ mp_uint_t mp_native_from_obj(mp_obj_t obj, mp_uint_t type) {
 #if MICROPY_EMIT_MACHINE_CODE
 
 // convert a native value to a MicroPython object based on type
-mp_obj_t mp_native_to_obj(mp_uint_t val, mp_uint_t type) {
+MAYBE_CUDA mp_obj_t mp_native_to_obj(mp_uint_t val, mp_uint_t type) {
     DEBUG_printf("mp_native_to_obj(" UINT_FMT ", " UINT_FMT ")\n", val, type);
     switch (type & 0xf) {
         case MP_NATIVE_TYPE_OBJ:
@@ -118,13 +118,13 @@ mp_obj_t mp_native_to_obj(mp_uint_t val, mp_uint_t type) {
 #if MICROPY_EMIT_NATIVE && !MICROPY_DYNAMIC_COMPILER
 
 #if !MICROPY_PY_BUILTINS_SET
-mp_obj_t mp_obj_new_set(size_t n_args, mp_obj_t *items) {
+MAYBE_CUDA mp_obj_t mp_obj_new_set(size_t n_args, mp_obj_t *items) {
     (void)n_args;
     (void)items;
     mp_raise_msg(&mp_type_RuntimeError, MP_ERROR_TEXT("set unsupported"));
 }
 
-void mp_obj_set_store(mp_obj_t self_in, mp_obj_t item) {
+MAYBE_CUDA void mp_obj_set_store(mp_obj_t self_in, mp_obj_t item) {
     (void)self_in;
     (void)item;
     mp_raise_msg(&mp_type_RuntimeError, MP_ERROR_TEXT("set unsupported"));
@@ -132,7 +132,7 @@ void mp_obj_set_store(mp_obj_t self_in, mp_obj_t item) {
 #endif
 
 #if !MICROPY_PY_BUILTINS_SLICE
-mp_obj_t mp_obj_new_slice(mp_obj_t ostart, mp_obj_t ostop, mp_obj_t ostep) {
+MAYBE_CUDA mp_obj_t mp_obj_new_slice(mp_obj_t ostart, mp_obj_t ostop, mp_obj_t ostep) {
     (void)ostart;
     (void)ostop;
     (void)ostep;

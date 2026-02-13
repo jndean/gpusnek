@@ -34,7 +34,7 @@
 
 #if MICROPY_ENABLE_PYSTACK
 
-void mp_pystack_init(void *start, void *end);
+MAYBE_CUDA void mp_pystack_init(void *start, void *end);
 void *mp_pystack_alloc(size_t n_bytes);
 
 // This function can free multiple continuous blocks at once: just pass the

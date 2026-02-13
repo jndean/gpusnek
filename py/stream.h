@@ -102,23 +102,23 @@ static inline const mp_stream_p_t *mp_get_stream(mp_const_obj_t self) {
 }
 
 const mp_stream_p_t *mp_get_stream_raise(mp_obj_t self_in, int flags);
-mp_obj_t mp_stream_close(mp_obj_t stream);
+MAYBE_CUDA mp_obj_t mp_stream_close(mp_obj_t stream);
 
 // Iterator which uses mp_stream_unbuffered_readline_obj
-mp_obj_t mp_stream_unbuffered_iter(mp_obj_t self);
+MAYBE_CUDA mp_obj_t mp_stream_unbuffered_iter(mp_obj_t self);
 
-mp_obj_t mp_stream_write(mp_obj_t self_in, const void *buf, size_t len, byte flags);
+MAYBE_CUDA mp_obj_t mp_stream_write(mp_obj_t self_in, const void *buf, size_t len, byte flags);
 
 // C-level helper functions
 #define MP_STREAM_RW_READ  0
 #define MP_STREAM_RW_WRITE 2
 #define MP_STREAM_RW_ONCE  1
-mp_uint_t mp_stream_rw(mp_obj_t stream, void *buf, mp_uint_t size, int *errcode, byte flags);
+MAYBE_CUDA mp_uint_t mp_stream_rw(mp_obj_t stream, void *buf, mp_uint_t size, int *errcode, byte flags);
 #define mp_stream_write_exactly(stream, buf, size, err) mp_stream_rw(stream, (byte *)buf, size, err, MP_STREAM_RW_WRITE)
 #define mp_stream_read_exactly(stream, buf, size, err) mp_stream_rw(stream, buf, size, err, MP_STREAM_RW_READ)
 mp_off_t mp_stream_seek(mp_obj_t stream, mp_off_t offset, int whence, int *errcode);
 
-void mp_stream_write_adaptor(void *self, const char *buf, size_t len);
+MAYBE_CUDA void mp_stream_write_adaptor(void *self, const char *buf, size_t len);
 
 #if MICROPY_STREAMS_POSIX_API
 #include <sys/types.h>

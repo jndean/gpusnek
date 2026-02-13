@@ -84,7 +84,7 @@ typedef struct _mp_obj_code_t {
     #endif
 } mp_obj_code_t;
 
-mp_obj_t mp_obj_new_code(const mp_module_context_t *context, const mp_raw_code_t *rc, bool result_required);
+MAYBE_CUDA mp_obj_t mp_obj_new_code(const mp_module_context_t *context, const mp_raw_code_t *rc, bool result_required);
 
 static inline const mp_module_constants_t *mp_code_get_constants(mp_obj_code_t *self) {
     return &self->context->constants;

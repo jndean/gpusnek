@@ -53,35 +53,35 @@ int mp_hal_stdin_rx_chr(void);
 #endif
 
 #ifndef mp_hal_stdout_tx_str
-void mp_hal_stdout_tx_str(const char *str);
+MAYBE_CUDA void mp_hal_stdout_tx_str(const char *str);
 #endif
 
 #ifndef mp_hal_stdout_tx_strn
-mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len);
+MAYBE_CUDA mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len);
 #endif
 
 #ifndef mp_hal_stdout_tx_strn_cooked
-void mp_hal_stdout_tx_strn_cooked(const char *str, size_t len);
+MAYBE_CUDA void mp_hal_stdout_tx_strn_cooked(const char *str, size_t len);
 #endif
 
 #ifndef mp_hal_delay_ms
-void mp_hal_delay_ms(mp_uint_t ms);
+MAYBE_CUDA void mp_hal_delay_ms(mp_uint_t ms);
 #endif
 
 #ifndef mp_hal_delay_us
-void mp_hal_delay_us(mp_uint_t us);
+MAYBE_CUDA void mp_hal_delay_us(mp_uint_t us);
 #endif
 
 #ifndef mp_hal_ticks_ms
-mp_uint_t mp_hal_ticks_ms(void);
+MAYBE_CUDA mp_uint_t mp_hal_ticks_ms(void);
 #endif
 
 #ifndef mp_hal_ticks_us
-mp_uint_t mp_hal_ticks_us(void);
+MAYBE_CUDA mp_uint_t mp_hal_ticks_us(void);
 #endif
 
 #ifndef mp_hal_ticks_cpu
-mp_uint_t mp_hal_ticks_cpu(void);
+MAYBE_CUDA mp_uint_t mp_hal_ticks_cpu(void);
 #endif
 
 #ifndef mp_hal_time_ns

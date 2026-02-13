@@ -68,7 +68,7 @@ static mp_obj_t mp_micropython_mem_peak(void) {
 static MP_DEFINE_CONST_FUN_OBJ_0(mp_micropython_mem_peak_obj, mp_micropython_mem_peak);
 #endif
 
-mp_obj_t mp_micropython_mem_info(size_t n_args, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_micropython_mem_info(size_t n_args, const mp_obj_t *args) {
     (void)args;
     #if MICROPY_MEM_STATS
     mp_printf(&mp_plat_print, "mem: total=" UINT_FMT ", current=" UINT_FMT ", peak=" UINT_FMT "\n",

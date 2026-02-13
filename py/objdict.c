@@ -33,7 +33,7 @@
 #include "py/objtype.h"
 #include "py/objstr.h"
 
-bool mp_obj_is_dict_or_ordereddict(mp_obj_t o) {
+MAYBE_CUDA bool mp_obj_is_dict_or_ordereddict(mp_obj_t o) {
     return mp_obj_is_obj(o) && MP_OBJ_TYPE_GET_SLOT_OR_NULL(((mp_obj_base_t *)MP_OBJ_TO_PTR(o))->type, make_new) == mp_obj_dict_make_new;
 }
 
@@ -111,7 +111,7 @@ static void dict_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_
     }
 }
 
-mp_obj_t mp_obj_dict_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_obj_dict_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_obj_t dict_out = mp_obj_new_dict(0);
     mp_obj_dict_t *dict = (mp_obj_dict_t *)MP_OBJ_TO_PTR(dict_out);
     dict->base.type = type;
@@ -208,7 +208,7 @@ static mp_obj_t dict_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_
 }
 
 // Note: Make sure this is inlined in load part of dict_subscr() below.
-mp_obj_t mp_obj_dict_get(mp_obj_t self_in, mp_obj_t index) {
+MAYBE_CUDA mp_obj_t mp_obj_dict_get(mp_obj_t self_in, mp_obj_t index) {
     mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     mp_map_elem_t *elem = mp_map_lookup(&self->map, index, MP_MAP_LOOKUP);
     if (elem == NULL) {
@@ -259,7 +259,7 @@ static mp_obj_t dict_clear(mp_obj_t self_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(dict_clear_obj, dict_clear);
 
-mp_obj_t mp_obj_dict_copy(mp_obj_t self_in) {
+MAYBE_CUDA mp_obj_t mp_obj_dict_copy(mp_obj_t self_in) {
     mp_check_self(mp_obj_is_dict_or_ordereddict(self_in));
     mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     mp_obj_t other_out = mp_obj_new_dict(self->map.alloc);
@@ -641,23 +641,23 @@ MP_DEFINE_CONST_OBJ_TYPE(
     );
 #endif
 
-void mp_obj_dict_init(mp_obj_dict_t *dict, size_t n_args) {
+MAYBE_CUDA void mp_obj_dict_init(mp_obj_dict_t *dict, size_t n_args) {
     dict->base.type = &mp_type_dict;
     mp_map_init(&dict->map, n_args);
 }
 
-mp_obj_t mp_obj_new_dict(size_t n_args) {
+MAYBE_CUDA mp_obj_t mp_obj_new_dict(size_t n_args) {
     mp_obj_dict_t *o = m_new_obj(mp_obj_dict_t);
     mp_obj_dict_init(o, n_args);
     return MP_OBJ_FROM_PTR(o);
 }
 
-size_t mp_obj_dict_len(mp_obj_t self_in) {
+MAYBE_CUDA size_t mp_obj_dict_len(mp_obj_t self_in) {
     mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     return self->map.used;
 }
 
-mp_obj_t mp_obj_dict_store(mp_obj_t self_in, mp_obj_t key, mp_obj_t value) {
+MAYBE_CUDA mp_obj_t mp_obj_dict_store(mp_obj_t self_in, mp_obj_t key, mp_obj_t value) {
     mp_check_self(mp_obj_is_dict_or_ordereddict(self_in));
     mp_obj_dict_t *self = (mp_obj_dict_t *)MP_OBJ_TO_PTR(self_in);
     mp_ensure_not_fixed(self);
@@ -665,7 +665,7 @@ mp_obj_t mp_obj_dict_store(mp_obj_t self_in, mp_obj_t key, mp_obj_t value) {
     return self_in;
 }
 
-mp_obj_t mp_obj_dict_delete(mp_obj_t self_in, mp_obj_t key) {
+MAYBE_CUDA mp_obj_t mp_obj_dict_delete(mp_obj_t self_in, mp_obj_t key) {
     mp_obj_t args[2] = {self_in, key};
     dict_get_helper(2, args, MP_MAP_LOOKUP_REMOVE_IF_FOUND);
     return self_in;

@@ -32,7 +32,7 @@
 // puts base in *base, and returns number of bytes to skip the prefix
 // in base-0, puts 1 in *base to indicate a number that starts with 0, to provoke a
 // ValueError if it's not all-digits-zero.
-size_t mp_parse_num_base(const char *str, size_t len, int *base) {
+MAYBE_CUDA size_t mp_parse_num_base(const char *str, size_t len, int *base) {
     const byte *p = (const byte *)str;
     unichar c;
     if (len <= 1) {

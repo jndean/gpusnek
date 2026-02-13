@@ -83,7 +83,7 @@
     DECODE_UINT; \
     unum = (mp_uint_t)obj_table[unum]
 
-void mp_bytecode_print(const mp_print_t *print, const mp_raw_code_t *rc, size_t fun_data_len, const mp_module_constants_t *cm) {
+MAYBE_CUDA void mp_bytecode_print(const mp_print_t *print, const mp_raw_code_t *rc, size_t fun_data_len, const mp_module_constants_t *cm) {
     const byte *ip_start = rc->fun_data;
     const byte *ip = rc->fun_data;
 

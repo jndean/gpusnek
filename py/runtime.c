@@ -68,7 +68,7 @@ MP_REGISTER_MODULE(MP_QSTR___main__, mp_module___main__);
 
 #define TYPE_HAS_ITERNEXT(type) (type->flags & (MP_TYPE_FLAG_ITER_IS_ITERNEXT | MP_TYPE_FLAG_ITER_IS_CUSTOM | MP_TYPE_FLAG_ITER_IS_STREAM))
 
-void mp_init(void) {
+MAYBE_CUDA void mp_init(void) {
     qstr_init();
 
     // no pending exceptions to start with
@@ -196,7 +196,7 @@ void mp_init(void) {
     #endif
 }
 
-void mp_deinit(void) {
+MAYBE_CUDA void mp_deinit(void) {
     MP_THREAD_GIL_EXIT();
 
     // call port specific deinitialization if any
@@ -205,7 +205,7 @@ void mp_deinit(void) {
     #endif
 }
 
-void mp_globals_locals_set_from_nlr_jump_callback(void *ctx_in) {
+MAYBE_CUDA void mp_globals_locals_set_from_nlr_jump_callback(void *ctx_in) {
     nlr_jump_callback_node_globals_locals_t *ctx = (nlr_jump_callback_node_globals_locals_t *)ctx_in;
     mp_globals_set(ctx->globals);
     mp_locals_set(ctx->locals);
@@ -255,7 +255,7 @@ mp_obj_t MICROPY_WRAP_MP_LOAD_GLOBAL(mp_load_global)(qstr qst) {
     return elem->value;
 }
 
-mp_obj_t mp_load_build_class(void) {
+MAYBE_CUDA mp_obj_t mp_load_build_class(void) {
     DEBUG_OP_printf("load_build_class\n");
     #if MICROPY_CAN_OVERRIDE_BUILTINS
     if (MP_STATE_VM(mp_module_builtins_override_dict) != NULL) {
@@ -269,29 +269,29 @@ mp_obj_t mp_load_build_class(void) {
     return MP_OBJ_FROM_PTR(&mp_builtin___build_class___obj);
 }
 
-void mp_store_name(qstr qst, mp_obj_t obj) {
+MAYBE_CUDA void mp_store_name(qstr qst, mp_obj_t obj) {
     DEBUG_OP_printf("store name %s <- %p\n", qstr_str(qst), obj);
     mp_obj_dict_store(MP_OBJ_FROM_PTR(mp_locals_get()), MP_OBJ_NEW_QSTR(qst), obj);
 }
 
-void mp_delete_name(qstr qst) {
+MAYBE_CUDA void mp_delete_name(qstr qst) {
     DEBUG_OP_printf("delete name %s\n", qstr_str(qst));
     // TODO convert KeyError to NameError if qst not found
     mp_obj_dict_delete(MP_OBJ_FROM_PTR(mp_locals_get()), MP_OBJ_NEW_QSTR(qst));
 }
 
-void mp_store_global(qstr qst, mp_obj_t obj) {
+MAYBE_CUDA void mp_store_global(qstr qst, mp_obj_t obj) {
     DEBUG_OP_printf("store global %s <- %p\n", qstr_str(qst), obj);
     mp_obj_dict_store(MP_OBJ_FROM_PTR(mp_globals_get()), MP_OBJ_NEW_QSTR(qst), obj);
 }
 
-void mp_delete_global(qstr qst) {
+MAYBE_CUDA void mp_delete_global(qstr qst) {
     DEBUG_OP_printf("delete global %s\n", qstr_str(qst));
     // TODO convert KeyError to NameError if qst not found
     mp_obj_dict_delete(MP_OBJ_FROM_PTR(mp_globals_get()), MP_OBJ_NEW_QSTR(qst));
 }
 
-mp_obj_t mp_unary_op(mp_unary_op_t op, mp_obj_t arg) {
+MAYBE_CUDA mp_obj_t mp_unary_op(mp_unary_op_t op, mp_obj_t arg) {
     DEBUG_OP_printf("unary " UINT_FMT " %q %p\n", op, mp_unary_op_method_name[op], arg);
 
     if (op == MP_UNARY_OP_NOT) {
@@ -698,7 +698,7 @@ mp_obj_t mp_call_function_2(mp_obj_t fun, mp_obj_t arg1, mp_obj_t arg2) {
 }
 
 // args contains, eg: arg0  arg1  key0  value0  key1  value1
-mp_obj_t mp_call_function_n_kw(mp_obj_t fun_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_call_function_n_kw(mp_obj_t fun_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // TODO improve this: fun object can specify its type and we parse here the arguments,
     // passing to the function arrays of fixed and keyword arguments
 
@@ -722,7 +722,7 @@ mp_obj_t mp_call_function_n_kw(mp_obj_t fun_in, size_t n_args, size_t n_kw, cons
 
 // args contains: fun  self/NULL  arg(0)  ...  arg(n_args-2)  arg(n_args-1)  kw_key(0)  kw_val(0)  ... kw_key(n_kw-1)  kw_val(n_kw-1)
 // if n_args==0 and n_kw==0 then there are only fun and self/NULL
-mp_obj_t mp_call_method_n_kw(size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_call_method_n_kw(size_t n_args, size_t n_kw, const mp_obj_t *args) {
     DEBUG_OP_printf("call method (fun=%p, self=%p, n_args=" UINT_FMT ", n_kw=" UINT_FMT ", args=%p)\n", args[0], args[1], n_args, n_kw, args);
     int adjust = (args[1] == MP_OBJ_NULL) ? 0 : 1;
     return mp_call_function_n_kw(args[0], n_args + adjust, n_kw, args + 2 - adjust);
@@ -732,7 +732,7 @@ mp_obj_t mp_call_method_n_kw(size_t n_args, size_t n_kw, const mp_obj_t *args) {
 #if !MICROPY_STACKLESS
 static
 #endif
-void mp_call_prepare_args_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_obj_t *args, mp_call_args_t *out_args) {
+MAYBE_CUDA void mp_call_prepare_args_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_obj_t *args, mp_call_args_t *out_args) {
     mp_obj_t fun = *args++;
     mp_obj_t self = MP_OBJ_NULL;
     if (have_self) {
@@ -931,7 +931,7 @@ void mp_call_prepare_args_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_
     out_args->n_alloc = args2_alloc;
 }
 
-mp_obj_t mp_call_method_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_call_method_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_obj_t *args) {
     mp_call_args_t out_args;
     mp_call_prepare_args_n_kw_var(have_self, n_args_n_kw, args, &out_args);
 
@@ -942,7 +942,7 @@ mp_obj_t mp_call_method_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_ob
 }
 
 // unpacked items are stored in reverse order into the array pointed to by items
-void mp_unpack_sequence(mp_obj_t seq_in, size_t num, mp_obj_t *items) {
+MAYBE_CUDA void mp_unpack_sequence(mp_obj_t seq_in, size_t num, mp_obj_t *items) {
     size_t seq_len;
     if (mp_obj_is_type(seq_in, &mp_type_tuple) || mp_obj_is_type(seq_in, &mp_type_list)) {
         mp_obj_t *seq_items;
@@ -987,7 +987,7 @@ too_long:
 }
 
 // unpacked items are stored in reverse order into the array pointed to by items
-void mp_unpack_ex(mp_obj_t seq_in, size_t num_in, mp_obj_t *items) {
+MAYBE_CUDA void mp_unpack_ex(mp_obj_t seq_in, size_t num_in, mp_obj_t *items) {
     size_t num_left = num_in & 0xff;
     size_t num_right = (num_in >> 8) & 0xff;
     DEBUG_OP_printf("unpack ex " UINT_FMT " " UINT_FMT "\n", num_left, num_right);
@@ -1047,7 +1047,7 @@ too_short:
     #endif
 }
 
-mp_obj_t mp_load_attr(mp_obj_t base, qstr attr) {
+MAYBE_CUDA mp_obj_t mp_load_attr(mp_obj_t base, qstr attr) {
     DEBUG_OP_printf("load attr %p.%s\n", base, qstr_str(attr));
     // use load_method
     mp_obj_t dest[2];
@@ -1110,7 +1110,7 @@ static mp_obj_t mp_obj_new_checked_fun(const mp_obj_type_t *type, mp_obj_t fun) 
 // Conversion means dealing with static/class methods, callables, and values.
 // see http://docs.python.org/3/howto/descriptor.html
 // and also https://mail.python.org/pipermail/python-dev/2015-March/138950.html
-void mp_convert_member_lookup(mp_obj_t self, const mp_obj_type_t *type, mp_obj_t member, mp_obj_t *dest) {
+MAYBE_CUDA void mp_convert_member_lookup(mp_obj_t self, const mp_obj_type_t *type, mp_obj_t member, mp_obj_t *dest) {
     if (mp_obj_is_obj(member)) {
         const mp_obj_type_t *m_type = ((mp_obj_base_t *)MP_OBJ_TO_PTR(member))->type;
         if (m_type->flags & MP_TYPE_FLAG_BINDS_SELF) {
@@ -1168,7 +1168,7 @@ void mp_convert_member_lookup(mp_obj_t self, const mp_obj_type_t *type, mp_obj_t
 // no attribute found, returns:     dest[0] == MP_OBJ_NULL, dest[1] == MP_OBJ_NULL
 // normal attribute found, returns: dest[0] == <attribute>, dest[1] == MP_OBJ_NULL
 // method attribute found, returns: dest[0] == <method>,    dest[1] == <self>
-void mp_load_method_maybe(mp_obj_t obj, qstr attr, mp_obj_t *dest) {
+MAYBE_CUDA void mp_load_method_maybe(mp_obj_t obj, qstr attr, mp_obj_t *dest) {
     // clear output to indicate no attribute/method found yet
     dest[0] = MP_OBJ_NULL;
     dest[1] = MP_OBJ_NULL;
@@ -1218,7 +1218,7 @@ void mp_load_method_maybe(mp_obj_t obj, qstr attr, mp_obj_t *dest) {
     }
 }
 
-void mp_load_method(mp_obj_t base, qstr attr, mp_obj_t *dest) {
+MAYBE_CUDA void mp_load_method(mp_obj_t base, qstr attr, mp_obj_t *dest) {
     DEBUG_OP_printf("load method %p.%s\n", base, qstr_str(attr));
 
     mp_load_method_maybe(base, attr, dest);
@@ -1256,7 +1256,7 @@ void mp_load_method(mp_obj_t base, qstr attr, mp_obj_t *dest) {
 }
 
 // Acts like mp_load_method_maybe but catches AttributeError, and all other exceptions if requested
-void mp_load_method_protected(mp_obj_t obj, qstr attr, mp_obj_t *dest, bool catch_all_exc) {
+MAYBE_CUDA void mp_load_method_protected(mp_obj_t obj, qstr attr, mp_obj_t *dest, bool catch_all_exc) {
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {
         mp_load_method_maybe(obj, attr, dest);
@@ -1271,7 +1271,7 @@ void mp_load_method_protected(mp_obj_t obj, qstr attr, mp_obj_t *dest, bool catc
     }
 }
 
-void mp_store_attr(mp_obj_t base, qstr attr, mp_obj_t value) {
+MAYBE_CUDA void mp_store_attr(mp_obj_t base, qstr attr, mp_obj_t value) {
     DEBUG_OP_printf("store attr %p.%s <- %p\n", base, qstr_str(attr), value);
     const mp_obj_type_t *type = mp_obj_get_type(base);
     if (MP_OBJ_TYPE_HAS_SLOT(type, attr)) {
@@ -1291,7 +1291,7 @@ void mp_store_attr(mp_obj_t base, qstr attr, mp_obj_t value) {
     #endif
 }
 
-mp_obj_t mp_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
+MAYBE_CUDA mp_obj_t mp_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
     assert(o_in);
     const mp_obj_type_t *type = mp_obj_get_type(o_in);
 
@@ -1356,7 +1356,7 @@ static mp_fun_1_t type_get_iternext(const mp_obj_type_t *type) {
 
 // may return MP_OBJ_STOP_ITERATION as an optimisation instead of raise StopIteration()
 // may also raise StopIteration()
-mp_obj_t mp_iternext_allow_raise(mp_obj_t o_in) {
+MAYBE_CUDA mp_obj_t mp_iternext_allow_raise(mp_obj_t o_in) {
     const mp_obj_type_t *type = mp_obj_get_type(o_in);
     if (TYPE_HAS_ITERNEXT(type)) {
         MP_STATE_THREAD(stop_iteration_arg) = MP_OBJ_NULL;
@@ -1381,7 +1381,7 @@ mp_obj_t mp_iternext_allow_raise(mp_obj_t o_in) {
 
 // will always return MP_OBJ_STOP_ITERATION instead of raising StopIteration() (or any subclass thereof)
 // may raise other exceptions
-mp_obj_t mp_iternext(mp_obj_t o_in) {
+MAYBE_CUDA mp_obj_t mp_iternext(mp_obj_t o_in) {
     mp_cstack_check(); // enumerate, filter, map and zip can recursively call mp_iternext
     const mp_obj_type_t *type = mp_obj_get_type(o_in);
     if (TYPE_HAS_ITERNEXT(type)) {
@@ -1497,7 +1497,7 @@ mp_vm_return_kind_t mp_resume(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t th
     }
 }
 
-mp_obj_t mp_make_raise_obj(mp_obj_t o) {
+MAYBE_CUDA mp_obj_t mp_make_raise_obj(mp_obj_t o) {
     DEBUG_printf("raise %p\n", o);
     if (mp_obj_is_exception_type(o)) {
         // o is an exception type (it is derived from BaseException (or is BaseException))
@@ -1516,7 +1516,7 @@ mp_obj_t mp_make_raise_obj(mp_obj_t o) {
     }
 }
 
-mp_obj_t mp_import_name(qstr name, mp_obj_t fromlist, mp_obj_t level) {
+MAYBE_CUDA mp_obj_t mp_import_name(qstr name, mp_obj_t fromlist, mp_obj_t level) {
     DEBUG_printf("import name '%s' level=%d\n", qstr_str(name), MP_OBJ_SMALL_INT_VALUE(level));
 
     // build args array
@@ -1541,7 +1541,7 @@ mp_obj_t mp_import_name(qstr name, mp_obj_t fromlist, mp_obj_t level) {
     return mp_builtin___import__(5, args);
 }
 
-mp_obj_t mp_import_from(mp_obj_t module, qstr name) {
+MAYBE_CUDA mp_obj_t mp_import_from(mp_obj_t module, qstr name) {
     DEBUG_printf("import from %p %s\n", module, qstr_str(name));
 
     mp_obj_t dest[2];
@@ -1589,7 +1589,7 @@ import_error:
     mp_raise_msg_varg(&mp_type_ImportError, MP_ERROR_TEXT("can't import name %q"), name);
 }
 
-void mp_import_all(mp_obj_t module) {
+MAYBE_CUDA void mp_import_all(mp_obj_t module) {
     DEBUG_printf("import all %p\n", module);
 
     mp_map_t *map = &mp_obj_module_get_globals(module)->map;
@@ -1630,7 +1630,7 @@ void mp_import_all(mp_obj_t module) {
 
 #if MICROPY_ENABLE_COMPILER
 
-mp_obj_t mp_parse_compile_execute(mp_lexer_t *lex, mp_parse_input_kind_t parse_input_kind, mp_obj_dict_t *globals, mp_obj_dict_t *locals) {
+MAYBE_CUDA mp_obj_t mp_parse_compile_execute(mp_lexer_t *lex, mp_parse_input_kind_t parse_input_kind, mp_obj_dict_t *globals, mp_obj_dict_t *locals) {
     // save context
     nlr_jump_callback_node_globals_locals_t ctx;
     ctx.globals = mp_globals_get();
@@ -1668,7 +1668,7 @@ mp_obj_t mp_parse_compile_execute(mp_lexer_t *lex, mp_parse_input_kind_t parse_i
 
 #endif // MICROPY_ENABLE_COMPILER
 
-MP_NORETURN void m_malloc_fail(size_t num_bytes) {
+MAYBE_CUDA MP_NORETURN void m_malloc_fail(size_t num_bytes) {
     DEBUG_printf("memory allocation failed, allocating " SIZE_FMT " bytes\n", num_bytes);
     #if MICROPY_ENABLE_GC
     if (gc_is_locked()) {
@@ -1681,25 +1681,25 @@ MP_NORETURN void m_malloc_fail(size_t num_bytes) {
 
 #if MICROPY_ERROR_REPORTING == MICROPY_ERROR_REPORTING_NONE
 
-MP_NORETURN void mp_raise_type(const mp_obj_type_t *exc_type) {
+MAYBE_CUDA MP_NORETURN void mp_raise_type(const mp_obj_type_t *exc_type) {
     nlr_raise(mp_obj_new_exception(exc_type));
 }
 
-MP_NORETURN void mp_raise_ValueError_no_msg(void) {
+MAYBE_CUDA MP_NORETURN void mp_raise_ValueError_no_msg(void) {
     mp_raise_type(&mp_type_ValueError);
 }
 
-MP_NORETURN void mp_raise_TypeError_no_msg(void) {
+MAYBE_CUDA MP_NORETURN void mp_raise_TypeError_no_msg(void) {
     mp_raise_type(&mp_type_TypeError);
 }
 
-MP_NORETURN void mp_raise_NotImplementedError_no_msg(void) {
+MAYBE_CUDA MP_NORETURN void mp_raise_NotImplementedError_no_msg(void) {
     mp_raise_type(&mp_type_NotImplementedError);
 }
 
 #else
 
-MP_NORETURN void mp_raise_msg(const mp_obj_type_t *exc_type, mp_rom_error_text_t msg) {
+MAYBE_CUDA MP_NORETURN void mp_raise_msg(const mp_obj_type_t *exc_type, mp_rom_error_text_t msg) {
     if (msg == NULL) {
         nlr_raise(mp_obj_new_exception(exc_type));
     } else {
@@ -1707,7 +1707,7 @@ MP_NORETURN void mp_raise_msg(const mp_obj_type_t *exc_type, mp_rom_error_text_t
     }
 }
 
-MP_NORETURN void mp_raise_msg_varg(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, ...) {
+MAYBE_CUDA MP_NORETURN void mp_raise_msg_varg(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, ...) {
     va_list args;
     va_start(args, fmt);
     mp_obj_t exc = mp_obj_new_exception_msg_vlist(exc_type, fmt, args);
@@ -1715,25 +1715,25 @@ MP_NORETURN void mp_raise_msg_varg(const mp_obj_type_t *exc_type, mp_rom_error_t
     nlr_raise(exc);
 }
 
-MP_NORETURN void mp_raise_ValueError(mp_rom_error_text_t msg) {
+MAYBE_CUDA MP_NORETURN void mp_raise_ValueError(mp_rom_error_text_t msg) {
     mp_raise_msg(&mp_type_ValueError, msg);
 }
 
-MP_NORETURN void mp_raise_TypeError(mp_rom_error_text_t msg) {
+MAYBE_CUDA MP_NORETURN void mp_raise_TypeError(mp_rom_error_text_t msg) {
     mp_raise_msg(&mp_type_TypeError, msg);
 }
 
-MP_NORETURN void mp_raise_NotImplementedError(mp_rom_error_text_t msg) {
+MAYBE_CUDA MP_NORETURN void mp_raise_NotImplementedError(mp_rom_error_text_t msg) {
     mp_raise_msg(&mp_type_NotImplementedError, msg);
 }
 
 #endif
 
-MP_NORETURN void mp_raise_type_arg(const mp_obj_type_t *exc_type, mp_obj_t arg) {
+MAYBE_CUDA MP_NORETURN void mp_raise_type_arg(const mp_obj_type_t *exc_type, mp_obj_t arg) {
     nlr_raise(mp_obj_new_exception_arg1(exc_type, arg));
 }
 
-MP_NORETURN void mp_raise_StopIteration(mp_obj_t arg) {
+MAYBE_CUDA MP_NORETURN void mp_raise_StopIteration(mp_obj_t arg) {
     if (arg == MP_OBJ_NULL) {
         mp_raise_type(&mp_type_StopIteration);
     } else {
@@ -1741,7 +1741,7 @@ MP_NORETURN void mp_raise_StopIteration(mp_obj_t arg) {
     }
 }
 
-MP_NORETURN void mp_raise_TypeError_int_conversion(mp_const_obj_t arg) {
+MAYBE_CUDA MP_NORETURN void mp_raise_TypeError_int_conversion(mp_const_obj_t arg) {
     #if MICROPY_ERROR_REPORTING <= MICROPY_ERROR_REPORTING_TERSE
     (void)arg;
     mp_raise_TypeError(MP_ERROR_TEXT("can't convert to int"));
@@ -1751,11 +1751,11 @@ MP_NORETURN void mp_raise_TypeError_int_conversion(mp_const_obj_t arg) {
     #endif
 }
 
-MP_NORETURN void mp_raise_OSError(int errno_) {
+MAYBE_CUDA MP_NORETURN void mp_raise_OSError(int errno_) {
     mp_raise_type_arg(&mp_type_OSError, MP_OBJ_NEW_SMALL_INT(errno_));
 }
 
-MP_NORETURN void mp_raise_OSError_with_filename(int errno_, const char *filename) {
+MAYBE_CUDA MP_NORETURN void mp_raise_OSError_with_filename(int errno_, const char *filename) {
     vstr_t vstr;
     vstr_init(&vstr, 32);
     vstr_printf(&vstr, "can't open %s", filename);
@@ -1765,7 +1765,7 @@ MP_NORETURN void mp_raise_OSError_with_filename(int errno_, const char *filename
 }
 
 #if MICROPY_STACK_CHECK || MICROPY_ENABLE_PYSTACK
-MP_NORETURN void mp_raise_recursion_depth(void) {
+MAYBE_CUDA MP_NORETURN void mp_raise_recursion_depth(void) {
     mp_raise_type_arg(&mp_type_RuntimeError, MP_OBJ_NEW_QSTR(MP_QSTR_maximum_space_recursion_space_depth_space_exceeded));
 }
 #endif

@@ -47,7 +47,7 @@ static void bound_meth_print(const mp_print_t *print, mp_obj_t o_in, mp_print_ki
 }
 #endif
 
-mp_obj_t mp_call_method_self_n_kw(mp_obj_t meth, mp_obj_t self, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_call_method_self_n_kw(mp_obj_t meth, mp_obj_t self, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // need to insert self before all other args and then call meth
     size_t n_total = n_args + 2 * n_kw;
     mp_obj_t *args2 = NULL;
@@ -144,7 +144,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     binary_op, bound_meth_binary_op
     );
 
-mp_obj_t mp_obj_new_bound_meth(mp_obj_t meth, mp_obj_t self) {
+MAYBE_CUDA mp_obj_t mp_obj_new_bound_meth(mp_obj_t meth, mp_obj_t self) {
     mp_obj_bound_meth_t *o = mp_obj_malloc(mp_obj_bound_meth_t, &mp_type_bound_meth);
     o->meth = meth;
     o->self = self;

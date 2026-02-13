@@ -34,7 +34,7 @@
 #if MICROPY_HELPER_REPL
 
 #if MICROPY_PY_SYS_PS1_PS2
-const char *mp_repl_get_psx(unsigned int entry) {
+MAYBE_CUDA const char *mp_repl_get_psx(unsigned int entry) {
     if (mp_obj_is_str(MP_STATE_VM(sys_mutable)[entry])) {
         return mp_obj_str_get_str(MP_STATE_VM(sys_mutable)[entry]);
     } else {
@@ -53,7 +53,7 @@ static bool str_startswith_word(const char *str, const char *head) {
     return head[i] == '\0' && (str[i] == '\0' || !unichar_isident(str[i]));
 }
 
-bool mp_repl_continue_with_input(const char *input) {
+MAYBE_CUDA bool mp_repl_continue_with_input(const char *input) {
     // check for blank input
     if (input[0] == '\0') {
         return false;
@@ -247,7 +247,7 @@ static void print_completions(const mp_print_t *print,
     mp_print_str(print, "\n");
 }
 
-size_t mp_repl_autocomplete(const char *str, size_t len, const mp_print_t *print, const char **compl_str) {
+MAYBE_CUDA size_t mp_repl_autocomplete(const char *str, size_t len, const mp_print_t *print, const char **compl_str) {
     // scan backwards to find start of "a.b.c" chain
     const char *org_str = str;
     const char *top = str + len;

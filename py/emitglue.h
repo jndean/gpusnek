@@ -122,7 +122,7 @@ typedef struct _mp_raw_code_truncated_t {
 
 mp_raw_code_t *mp_emit_glue_new_raw_code(void);
 
-void mp_emit_glue_assign_bytecode(mp_raw_code_t *rc, const byte *code,
+MAYBE_CUDA void mp_emit_glue_assign_bytecode(mp_raw_code_t *rc, const byte *code,
     mp_raw_code_t **children,
     #if MICROPY_PERSISTENT_CODE_SAVE
     size_t len,
@@ -130,7 +130,7 @@ void mp_emit_glue_assign_bytecode(mp_raw_code_t *rc, const byte *code,
     #endif
     uint16_t scope_flags);
 
-void mp_emit_glue_assign_native(mp_raw_code_t *rc, mp_raw_code_kind_t kind, const void *fun_data, mp_uint_t fun_len,
+MAYBE_CUDA void mp_emit_glue_assign_native(mp_raw_code_t *rc, mp_raw_code_kind_t kind, const void *fun_data, mp_uint_t fun_len,
     mp_raw_code_t **children,
     #if MICROPY_PERSISTENT_CODE_SAVE
     uint16_t n_children,
@@ -138,7 +138,7 @@ void mp_emit_glue_assign_native(mp_raw_code_t *rc, mp_raw_code_kind_t kind, cons
     #endif
     uint16_t scope_flags, uint32_t asm_n_pos_args, uint32_t asm_type_sig);
 
-mp_obj_t mp_make_function_from_proto_fun(mp_proto_fun_t proto_fun, const mp_module_context_t *context, const mp_obj_t *def_args);
-mp_obj_t mp_make_closure_from_proto_fun(mp_proto_fun_t proto_fun, const mp_module_context_t *context, mp_uint_t n_closed_over, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_make_function_from_proto_fun(mp_proto_fun_t proto_fun, const mp_module_context_t *context, const mp_obj_t *def_args);
+MAYBE_CUDA mp_obj_t mp_make_closure_from_proto_fun(mp_proto_fun_t proto_fun, const mp_module_context_t *context, mp_uint_t n_closed_over, const mp_obj_t *args);
 
 #endif // MICROPY_INCLUDED_PY_EMITGLUE_H

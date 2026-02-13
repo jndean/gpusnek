@@ -42,74 +42,74 @@
 #define MP_LEXER_EOF ((unichar)MP_READER_EOF)
 #define CUR_CHAR(lex) ((lex)->chr0)
 
-static bool is_end(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_end(mp_lexer_t *lex) {
     return lex->chr0 == MP_LEXER_EOF;
 }
 
-static bool is_physical_newline(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_physical_newline(mp_lexer_t *lex) {
     return lex->chr0 == '\n';
 }
 
-static bool is_char(mp_lexer_t *lex, byte c) {
+static MAYBE_CUDA bool is_char(mp_lexer_t *lex, byte c) {
     return lex->chr0 == c;
 }
 
-static bool is_char_or(mp_lexer_t *lex, byte c1, byte c2) {
+static MAYBE_CUDA bool is_char_or(mp_lexer_t *lex, byte c1, byte c2) {
     return lex->chr0 == c1 || lex->chr0 == c2;
 }
 
-static bool is_char_or3(mp_lexer_t *lex, byte c1, byte c2, byte c3) {
+static MAYBE_CUDA bool is_char_or3(mp_lexer_t *lex, byte c1, byte c2, byte c3) {
     return lex->chr0 == c1 || lex->chr0 == c2 || lex->chr0 == c3;
 }
 
 #if MICROPY_PY_FSTRINGS
-static bool is_char_or4(mp_lexer_t *lex, byte c1, byte c2, byte c3, byte c4) {
+static MAYBE_CUDA bool is_char_or4(mp_lexer_t *lex, byte c1, byte c2, byte c3, byte c4) {
     return lex->chr0 == c1 || lex->chr0 == c2 || lex->chr0 == c3 || lex->chr0 == c4;
 }
 #endif
 
-static bool is_char_following(mp_lexer_t *lex, byte c) {
+static MAYBE_CUDA bool is_char_following(mp_lexer_t *lex, byte c) {
     return lex->chr1 == c;
 }
 
-static bool is_char_following_or(mp_lexer_t *lex, byte c1, byte c2) {
+static MAYBE_CUDA bool is_char_following_or(mp_lexer_t *lex, byte c1, byte c2) {
     return lex->chr1 == c1 || lex->chr1 == c2;
 }
 
-static bool is_char_following_following_or(mp_lexer_t *lex, byte c1, byte c2) {
+static MAYBE_CUDA bool is_char_following_following_or(mp_lexer_t *lex, byte c1, byte c2) {
     return lex->chr2 == c1 || lex->chr2 == c2;
 }
 
-static bool is_char_and(mp_lexer_t *lex, byte c1, byte c2) {
+static MAYBE_CUDA bool is_char_and(mp_lexer_t *lex, byte c1, byte c2) {
     return lex->chr0 == c1 && lex->chr1 == c2;
 }
 
-static bool is_whitespace(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_whitespace(mp_lexer_t *lex) {
     return unichar_isspace(lex->chr0);
 }
 
-static bool is_letter(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_letter(mp_lexer_t *lex) {
     return unichar_isalpha(lex->chr0);
 }
 
-static bool is_digit(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_digit(mp_lexer_t *lex) {
     return unichar_isdigit(lex->chr0);
 }
 
-static bool is_following_digit(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_following_digit(mp_lexer_t *lex) {
     return unichar_isdigit(lex->chr1);
 }
 
-static bool is_following_base_char(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_following_base_char(mp_lexer_t *lex) {
     const unichar chr1 = lex->chr1 | 0x20;
     return chr1 == 'b' || chr1 == 'o' || chr1 == 'x';
 }
 
-static bool is_following_odigit(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_following_odigit(mp_lexer_t *lex) {
     return lex->chr1 >= '0' && lex->chr1 <= '7';
 }
 
-static bool is_string_or_bytes(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_string_or_bytes(mp_lexer_t *lex) {
     return is_char_or(lex, '\'', '\"')
            #if MICROPY_PY_FSTRINGS
            || (is_char_or4(lex, 'r', 'u', 'b', 'f') && is_char_following_or(lex, '\'', '\"'))
@@ -123,15 +123,15 @@ static bool is_string_or_bytes(mp_lexer_t *lex) {
 }
 
 // to easily parse utf-8 identifiers we allow any raw byte with high bit set
-static bool is_head_of_identifier(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_head_of_identifier(mp_lexer_t *lex) {
     return is_letter(lex) || lex->chr0 == '_' || lex->chr0 >= 0x80;
 }
 
-static bool is_tail_of_identifier(mp_lexer_t *lex) {
+static MAYBE_CUDA bool is_tail_of_identifier(mp_lexer_t *lex) {
     return is_head_of_identifier(lex) || is_digit(lex);
 }
 
-static void next_char(mp_lexer_t *lex) {
+static MAYBE_CUDA void next_char(mp_lexer_t *lex) {
     if (lex->chr0 == '\n') {
         // a new line
         ++lex->line;
@@ -189,7 +189,7 @@ static void next_char(mp_lexer_t *lex) {
     }
 }
 
-static void indent_push(mp_lexer_t *lex, size_t indent) {
+static MAYBE_CUDA void indent_push(mp_lexer_t *lex, size_t indent) {
     if (lex->num_indent_level >= lex->alloc_indent_level) {
         lex->indent_level = m_renew(uint16_t, lex->indent_level, lex->alloc_indent_level, lex->alloc_indent_level + MICROPY_ALLOC_LEXEL_INDENT_INC);
         lex->alloc_indent_level += MICROPY_ALLOC_LEXEL_INDENT_INC;
@@ -197,11 +197,11 @@ static void indent_push(mp_lexer_t *lex, size_t indent) {
     lex->indent_level[lex->num_indent_level++] = indent;
 }
 
-static size_t indent_top(mp_lexer_t *lex) {
+static MAYBE_CUDA size_t indent_top(mp_lexer_t *lex) {
     return lex->indent_level[lex->num_indent_level - 1];
 }
 
-static void indent_pop(mp_lexer_t *lex) {
+static MAYBE_CUDA void indent_pop(mp_lexer_t *lex) {
     lex->num_indent_level -= 1;
 }
 
@@ -211,7 +211,7 @@ static void indent_pop(mp_lexer_t *lex) {
 //     c<op> = continue with <op>, if this opchar matches then continue matching
 // this means if the start of two ops are the same then they are equal til the last char
 
-static const char *const tok_enc =
+static MAYBE_CUDA const char *const tok_enc =
     "()[]{},;~"   // singles
     ":e="         // : :=
     "<e=c<e="     // < <= << <<=
@@ -228,7 +228,7 @@ static const char *const tok_enc =
     "=e="         // = ==
     "!.";         // start of special cases: != . ...
 
-static const uint8_t tok_enc_kind[] = {
+static MAYBE_CUDA const uint8_t tok_enc_kind[] = {
     MP_TOKEN_DEL_PAREN_OPEN, MP_TOKEN_DEL_PAREN_CLOSE,
     MP_TOKEN_DEL_BRACKET_OPEN, MP_TOKEN_DEL_BRACKET_CLOSE,
     MP_TOKEN_DEL_BRACE_OPEN, MP_TOKEN_DEL_BRACE_CLOSE,
@@ -251,7 +251,7 @@ static const uint8_t tok_enc_kind[] = {
 
 // must have the same order as enum in lexer.h
 // must be sorted according to strcmp
-static const char *const tok_kw[] = {
+static MAYBE_CUDA const char *const tok_kw[] = {
     "False",
     "None",
     "True",
@@ -295,7 +295,7 @@ static const char *const tok_kw[] = {
 // This is called with CUR_CHAR() before first hex digit, and should return with
 // it pointing to last hex digit
 // num_digits must be greater than zero
-static bool get_hex(mp_lexer_t *lex, size_t num_digits, mp_uint_t *result) {
+static MAYBE_CUDA bool get_hex(mp_lexer_t *lex, size_t num_digits, mp_uint_t *result) {
     mp_uint_t num = 0;
     while (num_digits-- != 0) {
         next_char(lex);
@@ -309,7 +309,7 @@ static bool get_hex(mp_lexer_t *lex, size_t num_digits, mp_uint_t *result) {
     return true;
 }
 
-static void parse_string_literal(mp_lexer_t *lex, bool is_raw, bool is_fstring) {
+static MAYBE_CUDA void parse_string_literal(mp_lexer_t *lex, bool is_raw, bool is_fstring) {
     // get first quoting character
     char quote_char = '\'';
     if (is_char(lex, '\"')) {
@@ -532,7 +532,7 @@ static void parse_string_literal(mp_lexer_t *lex, bool is_raw, bool is_fstring) 
 
 // This function returns whether it has crossed a newline or not.
 // It therefore always return true if stop_at_newline is true
-static bool skip_whitespace(mp_lexer_t *lex, bool stop_at_newline) {
+static MAYBE_CUDA bool skip_whitespace(mp_lexer_t *lex, bool stop_at_newline) {
     while (!is_end(lex)) {
         if (is_physical_newline(lex)) {
             if (stop_at_newline && lex->nested_bracket_level == 0) {
@@ -558,7 +558,7 @@ static bool skip_whitespace(mp_lexer_t *lex, bool stop_at_newline) {
     return false;
 }
 
-void mp_lexer_to_next(mp_lexer_t *lex) {
+MAYBE_CUDA void mp_lexer_to_next(mp_lexer_t *lex) {
     #if MICROPY_PY_FSTRINGS
     if (lex->fstring_args.len && lex->fstring_args_idx == 0) {
         // moving onto the next token means the literal string is complete.
@@ -910,7 +910,7 @@ mp_lexer_t *mp_lexer_new_from_fd(qstr filename, int fd, bool close_fd) {
 
 #endif
 
-void mp_lexer_free(mp_lexer_t *lex) {
+MAYBE_CUDA void mp_lexer_free(mp_lexer_t *lex) {
     if (lex) {
         lex->reader.close(lex->reader.data);
         vstr_clear(&lex->vstr);
@@ -925,7 +925,7 @@ void mp_lexer_free(mp_lexer_t *lex) {
 #if 0
 // This function is used to print the current token and should only be
 // needed to debug the lexer, so it's not available via a config option.
-void mp_lexer_show_token(const mp_lexer_t *lex) {
+MAYBE_CUDA void mp_lexer_show_token(const mp_lexer_t *lex) {
     printf("(" UINT_FMT ":" UINT_FMT ") kind:%u str:%p len:%zu", lex->tok_line, lex->tok_column, lex->tok_kind, lex->vstr.buf, lex->vstr.len);
     if (lex->vstr.len > 0) {
         const byte *i = (const byte *)lex->vstr.buf;

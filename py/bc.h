@@ -269,9 +269,9 @@ typedef struct _mp_code_state_native_t {
 // Allocator may return NULL, in which case data is not stored (can be used to compute size).
 typedef uint8_t *(*mp_encode_uint_allocator_t)(void *env, size_t nbytes);
 
-void mp_encode_uint(void *env, mp_encode_uint_allocator_t allocator, mp_uint_t val);
-mp_uint_t mp_decode_uint(const byte **ptr);
-mp_uint_t mp_decode_uint_value(const byte *ptr);
+MAYBE_CUDA void mp_encode_uint(void *env, mp_encode_uint_allocator_t allocator, mp_uint_t val);
+MAYBE_CUDA mp_uint_t mp_decode_uint(const byte **ptr);
+MAYBE_CUDA mp_uint_t mp_decode_uint_value(const byte *ptr);
 const byte *mp_decode_uint_skip(const byte *ptr);
 
 mp_vm_return_kind_t mp_execute_bytecode(mp_code_state_t *code_state,
@@ -280,9 +280,9 @@ mp_vm_return_kind_t mp_execute_bytecode(mp_code_state_t *code_state,
 #endif
     mp_obj_t inject_exc);
 mp_code_state_t *mp_obj_fun_bc_prepare_codestate(mp_obj_t func, size_t n_args, size_t n_kw, const mp_obj_t *args);
-void mp_setup_code_state(mp_code_state_t *code_state, size_t n_args, size_t n_kw, const mp_obj_t *args);
-void mp_setup_code_state_native(mp_code_state_native_t *code_state, size_t n_args, size_t n_kw, const mp_obj_t *args);
-void mp_bytecode_print(const mp_print_t *print, const struct _mp_raw_code_t *rc, size_t fun_data_len, const mp_module_constants_t *cm);
+MAYBE_CUDA void mp_setup_code_state(mp_code_state_t *code_state, size_t n_args, size_t n_kw, const mp_obj_t *args);
+MAYBE_CUDA void mp_setup_code_state_native(mp_code_state_native_t *code_state, size_t n_args, size_t n_kw, const mp_obj_t *args);
+MAYBE_CUDA void mp_bytecode_print(const mp_print_t *print, const struct _mp_raw_code_t *rc, size_t fun_data_len, const mp_module_constants_t *cm);
 void mp_bytecode_print2(const mp_print_t *print, const byte *ip, size_t len, struct _mp_raw_code_t *const *child_table, const mp_module_constants_t *cm);
 const byte *mp_bytecode_print_str(const mp_print_t *print, const byte *ip_start, const byte *ip, struct _mp_raw_code_t *const *child_table, const mp_module_constants_t *cm);
 #define mp_bytecode_print_inst(print, code, x_table) mp_bytecode_print2(print, code, 1, x_table)

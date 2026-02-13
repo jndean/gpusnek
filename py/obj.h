@@ -83,19 +83,19 @@ typedef struct _mp_obj_base_t mp_obj_base_t;
 
 #if MICROPY_OBJ_REPR == MICROPY_OBJ_REPR_A
 
-static inline bool mp_obj_is_small_int(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_small_int(mp_const_obj_t o) {
     return (((mp_int_t)(o)) & 1) != 0;
 }
 #define MP_OBJ_SMALL_INT_VALUE(o) (((mp_int_t)(o)) >> 1)
 #define MP_OBJ_NEW_SMALL_INT(small_int) ((mp_obj_t)((((mp_uint_t)(small_int)) << 1) | 1))
 
-static inline bool mp_obj_is_qstr(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_qstr(mp_const_obj_t o) {
     return (((mp_int_t)(o)) & 7) == 2;
 }
 #define MP_OBJ_QSTR_VALUE(o) (((mp_uint_t)(o)) >> 3)
 #define MP_OBJ_NEW_QSTR(qst) ((mp_obj_t)((((mp_uint_t)(qst)) << 3) | 2))
 
-static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
     return (((mp_int_t)(o)) & 7) == 6;
 }
 #define MP_OBJ_IMMEDIATE_OBJ_VALUE(o) (((mp_uint_t)(o)) >> 3)
@@ -118,29 +118,29 @@ extern const struct _mp_obj_float_t mp_const_float_nan_obj;
 #endif
 
 #define mp_obj_is_float(o) mp_obj_is_type((o), &mp_type_float)
-mp_float_t mp_obj_float_get(mp_obj_t self_in);
-mp_obj_t mp_obj_new_float(mp_float_t value);
+MAYBE_CUDA mp_float_t mp_obj_float_get(mp_obj_t self_in);
+MAYBE_CUDA mp_obj_t mp_obj_new_float(mp_float_t value);
 #endif
 
-static inline bool mp_obj_is_obj(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_obj(mp_const_obj_t o) {
     return (((mp_int_t)(o)) & 3) == 0;
 }
 
 #elif MICROPY_OBJ_REPR == MICROPY_OBJ_REPR_B
 
-static inline bool mp_obj_is_small_int(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_small_int(mp_const_obj_t o) {
     return (((mp_int_t)(o)) & 3) == 1;
 }
 #define MP_OBJ_SMALL_INT_VALUE(o) (((mp_int_t)(o)) >> 2)
 #define MP_OBJ_NEW_SMALL_INT(small_int) ((mp_obj_t)((((mp_uint_t)(small_int)) << 2) | 1))
 
-static inline bool mp_obj_is_qstr(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_qstr(mp_const_obj_t o) {
     return (((mp_int_t)(o)) & 7) == 3;
 }
 #define MP_OBJ_QSTR_VALUE(o) (((mp_uint_t)(o)) >> 3)
 #define MP_OBJ_NEW_QSTR(qst) ((mp_obj_t)((((mp_uint_t)(qst)) << 3) | 3))
 
-static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
     return (((mp_int_t)(o)) & 7) == 7;
 }
 #define MP_OBJ_IMMEDIATE_OBJ_VALUE(o) (((mp_uint_t)(o)) >> 3)
@@ -163,11 +163,11 @@ extern const struct _mp_obj_float_t mp_const_float_nan_obj;
 #endif
 
 #define mp_obj_is_float(o) mp_obj_is_type((o), &mp_type_float)
-mp_float_t mp_obj_float_get(mp_obj_t self_in);
-mp_obj_t mp_obj_new_float(mp_float_t value);
+MAYBE_CUDA mp_float_t mp_obj_float_get(mp_obj_t self_in);
+MAYBE_CUDA mp_obj_t mp_obj_new_float(mp_float_t value);
 #endif
 
-static inline bool mp_obj_is_obj(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_obj(mp_const_obj_t o) {
     return (((mp_int_t)(o)) & 1) == 0;
 }
 
@@ -177,7 +177,7 @@ static inline bool mp_obj_is_obj(mp_const_obj_t o) {
 #error "MICROPY_OBJ_REPR_C requires float to be enabled."
 #endif
 
-static inline bool mp_obj_is_small_int(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_small_int(mp_const_obj_t o) {
     return (((mp_int_t)(o)) & 1) != 0;
 }
 #define MP_OBJ_SMALL_INT_VALUE(o) (((mp_int_t)(o)) >> 1)
@@ -195,13 +195,13 @@ static inline bool mp_obj_is_small_int(mp_const_obj_t o) {
 #define mp_const_float_inf MP_OBJ_NEW_CONST_FLOAT(0x7f800000)
 #endif
 
-static inline bool mp_obj_is_float(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_float(mp_const_obj_t o) {
     // Ensure that 32-bit arch can only use single precision.
     MP_STATIC_ASSERT(sizeof(mp_float_t) <= sizeof(mp_obj_t));
 
     return (((mp_uint_t)(o)) & 3) == 2 && (((mp_uint_t)(o)) & 0xff800007) != 0x00000006;
 }
-static inline mp_float_t mp_obj_float_get(mp_const_obj_t o) {
+MAYBE_CUDA static inline mp_float_t mp_obj_float_get(mp_const_obj_t o) {
     union {
         mp_float_t f;
         mp_uint_t u;
@@ -212,7 +212,7 @@ static inline mp_float_t mp_obj_float_get(mp_const_obj_t o) {
     num.u |= (num.u >> 2) & 3u;
     return num.f;
 }
-static inline mp_obj_t mp_obj_new_float(mp_float_t f) {
+MAYBE_CUDA static inline mp_obj_t mp_obj_new_float(mp_float_t f) {
     if (isnan(f)) {
         // prevent creation of bad nanboxed pointers via array.array or struct
         return mp_const_float_nan;
@@ -225,37 +225,37 @@ static inline mp_obj_t mp_obj_new_float(mp_float_t f) {
 }
 #endif
 
-static inline bool mp_obj_is_qstr(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_qstr(mp_const_obj_t o) {
     return (((mp_uint_t)(o)) & 0xff80000f) == 0x00000006;
 }
 #define MP_OBJ_QSTR_VALUE(o) (((mp_uint_t)(o)) >> 4)
 #define MP_OBJ_NEW_QSTR(qst) ((mp_obj_t)((((mp_uint_t)(qst)) << 4) | 0x00000006))
 
-static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
     return (((mp_uint_t)(o)) & 0xff80000f) == 0x0000000e;
 }
 #define MP_OBJ_IMMEDIATE_OBJ_VALUE(o) (((mp_uint_t)(o)) >> 4)
 #define MP_OBJ_NEW_IMMEDIATE_OBJ(val) ((mp_obj_t)(((val) << 4) | 0xe))
 
-static inline bool mp_obj_is_obj(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_obj(mp_const_obj_t o) {
     return (((mp_int_t)(o)) & 3) == 0;
 }
 
 #elif MICROPY_OBJ_REPR == MICROPY_OBJ_REPR_D
 
-static inline bool mp_obj_is_small_int(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_small_int(mp_const_obj_t o) {
     return (((uint64_t)(o)) & 0xffff000000000000) == 0x0001000000000000;
 }
 #define MP_OBJ_SMALL_INT_VALUE(o) (((mp_int_t)((o) << 16)) >> 17)
 #define MP_OBJ_NEW_SMALL_INT(small_int) (((((uint64_t)(small_int)) & 0x7fffffffffff) << 1) | 0x0001000000000001)
 
-static inline bool mp_obj_is_qstr(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_qstr(mp_const_obj_t o) {
     return (((uint64_t)(o)) & 0xffff000000000000) == 0x0002000000000000;
 }
 #define MP_OBJ_QSTR_VALUE(o) ((((uint32_t)(o)) >> 1) & 0xffffffff)
 #define MP_OBJ_NEW_QSTR(qst) ((mp_obj_t)(((uint64_t)(((uint32_t)(qst)) << 1)) | 0x0002000000000001))
 
-static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
     return (((uint64_t)(o)) & 0xffff000000000000) == 0x0003000000000000;
 }
 #define MP_OBJ_IMMEDIATE_OBJ_VALUE(o) ((((uint32_t)(o)) >> 46) & 3)
@@ -276,17 +276,17 @@ static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
 #define mp_const_float_inf {((mp_obj_t)((uint64_t)0x7ff0000000000000 + 0x8004000000000000))}
 #endif
 
-static inline bool mp_obj_is_float(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_float(mp_const_obj_t o) {
     return ((uint64_t)(o) & 0xfffc000000000000) != 0;
 }
-static inline mp_float_t mp_obj_float_get(mp_const_obj_t o) {
+MAYBE_CUDA static inline mp_float_t mp_obj_float_get(mp_const_obj_t o) {
     union {
         mp_float_t f;
         uint64_t r;
     } num = {.r = o - 0x8004000000000000};
     return num.f;
 }
-static inline mp_obj_t mp_obj_new_float(mp_float_t f) {
+MAYBE_CUDA static inline mp_obj_t mp_obj_new_float(mp_float_t f) {
     if (isnan(f)) {
         // prevent creation of bad nanboxed pointers via array.array or struct
         struct {
@@ -302,7 +302,7 @@ static inline mp_obj_t mp_obj_new_float(mp_float_t f) {
 }
 #endif
 
-static inline bool mp_obj_is_obj(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_obj(mp_const_obj_t o) {
     return (((uint64_t)(o)) & 0xffff000000000000) == 0x0000000000000000;
 }
 #define MP_OBJ_TO_PTR(o) ((void *)(uintptr_t)(o))
@@ -506,12 +506,12 @@ static inline bool mp_map_slot_is_filled(const mp_map_t *map, size_t pos) {
     return (map)->table[pos].key != MP_OBJ_NULL && (map)->table[pos].key != MP_OBJ_SENTINEL;
 }
 
-void mp_map_init(mp_map_t *map, size_t n);
-void mp_map_init_fixed_table(mp_map_t *map, size_t n, const mp_obj_t *table);
-void mp_map_deinit(mp_map_t *map);
+MAYBE_CUDA void mp_map_init(mp_map_t *map, size_t n);
+MAYBE_CUDA void mp_map_init_fixed_table(mp_map_t *map, size_t n, const mp_obj_t *table);
+MAYBE_CUDA void mp_map_deinit(mp_map_t *map);
 mp_map_elem_t *mp_map_lookup(mp_map_t *map, mp_obj_t index, mp_map_lookup_kind_t lookup_kind);
-void mp_map_clear(mp_map_t *map);
-void mp_map_dump(mp_map_t *map);
+MAYBE_CUDA void mp_map_clear(mp_map_t *map);
+MAYBE_CUDA void mp_map_dump(mp_map_t *map);
 
 // Underlying set implementation (not set object)
 
@@ -525,10 +525,10 @@ static inline bool mp_set_slot_is_filled(const mp_set_t *set, size_t pos) {
     return (set)->table[pos] != MP_OBJ_NULL && (set)->table[pos] != MP_OBJ_SENTINEL;
 }
 
-void mp_set_init(mp_set_t *set, size_t n);
-mp_obj_t mp_set_lookup(mp_set_t *set, mp_obj_t index, mp_map_lookup_kind_t lookup_kind);
-mp_obj_t mp_set_remove_first(mp_set_t *set);
-void mp_set_clear(mp_set_t *set);
+MAYBE_CUDA void mp_set_init(mp_set_t *set, size_t n);
+MAYBE_CUDA mp_obj_t mp_set_lookup(mp_set_t *set, mp_obj_t index, mp_map_lookup_kind_t lookup_kind);
+MAYBE_CUDA mp_obj_t mp_set_remove_first(mp_set_t *set);
+MAYBE_CUDA void mp_set_clear(mp_set_t *set);
 
 // Type definitions for methods
 
@@ -632,9 +632,9 @@ typedef struct _mp_buffer_info_t {
 
 typedef mp_int_t (*mp_buffer_fun_t)(mp_obj_t obj, mp_buffer_info_t *bufinfo, mp_uint_t flags);
 
-bool mp_get_buffer(mp_obj_t obj, mp_buffer_info_t *bufinfo, mp_uint_t flags);
+MAYBE_CUDA bool mp_get_buffer(mp_obj_t obj, mp_buffer_info_t *bufinfo, mp_uint_t flags);
 
-static inline void mp_get_buffer_raise(mp_obj_t obj, mp_buffer_info_t *bufinfo, mp_uint_t flags) {
+MAYBE_CUDA static inline void mp_get_buffer_raise(mp_obj_t obj, mp_buffer_info_t *bufinfo, mp_uint_t flags) {
     mp_get_buffer(obj, bufinfo, flags | MP_BUFFER_RAISE_IF_UNSUPPORTED);
 }
 
@@ -787,19 +787,19 @@ typedef struct _mp_obj_full_type_t {
 // Generated with:
 // for i in range(13):
 //     print(f"#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_{i}(_struct_type, _typename, _name, _flags{''.join(f', f{j+1}, v{j+1}' for j in range(i))}) const _struct_type _typename = {{ .base = {{ &mp_type_type }}, .flags = _flags, .name = _name{''.join(f', .slot_index_##f{j+1} = {j+1}' for j in range(i))}{', .slots = { ' + ''.join(f'v{j+1}, ' for j in range(i)) + '}' if i else '' } }}")
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_0(_struct_type, _typename, _name, _flags) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_1(_struct_type, _typename, _name, _flags, f1, v1) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slots = { (const void *)(v1), } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_2(_struct_type, _typename, _name, _flags, f1, v1, f2, v2) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slots = { (const void *)(v1), (const void *)(v2), } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_3(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_4(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), (const void *)(v4), } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_5(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), (const void *)(v4), (const void *)(v5), } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_6(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), (const void *)(v4), (const void *)(v5), (const void *)(v6), } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_7(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), (const void *)(v4), (const void *)(v5), (const void *)(v6), (const void *)(v7), } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_8(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7, f8, v8) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slot_index_##f8 = 8, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), (const void *)(v4), (const void *)(v5), (const void *)(v6), (const void *)(v7), (const void *)(v8), } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_9(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7, f8, v8, f9, v9) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slot_index_##f8 = 8, .slot_index_##f9 = 9, .slots = { v1, v2, v3, v4, v5, v6, v7, v8, v9, } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_10(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7, f8, v8, f9, v9, f10, v10) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slot_index_##f8 = 8, .slot_index_##f9 = 9, .slot_index_##f10 = 10, .slots = { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_11(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7, f8, v8, f9, v9, f10, v10, f11, v11) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slot_index_##f8 = 8, .slot_index_##f9 = 9, .slot_index_##f10 = 10, .slot_index_##f11 = 11, .slots = { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, } }
-#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_12(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7, f8, v8, f9, v9, f10, v10, f11, v11, f12, v12) const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slot_index_##f8 = 8, .slot_index_##f9 = 9, .slot_index_##f10 = 10, .slot_index_##f11 = 11, .slot_index_##f12 = 12, .slots = { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_0(_struct_type, _typename, _name, _flags) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_1(_struct_type, _typename, _name, _flags, f1, v1) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slots = { (const void *)(v1), } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_2(_struct_type, _typename, _name, _flags, f1, v1, f2, v2) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slots = { (const void *)(v1), (const void *)(v2), } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_3(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_4(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), (const void *)(v4), } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_5(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), (const void *)(v4), (const void *)(v5), } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_6(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), (const void *)(v4), (const void *)(v5), (const void *)(v6), } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_7(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), (const void *)(v4), (const void *)(v5), (const void *)(v6), (const void *)(v7), } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_8(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7, f8, v8) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slot_index_##f8 = 8, .slots = { (const void *)(v1), (const void *)(v2), (const void *)(v3), (const void *)(v4), (const void *)(v5), (const void *)(v6), (const void *)(v7), (const void *)(v8), } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_9(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7, f8, v8, f9, v9) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slot_index_##f8 = 8, .slot_index_##f9 = 9, .slots = { v1, v2, v3, v4, v5, v6, v7, v8, v9, } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_10(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7, f8, v8, f9, v9, f10, v10) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slot_index_##f8 = 8, .slot_index_##f9 = 9, .slot_index_##f10 = 10, .slots = { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_11(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7, f8, v8, f9, v9, f10, v10, f11, v11) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slot_index_##f8 = 8, .slot_index_##f9 = 9, .slot_index_##f10 = 10, .slot_index_##f11 = 11, .slots = { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, } }
+#define MP_DEFINE_CONST_OBJ_TYPE_NARGS_12(_struct_type, _typename, _name, _flags, f1, v1, f2, v2, f3, v3, f4, v4, f5, v5, f6, v6, f7, v7, f8, v8, f9, v9, f10, v10, f11, v11, f12, v12) MAYBE_CUDA const _struct_type _typename = { .base = { &mp_type_type }, .flags = _flags, .name = _name, .slot_index_##f1 = 1, .slot_index_##f2 = 2, .slot_index_##f3 = 3, .slot_index_##f4 = 4, .slot_index_##f5 = 5, .slot_index_##f6 = 6, .slot_index_##f7 = 7, .slot_index_##f8 = 8, .slot_index_##f9 = 9, .slot_index_##f10 = 10, .slot_index_##f11 = 11, .slot_index_##f12 = 12, .slots = { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, } }
 
 // Because the mp_obj_type_t instances are in (zero-initialised) ROM, we take
 // slot_index_foo=0 to mean that the slot is unset. This also simplifies checking
@@ -831,88 +831,88 @@ typedef struct _mp_obj_full_type_t {
 #define MP_DEFINE_CONST_OBJ_TYPE(...) MP_DEFINE_CONST_OBJ_TYPE_EXPAND(MP_DEFINE_CONST_OBJ_TYPE_NARGS(__VA_ARGS__, _INV, 12, _INV, 11, _INV, 10, _INV, 9, _INV, 8, _INV, 7, _INV, 6, _INV, 5, _INV, 4, _INV, 3, _INV, 2, _INV, 1, _INV, 0)(mp_obj_type_t, __VA_ARGS__))
 
 // Constant types, globally accessible
-extern const mp_obj_type_t mp_type_type;
-extern const mp_obj_type_t mp_type_object;
-extern const mp_obj_type_t mp_type_NoneType;
-extern const mp_obj_type_t mp_type_bool;
-extern const mp_obj_type_t mp_type_int;
-extern const mp_obj_type_t mp_type_str;
-extern const mp_obj_type_t mp_type_bytes;
-extern const mp_obj_type_t mp_type_bytearray;
-extern const mp_obj_type_t mp_type_memoryview;
-extern const mp_obj_type_t mp_type_float;
-extern const mp_obj_type_t mp_type_complex;
-extern const mp_obj_type_t mp_type_tuple;
-extern const mp_obj_type_t mp_type_list;
-extern const mp_obj_type_t mp_type_map; // map (the python builtin, not the dict implementation detail)
-extern const mp_obj_type_t mp_type_enumerate;
-extern const mp_obj_type_t mp_type_filter;
-extern const mp_obj_type_t mp_type_deque;
-extern const mp_obj_type_t mp_type_dict;
-extern const mp_obj_type_t mp_type_ordereddict;
-extern const mp_obj_type_t mp_type_range;
-extern const mp_obj_type_t mp_type_set;
-extern const mp_obj_type_t mp_type_frozenset;
-extern const mp_obj_type_t mp_type_slice;
-extern const mp_obj_type_t mp_type_zip;
-extern const mp_obj_type_t mp_type_array;
-extern const mp_obj_type_t mp_type_super;
-extern const mp_obj_type_t mp_type_gen_wrap;
-extern const mp_obj_type_t mp_type_native_gen_wrap;
-extern const mp_obj_type_t mp_type_gen_instance;
-extern const mp_obj_type_t mp_type_fun_builtin_0;
-extern const mp_obj_type_t mp_type_fun_builtin_1;
-extern const mp_obj_type_t mp_type_fun_builtin_2;
-extern const mp_obj_type_t mp_type_fun_builtin_3;
-extern const mp_obj_type_t mp_type_fun_builtin_var;
-extern const mp_obj_type_t mp_type_fun_bc;
-extern const mp_obj_type_t mp_type_fun_native;
-extern const mp_obj_type_t mp_type_fun_viper;
-extern const mp_obj_type_t mp_type_fun_asm;
-extern const mp_obj_type_t mp_type_code;
-extern const mp_obj_type_t mp_type_module;
-extern const mp_obj_type_t mp_type_staticmethod;
-extern const mp_obj_type_t mp_type_classmethod;
-extern const mp_obj_type_t mp_type_bound_meth;
-extern const mp_obj_type_t mp_type_property;
-extern const mp_obj_type_t mp_type_stringio;
-extern const mp_obj_type_t mp_type_bytesio;
-extern const mp_obj_type_t mp_type_ringio;
-extern const mp_obj_type_t mp_type_reversed;
-extern const mp_obj_type_t mp_type_polymorph_iter;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_type;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_object;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_NoneType;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_bool;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_int;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_str;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_bytes;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_bytearray;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_memoryview;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_float;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_complex;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_tuple;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_list;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_map; // map (the python builtin, not the dict implementation detail)
+MAYBE_CUDA extern const mp_obj_type_t mp_type_enumerate;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_filter;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_deque;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_dict;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_ordereddict;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_range;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_set;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_frozenset;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_slice;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_zip;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_array;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_super;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_gen_wrap;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_native_gen_wrap;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_gen_instance;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_fun_builtin_0;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_fun_builtin_1;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_fun_builtin_2;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_fun_builtin_3;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_fun_builtin_var;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_fun_bc;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_fun_native;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_fun_viper;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_fun_asm;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_code;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_module;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_staticmethod;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_classmethod;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_bound_meth;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_property;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_stringio;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_bytesio;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_ringio;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_reversed;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_polymorph_iter;
 #if MICROPY_ENABLE_FINALISER
-extern const mp_obj_type_t mp_type_polymorph_iter_with_finaliser;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_polymorph_iter_with_finaliser;
 #endif
 
 // Exceptions
-extern const mp_obj_type_t mp_type_BaseException;
-extern const mp_obj_type_t mp_type_ArithmeticError;
-extern const mp_obj_type_t mp_type_AssertionError;
-extern const mp_obj_type_t mp_type_AttributeError;
-extern const mp_obj_type_t mp_type_EOFError;
-extern const mp_obj_type_t mp_type_Exception;
-extern const mp_obj_type_t mp_type_GeneratorExit;
-extern const mp_obj_type_t mp_type_ImportError;
-extern const mp_obj_type_t mp_type_IndentationError;
-extern const mp_obj_type_t mp_type_IndexError;
-extern const mp_obj_type_t mp_type_KeyboardInterrupt;
-extern const mp_obj_type_t mp_type_KeyError;
-extern const mp_obj_type_t mp_type_LookupError;
-extern const mp_obj_type_t mp_type_MemoryError;
-extern const mp_obj_type_t mp_type_NameError;
-extern const mp_obj_type_t mp_type_NotImplementedError;
-extern const mp_obj_type_t mp_type_OSError;
-extern const mp_obj_type_t mp_type_OverflowError;
-extern const mp_obj_type_t mp_type_RuntimeError;
-extern const mp_obj_type_t mp_type_StopAsyncIteration;
-extern const mp_obj_type_t mp_type_StopIteration;
-extern const mp_obj_type_t mp_type_SyntaxError;
-extern const mp_obj_type_t mp_type_SystemExit;
-extern const mp_obj_type_t mp_type_TypeError;
-extern const mp_obj_type_t mp_type_UnicodeError;
-extern const mp_obj_type_t mp_type_ValueError;
-extern const mp_obj_type_t mp_type_ViperTypeError;
-extern const mp_obj_type_t mp_type_ZeroDivisionError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_BaseException;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_ArithmeticError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_AssertionError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_AttributeError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_EOFError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_Exception;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_GeneratorExit;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_ImportError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_IndentationError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_IndexError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_KeyboardInterrupt;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_KeyError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_LookupError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_MemoryError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_NameError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_NotImplementedError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_OSError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_OverflowError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_RuntimeError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_StopAsyncIteration;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_StopIteration;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_SyntaxError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_SystemExit;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_TypeError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_UnicodeError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_ValueError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_ViperTypeError;
+MAYBE_CUDA extern const mp_obj_type_t mp_type_ZeroDivisionError;
 
 // Constant objects, globally accessible: None, False, True
 // These should always be accessed via the below macros.
@@ -952,13 +952,13 @@ extern const struct _mp_obj_exception_t mp_const_GeneratorExit_obj;
 // Implementing this as a call rather than inline saves 8 bytes per usage.
 #define mp_obj_malloc(struct_type, obj_type) ((struct_type *)mp_obj_malloc_helper(sizeof(struct_type), obj_type))
 #define mp_obj_malloc_var(struct_type, var_field, var_type, var_num, obj_type) ((struct_type *)mp_obj_malloc_helper(offsetof(struct_type, var_field) + sizeof(var_type) * (var_num), obj_type))
-void *mp_obj_malloc_helper(size_t num_bytes, const mp_obj_type_t *type);
+MAYBE_CUDA void *mp_obj_malloc_helper(size_t num_bytes, const mp_obj_type_t *type);
 
 // Object allocation macros for allocating objects that have a finaliser.
 #if MICROPY_ENABLE_FINALISER
 #define mp_obj_malloc_with_finaliser(struct_type, obj_type) ((struct_type *)mp_obj_malloc_with_finaliser_helper(sizeof(struct_type), obj_type))
 #define mp_obj_malloc_var_with_finaliser(struct_type, var_field, var_type, var_num, obj_type) ((struct_type *)mp_obj_malloc_with_finaliser_helper(offsetof(struct_type, var_field) + sizeof(var_type) * (var_num), obj_type))
-void *mp_obj_malloc_with_finaliser_helper(size_t num_bytes, const mp_obj_type_t *type);
+MAYBE_CUDA void *mp_obj_malloc_with_finaliser_helper(size_t num_bytes, const mp_obj_type_t *type);
 #else
 #define mp_obj_malloc_with_finaliser(struct_type, obj_type) mp_obj_malloc(struct_type, obj_type)
 #define mp_obj_malloc_var_with_finaliser(struct_type, var_field, var_type, var_num, obj_type) mp_obj_malloc_var(struct_type, var_field, var_type, var_num, obj_type)
@@ -992,96 +992,96 @@ void *mp_obj_malloc_with_finaliser_helper(size_t num_bytes, const mp_obj_type_t 
 #define mp_obj_is_int(o) (mp_obj_is_small_int(o) || mp_obj_is_exact_type(o, &mp_type_int))
 #define mp_obj_is_str(o) (mp_obj_is_qstr(o) || mp_obj_is_exact_type(o, &mp_type_str))
 #define mp_obj_is_str_or_bytes(o) (mp_obj_is_qstr(o) || (mp_obj_is_obj(o) && MP_OBJ_TYPE_GET_SLOT_OR_NULL(((mp_obj_base_t *)MP_OBJ_TO_PTR(o))->type, binary_op) == mp_obj_str_binary_op))
-bool mp_obj_is_dict_or_ordereddict(mp_obj_t o);
+MAYBE_CUDA bool mp_obj_is_dict_or_ordereddict(mp_obj_t o);
 #define mp_obj_is_fun(o) (mp_obj_is_obj(o) && (((mp_obj_base_t *)MP_OBJ_TO_PTR(o))->type->name == MP_QSTR_function))
 
-static inline mp_obj_t mp_obj_new_bool(mp_int_t x) {
+MAYBE_CUDA static inline mp_obj_t mp_obj_new_bool(mp_int_t x) {
     return x ? mp_const_true : mp_const_false;
 }
-mp_obj_t mp_obj_new_cell(mp_obj_t obj);
-mp_obj_t mp_obj_new_int(mp_int_t value);
-mp_obj_t mp_obj_new_int_from_uint(mp_uint_t value);
-mp_obj_t mp_obj_new_int_from_str_len(const char **str, size_t len, bool neg, unsigned int base);
-mp_obj_t mp_obj_new_int_from_ll(long long val); // this must return a multi-precision integer object (or raise an overflow exception)
-mp_obj_t mp_obj_new_int_from_ull(unsigned long long val); // this must return a multi-precision integer object (or raise an overflow exception)
-mp_obj_t mp_obj_new_str(const char *data, size_t len); // will check utf-8 (raises UnicodeError)
-mp_obj_t mp_obj_new_str_from_cstr(const char *str); // // accepts null-terminated string, will check utf-8 (raises UnicodeError)
-mp_obj_t mp_obj_new_str_via_qstr(const char *data, size_t len); // input data must be valid utf-8
-mp_obj_t mp_obj_new_str_from_vstr(vstr_t *vstr); // will check utf-8 (raises UnicodeError)
+MAYBE_CUDA mp_obj_t mp_obj_new_cell(mp_obj_t obj);
+MAYBE_CUDA mp_obj_t mp_obj_new_int(mp_int_t value);
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_uint(mp_uint_t value);
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_str_len(const char **str, size_t len, bool neg, unsigned int base);
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_ll(long long val); // this must return a multi-precision integer object (or raise an overflow exception)
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_ull(unsigned long long val); // this must return a multi-precision integer object (or raise an overflow exception)
+MAYBE_CUDA mp_obj_t mp_obj_new_str(const char *data, size_t len); // will check utf-8 (raises UnicodeError)
+MAYBE_CUDA mp_obj_t mp_obj_new_str_from_cstr(const char *str); // // accepts null-terminated string, will check utf-8 (raises UnicodeError)
+MAYBE_CUDA mp_obj_t mp_obj_new_str_via_qstr(const char *data, size_t len); // input data must be valid utf-8
+MAYBE_CUDA mp_obj_t mp_obj_new_str_from_vstr(vstr_t *vstr); // will check utf-8 (raises UnicodeError)
 #if MICROPY_PY_BUILTINS_STR_UNICODE && MICROPY_PY_BUILTINS_STR_UNICODE_CHECK
 mp_obj_t mp_obj_new_str_from_utf8_vstr(vstr_t *vstr); // input data must be valid utf-8
 #else
 #define mp_obj_new_str_from_utf8_vstr mp_obj_new_str_from_vstr
 #endif
-mp_obj_t mp_obj_new_bytes_from_vstr(vstr_t *vstr);
-mp_obj_t mp_obj_new_bytes(const byte *data, size_t len);
-mp_obj_t mp_obj_new_bytearray(size_t n, const void *items);
-mp_obj_t mp_obj_new_bytearray_by_ref(size_t n, void *items);
+MAYBE_CUDA mp_obj_t mp_obj_new_bytes_from_vstr(vstr_t *vstr);
+MAYBE_CUDA mp_obj_t mp_obj_new_bytes(const byte *data, size_t len);
+MAYBE_CUDA mp_obj_t mp_obj_new_bytearray(size_t n, const void *items);
+MAYBE_CUDA mp_obj_t mp_obj_new_bytearray_by_ref(size_t n, void *items);
 #if MICROPY_PY_BUILTINS_FLOAT
-mp_obj_t mp_obj_new_int_from_float(mp_float_t val);
-mp_obj_t mp_obj_new_complex(mp_float_t real, mp_float_t imag);
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_float(mp_float_t val);
+MAYBE_CUDA mp_obj_t mp_obj_new_complex(mp_float_t real, mp_float_t imag);
 #endif
-mp_obj_t mp_obj_new_exception(const mp_obj_type_t *exc_type);
-mp_obj_t mp_obj_new_exception_args(const mp_obj_type_t *exc_type, size_t n_args, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_obj_new_exception(const mp_obj_type_t *exc_type);
+MAYBE_CUDA mp_obj_t mp_obj_new_exception_args(const mp_obj_type_t *exc_type, size_t n_args, const mp_obj_t *args);
 #if MICROPY_ERROR_REPORTING == MICROPY_ERROR_REPORTING_NONE
 #define mp_obj_new_exception_msg(exc_type, msg) mp_obj_new_exception(exc_type)
 #define mp_obj_new_exception_msg_varg(exc_type, ...) mp_obj_new_exception(exc_type)
 #else
-mp_obj_t mp_obj_new_exception_msg(const mp_obj_type_t *exc_type, mp_rom_error_text_t msg);
-mp_obj_t mp_obj_new_exception_msg_varg(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, ...); // counts args by number of % symbols in fmt, excluding %%; can only handle void* sizes (ie no float/double!)
+MAYBE_CUDA mp_obj_t mp_obj_new_exception_msg(const mp_obj_type_t *exc_type, mp_rom_error_text_t msg);
+MAYBE_CUDA mp_obj_t mp_obj_new_exception_msg_varg(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, ...); // counts args by number of % symbols in fmt, excluding %%; can only handle void* sizes (ie no float/double!)
 #endif
 #ifdef va_start
-mp_obj_t mp_obj_new_exception_msg_vlist(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, va_list arg); // same fmt restrictions as above
+MAYBE_CUDA mp_obj_t mp_obj_new_exception_msg_vlist(const mp_obj_type_t *exc_type, mp_rom_error_text_t fmt, va_list arg); // same fmt restrictions as above
 #endif
-mp_obj_t mp_obj_new_gen_wrap(mp_obj_t fun);
-mp_obj_t mp_obj_new_closure(mp_obj_t fun, size_t n_closed, const mp_obj_t *closed);
-mp_obj_t mp_obj_new_tuple(size_t n, const mp_obj_t *items);
-mp_obj_t mp_obj_new_list(size_t n, mp_obj_t *items);
-mp_obj_t mp_obj_new_dict(size_t n_args);
-mp_obj_t mp_obj_new_set(size_t n_args, mp_obj_t *items);
-mp_obj_t mp_obj_new_slice(mp_obj_t start, mp_obj_t stop, mp_obj_t step);
-mp_obj_t mp_obj_new_bound_meth(mp_obj_t meth, mp_obj_t self);
-mp_obj_t mp_obj_new_getitem_iter(mp_obj_t *args, mp_obj_iter_buf_t *iter_buf);
-mp_obj_t mp_obj_new_module(qstr module_name);
-mp_obj_t mp_obj_new_memoryview(byte typecode, size_t nitems, void *items);
+MAYBE_CUDA mp_obj_t mp_obj_new_gen_wrap(mp_obj_t fun);
+MAYBE_CUDA mp_obj_t mp_obj_new_closure(mp_obj_t fun, size_t n_closed, const mp_obj_t *closed);
+MAYBE_CUDA mp_obj_t mp_obj_new_tuple(size_t n, const mp_obj_t *items);
+MAYBE_CUDA mp_obj_t mp_obj_new_list(size_t n, mp_obj_t *items);
+MAYBE_CUDA mp_obj_t mp_obj_new_dict(size_t n_args);
+MAYBE_CUDA mp_obj_t mp_obj_new_set(size_t n_args, mp_obj_t *items);
+MAYBE_CUDA mp_obj_t mp_obj_new_slice(mp_obj_t start, mp_obj_t stop, mp_obj_t step);
+MAYBE_CUDA mp_obj_t mp_obj_new_bound_meth(mp_obj_t meth, mp_obj_t self);
+MAYBE_CUDA mp_obj_t mp_obj_new_getitem_iter(mp_obj_t *args, mp_obj_iter_buf_t *iter_buf);
+MAYBE_CUDA mp_obj_t mp_obj_new_module(qstr module_name);
+MAYBE_CUDA mp_obj_t mp_obj_new_memoryview(byte typecode, size_t nitems, void *items);
 
-const mp_obj_type_t *mp_obj_get_type(mp_const_obj_t o_in);
-const char *mp_obj_get_type_str(mp_const_obj_t o_in);
-bool mp_obj_is_subclass_fast(mp_const_obj_t object, mp_const_obj_t classinfo); // arguments should be type objects
-mp_obj_t mp_obj_cast_to_native_base(mp_obj_t self_in, mp_const_obj_t native_type);
+MAYBE_CUDA const mp_obj_type_t *mp_obj_get_type(mp_const_obj_t o_in);
+MAYBE_CUDA const char *mp_obj_get_type_str(mp_const_obj_t o_in);
+MAYBE_CUDA bool mp_obj_is_subclass_fast(mp_const_obj_t object, mp_const_obj_t classinfo); // arguments should be type objects
+MAYBE_CUDA mp_obj_t mp_obj_cast_to_native_base(mp_obj_t self_in, mp_const_obj_t native_type);
 
-void mp_obj_print_helper(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind);
-void mp_obj_print(mp_obj_t o, mp_print_kind_t kind);
-void mp_obj_print_exception(const mp_print_t *print, mp_obj_t exc);
+MAYBE_CUDA void mp_obj_print_helper(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind);
+MAYBE_CUDA void mp_obj_print(mp_obj_t o, mp_print_kind_t kind);
+MAYBE_CUDA void mp_obj_print_exception(const mp_print_t *print, mp_obj_t exc);
 
-bool mp_obj_is_true(mp_obj_t arg);
-bool mp_obj_is_callable(mp_obj_t o_in);
-mp_obj_t mp_obj_equal_not_equal(mp_binary_op_t op, mp_obj_t o1, mp_obj_t o2);
-bool mp_obj_equal(mp_obj_t o1, mp_obj_t o2);
+MAYBE_CUDA bool mp_obj_is_true(mp_obj_t arg);
+MAYBE_CUDA bool mp_obj_is_callable(mp_obj_t o_in);
+MAYBE_CUDA mp_obj_t mp_obj_equal_not_equal(mp_binary_op_t op, mp_obj_t o1, mp_obj_t o2);
+MAYBE_CUDA bool mp_obj_equal(mp_obj_t o1, mp_obj_t o2);
 
 // returns true if o is bool, small int or long int
-static inline bool mp_obj_is_integer(mp_const_obj_t o) {
+MAYBE_CUDA static inline bool mp_obj_is_integer(mp_const_obj_t o) {
     return mp_obj_is_int(o) || mp_obj_is_bool(o);
 }
 
-mp_int_t mp_obj_get_int(mp_const_obj_t arg);
-mp_uint_t mp_obj_get_uint(mp_const_obj_t arg);
-long long mp_obj_get_ll(mp_const_obj_t arg);
-mp_int_t mp_obj_get_int_truncated(mp_const_obj_t arg);
-bool mp_obj_get_int_maybe(mp_const_obj_t arg, mp_int_t *value);
+MAYBE_CUDA mp_int_t mp_obj_get_int(mp_const_obj_t arg);
+MAYBE_CUDA mp_uint_t mp_obj_get_uint(mp_const_obj_t arg);
+MAYBE_CUDA long long mp_obj_get_ll(mp_const_obj_t arg);
+MAYBE_CUDA mp_int_t mp_obj_get_int_truncated(mp_const_obj_t arg);
+MAYBE_CUDA bool mp_obj_get_int_maybe(mp_const_obj_t arg, mp_int_t *value);
 #if MICROPY_PY_BUILTINS_FLOAT
-mp_float_t mp_obj_get_float(mp_obj_t self_in);
-bool mp_obj_get_float_maybe(mp_obj_t arg, mp_float_t *value);
-void mp_obj_get_complex(mp_obj_t self_in, mp_float_t *real, mp_float_t *imag);
-bool mp_obj_get_complex_maybe(mp_obj_t self_in, mp_float_t *real, mp_float_t *imag);
+MAYBE_CUDA mp_float_t mp_obj_get_float(mp_obj_t self_in);
+MAYBE_CUDA bool mp_obj_get_float_maybe(mp_obj_t arg, mp_float_t *value);
+MAYBE_CUDA void mp_obj_get_complex(mp_obj_t self_in, mp_float_t *real, mp_float_t *imag);
+MAYBE_CUDA bool mp_obj_get_complex_maybe(mp_obj_t self_in, mp_float_t *real, mp_float_t *imag);
 #endif
-void mp_obj_get_array(mp_obj_t o, size_t *len, mp_obj_t **items); // *items may point inside a GC block
-void mp_obj_get_array_fixed_n(mp_obj_t o, size_t len, mp_obj_t **items); // *items may point inside a GC block
-size_t mp_get_index(const mp_obj_type_t *type, size_t len, mp_obj_t index, bool is_slice);
-mp_obj_t mp_obj_id(mp_obj_t o_in);
-mp_obj_t mp_obj_len(mp_obj_t o_in);
-mp_obj_t mp_obj_len_maybe(mp_obj_t o_in); // may return MP_OBJ_NULL
-mp_obj_t mp_obj_subscr(mp_obj_t base, mp_obj_t index, mp_obj_t val);
+MAYBE_CUDA void mp_obj_get_array(mp_obj_t o, size_t *len, mp_obj_t **items); // *items may point inside a GC block
+MAYBE_CUDA void mp_obj_get_array_fixed_n(mp_obj_t o, size_t len, mp_obj_t **items); // *items may point inside a GC block
+MAYBE_CUDA size_t mp_get_index(const mp_obj_type_t *type, size_t len, mp_obj_t index, bool is_slice);
+MAYBE_CUDA mp_obj_t mp_obj_id(mp_obj_t o_in);
+MAYBE_CUDA mp_obj_t mp_obj_len(mp_obj_t o_in);
+MAYBE_CUDA mp_obj_t mp_obj_len_maybe(mp_obj_t o_in); // may return MP_OBJ_NULL
+MAYBE_CUDA mp_obj_t mp_obj_subscr(mp_obj_t base, mp_obj_t index, mp_obj_t val);
 
 // cell
 
@@ -1090,49 +1090,49 @@ typedef struct _mp_obj_cell_t {
     mp_obj_t obj;
 } mp_obj_cell_t;
 
-static inline mp_obj_t mp_obj_cell_get(mp_obj_t self_in) {
+MAYBE_CUDA static inline mp_obj_t mp_obj_cell_get(mp_obj_t self_in) {
     mp_obj_cell_t *self = (mp_obj_cell_t *)MP_OBJ_TO_PTR(self_in);
     return self->obj;
 }
 
-static inline void mp_obj_cell_set(mp_obj_t self_in, mp_obj_t obj) {
+MAYBE_CUDA static inline void mp_obj_cell_set(mp_obj_t self_in, mp_obj_t obj) {
     mp_obj_cell_t *self = (mp_obj_cell_t *)MP_OBJ_TO_PTR(self_in);
     self->obj = obj;
 }
 
 // int
 // For long int, returns value truncated to mp_int_t
-mp_int_t mp_obj_int_get_truncated(mp_const_obj_t self_in);
+MAYBE_CUDA mp_int_t mp_obj_int_get_truncated(mp_const_obj_t self_in);
 // Will raise exception if value doesn't fit into mp_int_t
-mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in);
+MAYBE_CUDA mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in);
 // Will raise exception if value is negative or doesn't fit into mp_uint_t
-mp_uint_t mp_obj_int_get_uint_checked(mp_const_obj_t self_in);
+MAYBE_CUDA mp_uint_t mp_obj_int_get_uint_checked(mp_const_obj_t self_in);
 
 // exception
-bool mp_obj_is_native_exception_instance(mp_obj_t self_in);
-bool mp_obj_is_exception_type(mp_obj_t self_in);
-bool mp_obj_is_exception_instance(mp_obj_t self_in);
-bool mp_obj_exception_match(mp_obj_t exc, mp_const_obj_t exc_type);
-void mp_obj_exception_clear_traceback(mp_obj_t self_in);
-void mp_obj_exception_add_traceback(mp_obj_t self_in, qstr file, size_t line, qstr block);
-void mp_obj_exception_get_traceback(mp_obj_t self_in, size_t *n, size_t **values);
-mp_obj_t mp_obj_exception_get_value(mp_obj_t self_in);
-mp_obj_t mp_obj_exception_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args);
-mp_obj_t mp_alloc_emergency_exception_buf(mp_obj_t size_in);
-void mp_init_emergency_exception_buf(void);
+MAYBE_CUDA bool mp_obj_is_native_exception_instance(mp_obj_t self_in);
+MAYBE_CUDA bool mp_obj_is_exception_type(mp_obj_t self_in);
+MAYBE_CUDA bool mp_obj_is_exception_instance(mp_obj_t self_in);
+MAYBE_CUDA bool mp_obj_exception_match(mp_obj_t exc, mp_const_obj_t exc_type);
+MAYBE_CUDA void mp_obj_exception_clear_traceback(mp_obj_t self_in);
+MAYBE_CUDA void mp_obj_exception_add_traceback(mp_obj_t self_in, qstr file, size_t line, qstr block);
+MAYBE_CUDA void mp_obj_exception_get_traceback(mp_obj_t self_in, size_t *n, size_t **values);
+MAYBE_CUDA mp_obj_t mp_obj_exception_get_value(mp_obj_t self_in);
+MAYBE_CUDA mp_obj_t mp_obj_exception_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_alloc_emergency_exception_buf(mp_obj_t size_in);
+MAYBE_CUDA void mp_init_emergency_exception_buf(void);
 static inline mp_obj_t mp_obj_new_exception_arg1(const mp_obj_type_t *exc_type, mp_obj_t arg) {
     assert(MP_OBJ_TYPE_GET_SLOT_OR_NULL(exc_type, make_new) == mp_obj_exception_make_new);
     return mp_obj_exception_make_new(exc_type, 1, 0, &arg);
 }
 
 // str
-bool mp_obj_str_equal(mp_obj_t s1, mp_obj_t s2);
+MAYBE_CUDA bool mp_obj_str_equal(mp_obj_t s1, mp_obj_t s2);
 qstr mp_obj_str_get_qstr(mp_obj_t self_in); // use this if you will anyway convert the string to a qstr
-const char *mp_obj_str_get_str(mp_obj_t self_in); // use this only if you need the string to be null terminated
-const char *mp_obj_str_get_data(mp_obj_t self_in, size_t *len);
-mp_obj_t mp_obj_str_intern(mp_obj_t str);
-mp_obj_t mp_obj_str_intern_checked(mp_obj_t obj);
-void mp_str_print_quoted(const mp_print_t *print, const byte *str_data, size_t str_len, bool is_bytes);
+MAYBE_CUDA const char *mp_obj_str_get_str(mp_obj_t self_in); // use this only if you need the string to be null terminated
+MAYBE_CUDA const char *mp_obj_str_get_data(mp_obj_t self_in, size_t *len);
+MAYBE_CUDA mp_obj_t mp_obj_str_intern(mp_obj_t str);
+MAYBE_CUDA mp_obj_t mp_obj_str_intern_checked(mp_obj_t obj);
+MAYBE_CUDA void mp_str_print_quoted(const mp_print_t *print, const byte *str_data, size_t str_len, bool is_bytes);
 
 #if MICROPY_PY_BUILTINS_FLOAT
 // float
@@ -1170,52 +1170,52 @@ static inline mp_obj_t mp_obj_new_float_from_d(double o) {
 }
 #endif
 #if MICROPY_FLOAT_HIGH_QUALITY_HASH
-mp_int_t mp_float_hash(mp_float_t val);
+MAYBE_CUDA mp_int_t mp_float_hash(mp_float_t val);
 #else
 static inline mp_int_t mp_float_hash(mp_float_t val) {
     return (mp_int_t)val;
 }
 #endif
-mp_obj_t mp_obj_float_binary_op(mp_binary_op_t op, mp_float_t lhs_val, mp_obj_t rhs); // can return MP_OBJ_NULL if op not supported
+MAYBE_CUDA mp_obj_t mp_obj_float_binary_op(mp_binary_op_t op, mp_float_t lhs_val, mp_obj_t rhs); // can return MP_OBJ_NULL if op not supported
 
 // complex
-void mp_obj_complex_get(mp_obj_t self_in, mp_float_t *real, mp_float_t *imag);
-mp_obj_t mp_obj_complex_binary_op(mp_binary_op_t op, mp_float_t lhs_real, mp_float_t lhs_imag, mp_obj_t rhs_in); // can return MP_OBJ_NULL if op not supported
+MAYBE_CUDA void mp_obj_complex_get(mp_obj_t self_in, mp_float_t *real, mp_float_t *imag);
+MAYBE_CUDA mp_obj_t mp_obj_complex_binary_op(mp_binary_op_t op, mp_float_t lhs_real, mp_float_t lhs_imag, mp_obj_t rhs_in); // can return MP_OBJ_NULL if op not supported
 #else
 #define mp_obj_is_float(o) (false)
 #endif
 
 // tuple
-void mp_obj_tuple_get(mp_obj_t self_in, size_t *len, mp_obj_t **items);
-void mp_obj_tuple_del(mp_obj_t self_in);
-mp_int_t mp_obj_tuple_hash(mp_obj_t self_in);
+MAYBE_CUDA void mp_obj_tuple_get(mp_obj_t self_in, size_t *len, mp_obj_t **items);
+MAYBE_CUDA void mp_obj_tuple_del(mp_obj_t self_in);
+MAYBE_CUDA mp_int_t mp_obj_tuple_hash(mp_obj_t self_in);
 
 // list
-mp_obj_t mp_obj_list_append(mp_obj_t self_in, mp_obj_t arg);
-mp_obj_t mp_obj_list_remove(mp_obj_t self_in, mp_obj_t value);
-void mp_obj_list_get(mp_obj_t self_in, size_t *len, mp_obj_t **items);
-void mp_obj_list_set_len(mp_obj_t self_in, size_t len);
-void mp_obj_list_store(mp_obj_t self_in, mp_obj_t index, mp_obj_t value);
-mp_obj_t mp_obj_list_sort(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs);
+MAYBE_CUDA mp_obj_t mp_obj_list_append(mp_obj_t self_in, mp_obj_t arg);
+MAYBE_CUDA mp_obj_t mp_obj_list_remove(mp_obj_t self_in, mp_obj_t value);
+MAYBE_CUDA void mp_obj_list_get(mp_obj_t self_in, size_t *len, mp_obj_t **items);
+MAYBE_CUDA void mp_obj_list_set_len(mp_obj_t self_in, size_t len);
+MAYBE_CUDA void mp_obj_list_store(mp_obj_t self_in, mp_obj_t index, mp_obj_t value);
+MAYBE_CUDA mp_obj_t mp_obj_list_sort(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs);
 
 // dict
 typedef struct _mp_obj_dict_t {
     mp_obj_base_t base;
     mp_map_t map;
 } mp_obj_dict_t;
-mp_obj_t mp_obj_dict_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args);
-void mp_obj_dict_init(mp_obj_dict_t *dict, size_t n_args);
-size_t mp_obj_dict_len(mp_obj_t self_in);
-mp_obj_t mp_obj_dict_get(mp_obj_t self_in, mp_obj_t index);
-mp_obj_t mp_obj_dict_store(mp_obj_t self_in, mp_obj_t key, mp_obj_t value);
-mp_obj_t mp_obj_dict_delete(mp_obj_t self_in, mp_obj_t key);
-mp_obj_t mp_obj_dict_copy(mp_obj_t self_in);
+MAYBE_CUDA mp_obj_t mp_obj_dict_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args);
+MAYBE_CUDA void mp_obj_dict_init(mp_obj_dict_t *dict, size_t n_args);
+MAYBE_CUDA size_t mp_obj_dict_len(mp_obj_t self_in);
+MAYBE_CUDA mp_obj_t mp_obj_dict_get(mp_obj_t self_in, mp_obj_t index);
+MAYBE_CUDA mp_obj_t mp_obj_dict_store(mp_obj_t self_in, mp_obj_t key, mp_obj_t value);
+MAYBE_CUDA mp_obj_t mp_obj_dict_delete(mp_obj_t self_in, mp_obj_t key);
+MAYBE_CUDA mp_obj_t mp_obj_dict_copy(mp_obj_t self_in);
 static inline mp_map_t *mp_obj_dict_get_map(mp_obj_t dict) {
     return &((mp_obj_dict_t *)MP_OBJ_TO_PTR(dict))->map;
 }
 
 // set
-void mp_obj_set_store(mp_obj_t self_in, mp_obj_t item);
+MAYBE_CUDA void mp_obj_set_store(mp_obj_t self_in, mp_obj_t item);
 
 // slice indexes resolved to particular sequence
 typedef struct {
@@ -1231,7 +1231,7 @@ typedef struct _mp_obj_slice_t {
     mp_obj_t stop;
     mp_obj_t step;
 } mp_obj_slice_t;
-void mp_obj_slice_indices(mp_obj_t self_in, mp_int_t length, mp_bound_slice_t *result);
+MAYBE_CUDA void mp_obj_slice_indices(mp_obj_t self_in, mp_int_t length, mp_bound_slice_t *result);
 
 // functions
 
@@ -1256,7 +1256,7 @@ typedef struct _mp_obj_fun_builtin_var_t {
 
 qstr mp_obj_fun_get_name(mp_const_obj_t fun);
 
-mp_obj_t mp_identity(mp_obj_t self);
+MAYBE_CUDA mp_obj_t mp_identity(mp_obj_t self);
 MP_DECLARE_CONST_FUN_OBJ_1(mp_identity_obj);
 
 // module
@@ -1284,17 +1284,17 @@ const mp_obj_t *mp_obj_property_get(mp_obj_t self_in);
 
 // sequence helpers
 
-void mp_seq_multiply(const void *items, size_t item_sz, size_t len, size_t times, void *dest);
+MAYBE_CUDA void mp_seq_multiply(const void *items, size_t item_sz, size_t len, size_t times, void *dest);
 #if MICROPY_PY_BUILTINS_SLICE
-bool mp_seq_get_fast_slice_indexes(mp_uint_t len, mp_obj_t slice, mp_bound_slice_t *indexes);
+MAYBE_CUDA bool mp_seq_get_fast_slice_indexes(mp_uint_t len, mp_obj_t slice, mp_bound_slice_t *indexes);
 #endif
 #define mp_seq_copy(dest, src, len, item_t) memcpy(dest, src, len * sizeof(item_t))
 #define mp_seq_cat(dest, src1, len1, src2, len2, item_t) { memcpy(dest, src1, (len1) * sizeof(item_t)); memcpy(dest + (len1), src2, (len2) * sizeof(item_t)); }
-bool mp_seq_cmp_bytes(mp_uint_t op, const byte *data1, size_t len1, const byte *data2, size_t len2);
-bool mp_seq_cmp_objs(mp_uint_t op, const mp_obj_t *items1, size_t len1, const mp_obj_t *items2, size_t len2);
-mp_obj_t mp_seq_index_obj(const mp_obj_t *items, size_t len, size_t n_args, const mp_obj_t *args);
-mp_obj_t mp_seq_count_obj(const mp_obj_t *items, size_t len, mp_obj_t value);
-mp_obj_t mp_seq_extract_slice(const mp_obj_t *seq, mp_bound_slice_t *indexes);
+MAYBE_CUDA bool mp_seq_cmp_bytes(mp_uint_t op, const byte *data1, size_t len1, const byte *data2, size_t len2);
+MAYBE_CUDA bool mp_seq_cmp_objs(mp_uint_t op, const mp_obj_t *items1, size_t len1, const mp_obj_t *items2, size_t len2);
+MAYBE_CUDA mp_obj_t mp_seq_index_obj(const mp_obj_t *items, size_t len, size_t n_args, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_seq_count_obj(const mp_obj_t *items, size_t len, mp_obj_t value);
+MAYBE_CUDA mp_obj_t mp_seq_extract_slice(const mp_obj_t *seq, mp_bound_slice_t *indexes);
 
 // Helper to clear stale pointers from allocated, but unused memory, to preclude GC problems
 #define mp_seq_clear(start, len, alloc_len, item_sz) memset((byte *)(start) + (len) * (item_sz), 0, ((alloc_len) - (len)) * (item_sz))

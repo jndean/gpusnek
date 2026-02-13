@@ -10,6 +10,7 @@
 #include "py/runtime.h"
 #include "py/gc.h"
 #include "py/mperrno.h"
+#include "py/bumpalloc.h"
 
 // Simple heap for memory allocation (since GC is disabled)
 // Note: not used in POC, but reserved for future use
@@ -40,6 +41,13 @@ int main(int argc, char **argv) {
     (void)argv;
 
     printf("CUDA MicroPython POC starting...\n");
+
+    // Initialize bump allocator (must happen before mp_init)
+    char *heap_ptr = bump_alloc_init(BUMP_ALLOC_HEAP_SIZE);
+    if (!heap_ptr) {
+        printf("FATAL: Failed to initialize bump allocator\n");
+        return 1;
+    }
 
     // Initialize the MicroPython runtime
     mp_init();
@@ -104,6 +112,9 @@ int main(int argc, char **argv) {
 
     // Deinitialize
     mp_deinit();
+
+    // Clean up bump allocator
+    bump_alloc_deinit(heap_ptr);
 
     printf("CUDA MicroPython POC finished.\n");
     return 0;

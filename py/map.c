@@ -86,7 +86,7 @@ static size_t get_hash_alloc_greater_or_equal_to(size_t x) {
 /******************************************************************************/
 /* map                                                                        */
 
-void mp_map_init(mp_map_t *map, size_t n) {
+MAYBE_CUDA void mp_map_init(mp_map_t *map, size_t n) {
     if (n == 0) {
         map->alloc = 0;
         map->table = NULL;
@@ -100,7 +100,7 @@ void mp_map_init(mp_map_t *map, size_t n) {
     map->is_ordered = 0;
 }
 
-void mp_map_init_fixed_table(mp_map_t *map, size_t n, const mp_obj_t *table) {
+MAYBE_CUDA void mp_map_init_fixed_table(mp_map_t *map, size_t n, const mp_obj_t *table) {
     map->alloc = n;
     map->used = n;
     map->all_keys_are_qstrs = 1;
@@ -110,14 +110,14 @@ void mp_map_init_fixed_table(mp_map_t *map, size_t n, const mp_obj_t *table) {
 }
 
 // Differentiate from mp_map_clear() - semantics is different
-void mp_map_deinit(mp_map_t *map) {
+MAYBE_CUDA void mp_map_deinit(mp_map_t *map) {
     if (!map->is_fixed) {
         m_del(mp_map_elem_t, map->table, map->alloc);
     }
     map->used = map->alloc = 0;
 }
 
-void mp_map_clear(mp_map_t *map) {
+MAYBE_CUDA void mp_map_clear(mp_map_t *map) {
     if (!map->is_fixed) {
         m_del(mp_map_elem_t, map->table, map->alloc);
     }
@@ -326,7 +326,7 @@ mp_map_elem_t *MICROPY_WRAP_MP_MAP_LOOKUP(mp_map_lookup)(mp_map_t * map, mp_obj_
 
 #if MICROPY_PY_BUILTINS_SET
 
-void mp_set_init(mp_set_t *set, size_t n) {
+MAYBE_CUDA void mp_set_init(mp_set_t *set, size_t n) {
     set->alloc = n;
     set->used = 0;
     set->table = m_new0(mp_obj_t, set->alloc);
@@ -346,7 +346,7 @@ static void mp_set_rehash(mp_set_t *set) {
     m_del(mp_obj_t, old_table, old_alloc);
 }
 
-mp_obj_t mp_set_lookup(mp_set_t *set, mp_obj_t index, mp_map_lookup_kind_t lookup_kind) {
+MAYBE_CUDA mp_obj_t mp_set_lookup(mp_set_t *set, mp_obj_t index, mp_map_lookup_kind_t lookup_kind) {
     // Note: lookup_kind can be MP_MAP_LOOKUP_ADD_IF_NOT_FOUND_OR_REMOVE_IF_FOUND which
     // is handled by using bitwise operations.
 
@@ -419,7 +419,7 @@ mp_obj_t mp_set_lookup(mp_set_t *set, mp_obj_t index, mp_map_lookup_kind_t looku
     }
 }
 
-mp_obj_t mp_set_remove_first(mp_set_t *set) {
+MAYBE_CUDA mp_obj_t mp_set_remove_first(mp_set_t *set) {
     for (size_t pos = 0; pos < set->alloc; pos++) {
         if (mp_set_slot_is_filled(set, pos)) {
             mp_obj_t elem = set->table[pos];
@@ -437,7 +437,7 @@ mp_obj_t mp_set_remove_first(mp_set_t *set) {
     return MP_OBJ_NULL;
 }
 
-void mp_set_clear(mp_set_t *set) {
+MAYBE_CUDA void mp_set_clear(mp_set_t *set) {
     m_del(mp_obj_t, set->table, set->alloc);
     set->alloc = 0;
     set->used = 0;
@@ -447,7 +447,7 @@ void mp_set_clear(mp_set_t *set) {
 #endif // MICROPY_PY_BUILTINS_SET
 
 #if defined(DEBUG_PRINT) && DEBUG_PRINT
-void mp_map_dump(mp_map_t *map) {
+MAYBE_CUDA void mp_map_dump(mp_map_t *map) {
     for (size_t i = 0; i < map->alloc; i++) {
         if (map->table[i].key != MP_OBJ_NULL) {
             mp_obj_print(map->table[i].key, PRINT_REPR);

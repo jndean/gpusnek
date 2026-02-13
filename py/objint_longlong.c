@@ -48,7 +48,7 @@ static void raise_long_long_overflow(void) {
     mp_raise_msg(&mp_type_OverflowError, MP_ERROR_TEXT("result overflows long long storage"));
 }
 
-mp_obj_t mp_obj_int_from_bytes_impl(bool big_endian, size_t len, const byte *buf) {
+MAYBE_CUDA mp_obj_t mp_obj_int_from_bytes_impl(bool big_endian, size_t len, const byte *buf) {
     int delta = 1;
     if (!big_endian) {
         buf += len - 1;
@@ -62,7 +62,7 @@ mp_obj_t mp_obj_int_from_bytes_impl(bool big_endian, size_t len, const byte *buf
     return mp_obj_new_int_from_ll(value);
 }
 
-bool mp_obj_int_to_bytes_impl(mp_obj_t self_in, bool big_endian, size_t len, byte *buf) {
+MAYBE_CUDA bool mp_obj_int_to_bytes_impl(mp_obj_t self_in, bool big_endian, size_t len, byte *buf) {
     assert(mp_obj_is_exact_type(self_in, &mp_type_int));
     mp_obj_int_t *self = self_in;
     long long val = self->val;
@@ -115,7 +115,7 @@ int mp_obj_int_sign(mp_obj_t self_in) {
     }
 }
 
-mp_obj_t mp_obj_int_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
+MAYBE_CUDA mp_obj_t mp_obj_int_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
     mp_obj_int_t *o = o_in;
     switch (op) {
         case MP_UNARY_OP_BOOL:
@@ -148,7 +148,7 @@ mp_obj_t mp_obj_int_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
     }
 }
 
-mp_obj_t mp_obj_int_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
+MAYBE_CUDA mp_obj_t mp_obj_int_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
     long long lhs_val;
     long long rhs_val;
     bool overflow = false;
@@ -290,15 +290,15 @@ zero_division:
     mp_raise_msg(&mp_type_ZeroDivisionError, MP_ERROR_TEXT("divide by zero"));
 }
 
-mp_obj_t mp_obj_new_int(mp_int_t value) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int(mp_int_t value) {
     return mp_obj_new_int_from_ll(value);
 }
 
-mp_obj_t mp_obj_new_int_from_uint(mp_uint_t value) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_uint(mp_uint_t value) {
     return mp_obj_new_int_from_ll(value);
 }
 
-mp_obj_t mp_obj_new_int_from_ll(long long val) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_ll(long long val) {
     if ((long long)(mp_int_t)val == val && MP_SMALL_INT_FITS(val)) {
         return MP_OBJ_NEW_SMALL_INT(val);
     }
@@ -308,14 +308,14 @@ mp_obj_t mp_obj_new_int_from_ll(long long val) {
     return MP_OBJ_FROM_PTR(o);
 }
 
-mp_obj_t mp_obj_new_int_from_ull(unsigned long long val) {
+MAYBE_CUDA mp_obj_t mp_obj_new_int_from_ull(unsigned long long val) {
     if (val >> (sizeof(unsigned long long) * 8 - 1) != 0) {
         raise_long_long_overflow();
     }
     return mp_obj_new_int_from_ll(val);
 }
 
-mp_int_t mp_obj_int_get_truncated(mp_const_obj_t self_in) {
+MAYBE_CUDA mp_int_t mp_obj_int_get_truncated(mp_const_obj_t self_in) {
     if (mp_obj_is_small_int(self_in)) {
         return MP_OBJ_SMALL_INT_VALUE(self_in);
     } else {
@@ -324,7 +324,7 @@ mp_int_t mp_obj_int_get_truncated(mp_const_obj_t self_in) {
     }
 }
 
-mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in) {
+MAYBE_CUDA mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in) {
     if (mp_obj_is_small_int(self_in)) {
         return MP_OBJ_SMALL_INT_VALUE(self_in);
     } else {
@@ -338,7 +338,7 @@ mp_int_t mp_obj_int_get_checked(mp_const_obj_t self_in) {
     mp_raise_msg(&mp_type_OverflowError, MP_ERROR_TEXT("overflow converting long int to machine word"));
 }
 
-mp_uint_t mp_obj_int_get_uint_checked(mp_const_obj_t self_in) {
+MAYBE_CUDA mp_uint_t mp_obj_int_get_uint_checked(mp_const_obj_t self_in) {
     if (mp_obj_is_small_int(self_in)) {
         if (MP_OBJ_SMALL_INT_VALUE(self_in) >= 0) {
             return MP_OBJ_SMALL_INT_VALUE(self_in);
@@ -355,7 +355,7 @@ mp_uint_t mp_obj_int_get_uint_checked(mp_const_obj_t self_in) {
 }
 
 #if MICROPY_PY_BUILTINS_FLOAT
-mp_float_t mp_obj_int_as_float_impl(mp_obj_t self_in) {
+MAYBE_CUDA mp_float_t mp_obj_int_as_float_impl(mp_obj_t self_in) {
     assert(mp_obj_is_exact_type(self_in, &mp_type_int));
     mp_obj_int_t *self = self_in;
     return self->val;

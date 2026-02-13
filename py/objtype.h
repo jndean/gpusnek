@@ -43,13 +43,13 @@ mp_obj_instance_t *mp_obj_new_instance(const mp_obj_type_t *cls, const mp_obj_ty
 #endif
 
 // these need to be exposed so mp_obj_is_callable can work correctly
-bool mp_obj_instance_is_callable(mp_obj_t self_in);
-mp_obj_t mp_obj_instance_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args);
+MAYBE_CUDA bool mp_obj_instance_is_callable(mp_obj_t self_in);
+MAYBE_CUDA mp_obj_t mp_obj_instance_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args);
 
 #define mp_obj_is_instance_type(type) ((type)->flags & MP_TYPE_FLAG_INSTANCE_TYPE)
 #define mp_obj_is_native_type(type) (!((type)->flags & MP_TYPE_FLAG_INSTANCE_TYPE))
 
 // this needs to be exposed for mp_getiter
-mp_obj_t mp_obj_instance_getiter(mp_obj_t self_in, mp_obj_iter_buf_t *iter_buf);
+MAYBE_CUDA mp_obj_t mp_obj_instance_getiter(mp_obj_t self_in, mp_obj_iter_buf_t *iter_buf);
 
 #endif // MICROPY_INCLUDED_PY_OBJTYPE_H

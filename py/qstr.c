@@ -61,7 +61,7 @@
 #define MICROPY_ALLOC_QSTR_ENTRIES_INIT (10)
 
 // this must match the equivalent function in makeqstrdata.py
-size_t qstr_compute_hash(const byte *data, size_t len) {
+MAYBE_CUDA size_t qstr_compute_hash(const byte *data, size_t len) {
     // djb2 algorithm; see http://www.cse.yorku.ca/~oz/hash.html
     size_t hash = 5381;
     for (const byte *top = data + len; data < top; data++) {
@@ -187,7 +187,7 @@ void qstr_init(void) {
     #endif
 }
 
-static const qstr_pool_t *find_qstr(qstr *q) {
+static MAYBE_CUDA const qstr_pool_t *find_qstr(qstr *q) {
     // search pool for this qstr
     // total_prev_len==0 in the final pool, so the loop will always terminate
     const qstr_pool_t *pool = MP_STATE_VM(last_pool);
@@ -259,7 +259,7 @@ static qstr qstr_add(mp_uint_t len, const char *q_ptr) {
     return MP_STATE_VM(last_pool)->total_prev_len + at;
 }
 
-qstr qstr_find_strn(const char *str, size_t str_len) {
+MAYBE_CUDA qstr qstr_find_strn(const char *str, size_t str_len) {
     if (str_len == 0) {
         // strncmp behaviour is undefined for str==NULL.
         return MP_QSTR_;
@@ -305,7 +305,7 @@ qstr qstr_find_strn(const char *str, size_t str_len) {
     return MP_QSTRnull;
 }
 
-qstr qstr_from_str(const char *str) {
+MAYBE_CUDA qstr qstr_from_str(const char *str) {
     return qstr_from_strn(str, strlen(str));
 }
 
@@ -381,13 +381,13 @@ static qstr qstr_from_strn_helper(const char *str, size_t len, bool data_is_stat
     return q;
 }
 
-qstr qstr_from_strn(const char *str, size_t len) {
+MAYBE_CUDA qstr qstr_from_strn(const char *str, size_t len) {
     return qstr_from_strn_helper(str, len, false);
 }
 
 #if MICROPY_VFS_ROM
 // Create a new qstr that can forever reference the given string data.
-qstr qstr_from_strn_static(const char *str, size_t len) {
+MAYBE_CUDA qstr qstr_from_strn_static(const char *str, size_t len) {
     return qstr_from_strn_helper(str, len, true);
 }
 #endif
@@ -401,17 +401,17 @@ mp_uint_t qstr_hash(qstr q) {
     #endif
 }
 
-size_t qstr_len(qstr q) {
+MAYBE_CUDA size_t qstr_len(qstr q) {
     const qstr_pool_t *pool = find_qstr(&q);
     return pool->lengths[q];
 }
 
-const char *qstr_str(qstr q) {
+MAYBE_CUDA const char *qstr_str(qstr q) {
     const qstr_pool_t *pool = find_qstr(&q);
     return pool->qstrs[q];
 }
 
-const byte *qstr_data(qstr q, size_t *len) {
+MAYBE_CUDA const byte *qstr_data(qstr q, size_t *len) {
     const qstr_pool_t *pool = find_qstr(&q);
     *len = pool->lengths[q];
     return (byte *)pool->qstrs[q];
@@ -494,7 +494,7 @@ static const byte *find_uncompressed_string(uint8_t n) {
 
 // Given a compressed string in src, decompresses it into dst.
 // dst must be large enough (use MP_MAX_UNCOMPRESSED_TEXT_LEN+1).
-void mp_decompress_rom_string(byte *dst, const mp_rom_error_text_t src_chr) {
+MAYBE_CUDA void mp_decompress_rom_string(byte *dst, const mp_rom_error_text_t src_chr) {
     // Skip past the 0xff marker.
     const byte *src = (byte *)src_chr + 1;
     // Need to add spaces around compressed words, except for the first (i.e. transition from 1<->2).

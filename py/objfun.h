@@ -50,8 +50,8 @@ typedef struct _mp_obj_fun_asm_t {
     mp_uint_t type_sig;
 } mp_obj_fun_asm_t;
 
-mp_obj_t mp_obj_new_fun_bc(const mp_obj_t *def_args, const byte *code, const mp_module_context_t *cm, struct _mp_raw_code_t *const *raw_code_table);
-void mp_obj_fun_bc_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest);
+MAYBE_CUDA mp_obj_t mp_obj_new_fun_bc(const mp_obj_t *def_args, const byte *code, const mp_module_context_t *cm, struct _mp_raw_code_t *const *raw_code_table);
+MAYBE_CUDA void mp_obj_fun_bc_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest);
 
 #if MICROPY_EMIT_NATIVE
 

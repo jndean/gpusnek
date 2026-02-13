@@ -871,12 +871,12 @@ static mp_obj_t mp_obj_instance_get_call(mp_obj_t self_in, mp_obj_t *member) {
     return member[0];
 }
 
-bool mp_obj_instance_is_callable(mp_obj_t self_in) {
+MAYBE_CUDA bool mp_obj_instance_is_callable(mp_obj_t self_in) {
     mp_obj_t member[2] = {MP_OBJ_NULL, MP_OBJ_NULL};
     return mp_obj_instance_get_call(self_in, member) != MP_OBJ_NULL;
 }
 
-mp_obj_t mp_obj_instance_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_obj_instance_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     mp_obj_t member[2] = {MP_OBJ_NULL, MP_OBJ_NULL};
     mp_obj_t call = mp_obj_instance_get_call(self_in, member);
     if (call == MP_OBJ_NULL) {
@@ -896,7 +896,7 @@ mp_obj_t mp_obj_instance_call(mp_obj_t self_in, size_t n_args, size_t n_kw, cons
 }
 
 // Note that iter_buf may be NULL, and needs to be allocated if needed
-mp_obj_t mp_obj_instance_getiter(mp_obj_t self_in, mp_obj_iter_buf_t *iter_buf) {
+MAYBE_CUDA mp_obj_t mp_obj_instance_getiter(mp_obj_t self_in, mp_obj_iter_buf_t *iter_buf) {
     mp_obj_instance_t *self = (mp_obj_instance_t *)MP_OBJ_TO_PTR(self_in);
     mp_obj_t member[2] = {MP_OBJ_NULL};
     struct class_lookup_data lookup = {
@@ -1424,7 +1424,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     attr, super_attr
     );
 
-void mp_load_super_method(qstr attr, mp_obj_t *dest) {
+MAYBE_CUDA void mp_load_super_method(qstr attr, mp_obj_t *dest) {
     mp_obj_super_t super = {{&mp_type_super}, dest[1], dest[2]};
     mp_load_method(MP_OBJ_FROM_PTR(&super), attr, dest);
 }
@@ -1434,7 +1434,7 @@ void mp_load_super_method(qstr attr, mp_obj_t *dest) {
 
 // object and classinfo should be type objects
 // (but the function will fail gracefully if they are not)
-bool mp_obj_is_subclass_fast(mp_const_obj_t object, mp_const_obj_t classinfo) {
+MAYBE_CUDA bool mp_obj_is_subclass_fast(mp_const_obj_t object, mp_const_obj_t classinfo) {
     for (;;) {
         if (object == classinfo) {
             return true;
@@ -1518,7 +1518,7 @@ extern
 #endif
 MP_DEFINE_CONST_FUN_OBJ_2(mp_builtin_isinstance_obj, mp_builtin_isinstance);
 
-mp_obj_t mp_obj_cast_to_native_base(mp_obj_t self_in, mp_const_obj_t native_type) {
+MAYBE_CUDA mp_obj_t mp_obj_cast_to_native_base(mp_obj_t self_in, mp_const_obj_t native_type) {
     const mp_obj_type_t *self_type = mp_obj_get_type(self_in);
 
     if (MP_OBJ_FROM_PTR(self_type) == native_type) {

@@ -125,7 +125,7 @@ static inline void mp_sched_run_pending(void) {
 // Locking the scheduler prevents tasks from executing (does not prevent new
 // tasks from being added). We lock the scheduler while executing scheduled
 // tasks and also in hard interrupts or GC finalisers.
-void mp_sched_lock(void) {
+MAYBE_CUDA void mp_sched_lock(void) {
     mp_uint_t atomic_state = MICROPY_BEGIN_ATOMIC_SECTION();
     if (MP_STATE_VM(sched_state) < 0) {
         // Already locked, increment lock (recursive lock).
@@ -137,7 +137,7 @@ void mp_sched_lock(void) {
     MICROPY_END_ATOMIC_SECTION(atomic_state);
 }
 
-void mp_sched_unlock(void) {
+MAYBE_CUDA void mp_sched_unlock(void) {
     mp_uint_t atomic_state = MICROPY_BEGIN_ATOMIC_SECTION();
     assert(MP_STATE_VM(sched_state) < 0);
     if (++MP_STATE_VM(sched_state) == 0) {
@@ -181,7 +181,7 @@ bool MICROPY_WRAP_MP_SCHED_SCHEDULE(mp_sched_schedule)(mp_obj_t function, mp_obj
 }
 
 #if MICROPY_SCHEDULER_STATIC_NODES
-bool mp_sched_schedule_node(mp_sched_node_t *node, mp_sched_callback_t callback) {
+MAYBE_CUDA bool mp_sched_schedule_node(mp_sched_node_t *node, mp_sched_callback_t callback) {
     mp_uint_t atomic_state = MICROPY_BEGIN_ATOMIC_SECTION();
     bool ret;
     if (node->callback == NULL) {
@@ -213,7 +213,7 @@ MP_REGISTER_ROOT_POINTER(mp_sched_item_t sched_queue[MICROPY_SCHEDULER_DEPTH]);
 
 // Called periodically from the VM or from "waiting" code (e.g. sleep) to
 // process background tasks and pending exceptions (e.g. KeyboardInterrupt).
-void mp_handle_pending_internal(mp_handle_pending_behaviour_t behavior) {
+MAYBE_CUDA void mp_handle_pending_internal(mp_handle_pending_behaviour_t behavior) {
     bool handle_exceptions = (behavior != MP_HANDLE_PENDING_CALLBACKS_ONLY);
     bool raise_exceptions = (behavior == MP_HANDLE_PENDING_CALLBACKS_AND_EXCEPTIONS);
 
@@ -256,7 +256,7 @@ void mp_handle_pending_internal(mp_handle_pending_behaviour_t behavior) {
 }
 
 // Handles any pending MicroPython events without waiting for an interrupt or event.
-void mp_event_handle_nowait(void) {
+MAYBE_CUDA void mp_event_handle_nowait(void) {
     #if defined(MICROPY_EVENT_POLL_HOOK_FAST) && !MICROPY_PREVIEW_VERSION_2
     // For ports still using the old macros.
     MICROPY_EVENT_POLL_HOOK_FAST
@@ -269,7 +269,7 @@ void mp_event_handle_nowait(void) {
 
 // Handles any pending MicroPython events and then suspends execution until the
 // next interrupt or event.
-void mp_event_wait_indefinite(void) {
+MAYBE_CUDA void mp_event_wait_indefinite(void) {
     #if defined(MICROPY_EVENT_POLL_HOOK) && !MICROPY_PREVIEW_VERSION_2
     // For ports still using the old macros.
     MICROPY_EVENT_POLL_HOOK
@@ -281,7 +281,7 @@ void mp_event_wait_indefinite(void) {
 
 // Handle any pending MicroPython events and then suspends execution until the
 // next interrupt or event, or until timeout_ms milliseconds have elapsed.
-void mp_event_wait_ms(mp_uint_t timeout_ms) {
+MAYBE_CUDA void mp_event_wait_ms(mp_uint_t timeout_ms) {
     #if defined(MICROPY_EVENT_POLL_HOOK) && !MICROPY_PREVIEW_VERSION_2
     // For ports still using the old macros.
     MICROPY_EVENT_POLL_HOOK

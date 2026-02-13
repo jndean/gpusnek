@@ -44,7 +44,7 @@ qstr_short_t mp_emit_common_use_qstr(mp_emit_common_t *emit, qstr qst) {
 
 // Compare two objects for strict equality, including equality of type.  This is
 // different to the semantics of mp_obj_equal which, eg, has (True,) == (1.0,).
-static bool strictly_equal(mp_obj_t a, mp_obj_t b) {
+static MAYBE_CUDA bool strictly_equal(mp_obj_t a, mp_obj_t b) {
     if (a == b) {
         return true;
     }
@@ -91,7 +91,7 @@ static bool strictly_equal(mp_obj_t a, mp_obj_t b) {
     }
 }
 
-size_t mp_emit_common_use_const_obj(mp_emit_common_t *emit, mp_obj_t const_obj) {
+MAYBE_CUDA size_t mp_emit_common_use_const_obj(mp_emit_common_t *emit, mp_obj_t const_obj) {
     for (size_t i = 0; i < emit->const_obj_list.len; ++i) {
         if (strictly_equal(emit->const_obj_list.items[i], const_obj)) {
             return i;
@@ -116,7 +116,7 @@ id_info_t *mp_emit_common_get_id_for_modification(scope_t *scope, qstr qst) {
     return id;
 }
 
-void mp_emit_common_id_op(emit_t *emit, const mp_emit_method_table_id_ops_t *emit_method_table, scope_t *scope, qstr qst) {
+MAYBE_CUDA void mp_emit_common_id_op(emit_t *emit, const mp_emit_method_table_id_ops_t *emit_method_table, scope_t *scope, qstr qst) {
     // assumes pass is greater than 1, ie that all identifiers are defined in the scope
 
     id_info_t *id = scope_find(scope, qst);

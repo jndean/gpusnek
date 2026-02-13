@@ -28,7 +28,7 @@
 #include "py/runtime.h"
 #include "py/cstack.h"
 
-void mp_cstack_init_with_sp_here(size_t stack_size) {
+MAYBE_CUDA void mp_cstack_init_with_sp_here(size_t stack_size) {
     #if __GNUC__ >= 13
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wdangling-pointer"
@@ -40,7 +40,7 @@ void mp_cstack_init_with_sp_here(size_t stack_size) {
     #endif
 }
 
-mp_uint_t mp_cstack_usage(void) {
+MAYBE_CUDA mp_uint_t mp_cstack_usage(void) {
     // Assumes descending stack
     volatile int stack_dummy;
     return MP_STATE_THREAD(stack_top) - (char *)&stack_dummy;
@@ -48,7 +48,7 @@ mp_uint_t mp_cstack_usage(void) {
 
 #if MICROPY_STACK_CHECK
 
-void mp_cstack_check(void) {
+MAYBE_CUDA void mp_cstack_check(void) {
     if (mp_cstack_usage() >= MP_STATE_THREAD(stack_limit)) {
         mp_raise_recursion_depth();
     }

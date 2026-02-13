@@ -33,7 +33,7 @@
 // MICROPY_STACK_CHECK_MARGIN to the number of bytes subtracted to account
 // for stack usage between checks.
 
-void mp_cstack_init_with_sp_here(size_t stack_size);
+MAYBE_CUDA void mp_cstack_init_with_sp_here(size_t stack_size);
 
 static inline void mp_cstack_init_with_top(void *top, size_t stack_size) {
     MP_STATE_THREAD(stack_top) = (char *)top;
@@ -46,15 +46,15 @@ static inline void mp_cstack_init_with_top(void *top, size_t stack_size) {
     #endif
 }
 
-mp_uint_t mp_cstack_usage(void);
+MAYBE_CUDA mp_uint_t mp_cstack_usage(void);
 
 #if MICROPY_STACK_CHECK
 
-void mp_cstack_check(void);
+MAYBE_CUDA void mp_cstack_check(void);
 
 #else
 
-static inline void mp_cstack_check(void) {
+MAYBE_CUDA static inline void mp_cstack_check(void) {
     // No-op when stack checking is disabled
 }
 

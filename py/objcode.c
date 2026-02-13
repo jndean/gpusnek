@@ -223,7 +223,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     attr, code_attr
     );
 
-mp_obj_t mp_obj_new_code(const mp_module_context_t *context, const mp_raw_code_t *rc, bool result_required) {
+MAYBE_CUDA mp_obj_t mp_obj_new_code(const mp_module_context_t *context, const mp_raw_code_t *rc, bool result_required) {
     mp_obj_code_t *o;
     if (result_required) {
         o = m_new_obj(mp_obj_code_t);

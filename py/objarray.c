@@ -210,7 +210,7 @@ static mp_obj_t bytearray_make_new(const mp_obj_type_t *type_in, size_t n_args, 
 
 #if MICROPY_PY_BUILTINS_MEMORYVIEW
 
-mp_obj_t mp_obj_new_memoryview(byte typecode, size_t nitems, void *items) {
+MAYBE_CUDA mp_obj_t mp_obj_new_memoryview(byte typecode, size_t nitems, void *items) {
     mp_obj_array_t *self = m_new_obj(mp_obj_array_t);
     mp_obj_memoryview_init(self, typecode, 0, nitems, items);
     return MP_OBJ_FROM_PTR(self);
@@ -667,20 +667,20 @@ MP_DEFINE_CONST_OBJ_TYPE(
 #endif // MICROPY_PY_BUILTINS_MEMORYVIEW
 
 /* unused
-size_t mp_obj_array_len(mp_obj_t self_in) {
+MAYBE_CUDA size_t mp_obj_array_len(mp_obj_t self_in) {
     return ((mp_obj_array_t *)self_in)->len;
 }
 */
 
 #if MICROPY_PY_BUILTINS_BYTEARRAY
-mp_obj_t mp_obj_new_bytearray(size_t n, const void *items) {
+MAYBE_CUDA mp_obj_t mp_obj_new_bytearray(size_t n, const void *items) {
     mp_obj_array_t *o = array_new(BYTEARRAY_TYPECODE, n);
     memcpy(o->items, items, n);
     return MP_OBJ_FROM_PTR(o);
 }
 
 // Create bytearray which references specified memory area
-mp_obj_t mp_obj_new_bytearray_by_ref(size_t n, void *items) {
+MAYBE_CUDA mp_obj_t mp_obj_new_bytearray_by_ref(size_t n, void *items) {
     mp_obj_array_t *o = mp_obj_malloc(mp_obj_array_t, &mp_type_bytearray);
     o->typecode = BYTEARRAY_TYPECODE;
     o->free = 0;

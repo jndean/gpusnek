@@ -32,14 +32,14 @@
 
 #if !MICROPY_PREVIEW_VERSION_2
 
-void mp_stack_ctrl_init(void);
-void mp_stack_set_top(void *top);
-mp_uint_t mp_stack_usage(void);
+MAYBE_CUDA void mp_stack_ctrl_init(void);
+MAYBE_CUDA void mp_stack_set_top(void *top);
+MAYBE_CUDA mp_uint_t mp_stack_usage(void);
 
 #if MICROPY_STACK_CHECK
 
-void mp_stack_set_limit(mp_uint_t limit);
-void mp_stack_check(void);
+MAYBE_CUDA void mp_stack_set_limit(mp_uint_t limit);
+MAYBE_CUDA void mp_stack_check(void);
 #define MP_STACK_CHECK() mp_stack_check()
 
 #else

@@ -52,6 +52,7 @@ LDFLAGS +=
 SRC_C = \
 	main.c \
 	mphal.c \
+	bumpalloc.c \
 
 # Object files
 OBJ = $(PY_CORE_O)
