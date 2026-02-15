@@ -93,7 +93,7 @@ const qstr_hash_t mp_qstr_const_hashes_static[] = {
 };
 #endif
 
-const qstr_len_t mp_qstr_const_lengths_static[] = {
+MAYBE_CUDA const qstr_len_t mp_qstr_const_lengths_static[] = {
     #ifndef NO_QSTR
 #define QDEF0(id, hash, len, str) len,
 #define QDEF1(id, hash, len, str)
@@ -103,7 +103,7 @@ const qstr_len_t mp_qstr_const_lengths_static[] = {
     #endif
 };
 
-const qstr_pool_t mp_qstr_const_pool_static = {
+MAYBE_CUDA const qstr_pool_t mp_qstr_const_pool_static = {
     NULL,               // no previous pool
     0,                  // no previous pool
     false,              // is_sorted
@@ -138,7 +138,7 @@ const qstr_hash_t mp_qstr_const_hashes[] = {
 };
 #endif
 
-const qstr_len_t mp_qstr_const_lengths[] = {
+MAYBE_CUDA const qstr_len_t mp_qstr_const_lengths[] = {
     #ifndef NO_QSTR
 #define QDEF0(id, hash, len, str)
 #define QDEF1(id, hash, len, str) len,
@@ -148,7 +148,7 @@ const qstr_len_t mp_qstr_const_lengths[] = {
     #endif
 };
 
-const qstr_pool_t mp_qstr_const_pool = {
+MAYBE_CUDA const qstr_pool_t mp_qstr_const_pool = {
     &mp_qstr_const_pool_static,
     MP_QSTRnumber_of_static,
     true,               // is_sorted
@@ -178,7 +178,7 @@ extern const qstr_pool_t MICROPY_QSTR_EXTRA_POOL;
 #define CONST_POOL mp_qstr_const_pool
 #endif
 
-void qstr_init(void) {
+MAYBE_CUDA void qstr_init(void) {
     MP_STATE_VM(last_pool) = (qstr_pool_t *)&CONST_POOL; // we won't modify the const_pool since it has no allocated room left
     MP_STATE_VM(qstr_last_chunk) = NULL;
 
@@ -392,7 +392,7 @@ MAYBE_CUDA qstr qstr_from_strn_static(const char *str, size_t len) {
 }
 #endif
 
-mp_uint_t qstr_hash(qstr q) {
+MAYBE_CUDA mp_uint_t qstr_hash(qstr q) {
     const qstr_pool_t *pool = find_qstr(&q);
     #if MICROPY_QSTR_BYTES_IN_HASH
     return pool->hashes[q];

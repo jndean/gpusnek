@@ -75,7 +75,7 @@ MAYBE_CUDA void vstr_clear(vstr_t *vstr) {
     vstr->buf = NULL;
 }
 
-vstr_t *vstr_new(size_t alloc) {
+MAYBE_CUDA vstr_t *vstr_new(size_t alloc) {
     vstr_t *vstr = m_new_obj(vstr_t);
     vstr_init(vstr, alloc);
     return vstr;

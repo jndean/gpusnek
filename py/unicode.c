@@ -154,14 +154,14 @@ MAYBE_CUDA bool unichar_islower(unichar c) {
     return c < 128 && (attr[c] & FL_LOWER) != 0;
 }
 
-unichar unichar_tolower(unichar c) {
+MAYBE_CUDA unichar unichar_tolower(unichar c) {
     if (unichar_isupper(c)) {
         return c + 0x20;
     }
     return c;
 }
 
-unichar unichar_toupper(unichar c) {
+MAYBE_CUDA unichar unichar_toupper(unichar c) {
     if (unichar_islower(c)) {
         return c - 0x20;
     }

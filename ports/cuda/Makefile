@@ -27,13 +27,15 @@ INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
 
+CUDACFLAGS = $(INC) -x cu -dc -Xcompiler -fpermissive -D"restrict="
+
 ifeq ($(TARGET),cuda)
 # CUDA Build Settings
 CC = $(NVCC)
 LD = $(NVCC)
 # Optimization for nvcc (must be -O1, -O2, or -O3; -Os not supported)
 COPT = -O1
-CFLAGS = $(INC) -x cu -dc -Xcompiler -fpermissive -D"restrict="
+CFLAGS = $(CUDACFLAGS)
 CFLAGS += -O1 -DNDEBUG
 # Overrides for nvcc (it doesn't support -Os)
 $(PY_BUILD)/nlr%.o: CFLAGS = $(INC) -x cu -dc -Xcompiler -fpermissive -D"restrict=" -O1 -DNDEBUG
@@ -57,6 +59,15 @@ SRC_C = \
 # Object files
 OBJ = $(PY_CORE_O)
 OBJ += $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
+OBJ += $(BUILD)/tests.o
+
+ifeq ($(TARGET),cuda)
+OBJ += $(BUILD)/cuda_kernel.o
+endif
+
+# Rule for .cu files
+$(BUILD)/%.o: %.cu
+	$(NVCC) $(CUDACFLAGS) -c $< -o $@
 
 # Build target
 all: $(BUILD)/micropython

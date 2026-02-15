@@ -48,7 +48,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     print, singleton_print
     );
 
-const mp_obj_singleton_t mp_const_ellipsis_obj = {{&mp_type_singleton}, MP_QSTR_Ellipsis};
+MAYBE_CUDA const mp_obj_singleton_t mp_const_ellipsis_obj = {{&mp_type_singleton}, MP_QSTR_Ellipsis};
 #if MICROPY_PY_BUILTINS_NOTIMPLEMENTED
 const mp_obj_singleton_t mp_const_notimplemented_obj = {{&mp_type_singleton}, MP_QSTR_NotImplemented};
 #endif

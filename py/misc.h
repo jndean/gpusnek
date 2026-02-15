@@ -215,7 +215,7 @@ MAYBE_CUDA void vstr_init_fixed_buf(vstr_t *vstr, size_t alloc, char *buf);
 struct _mp_print_t;
 MAYBE_CUDA void vstr_init_print(vstr_t *vstr, size_t alloc, struct _mp_print_t *print);
 MAYBE_CUDA void vstr_clear(vstr_t *vstr);
-vstr_t *vstr_new(size_t alloc);
+MAYBE_CUDA vstr_t *vstr_new(size_t alloc);
 MAYBE_CUDA void vstr_free(vstr_t *vstr);
 static inline MAYBE_CUDA void vstr_reset(vstr_t *vstr) {
     vstr->len = 0;
@@ -483,7 +483,14 @@ static inline MAYBE_CUDA uint32_t mp_clz_mpi(mp_int_t x) {
 static inline MAYBE_CUDA bool mp_mul_mp_int_t_overflow(mp_int_t x, mp_int_t y, mp_int_t *res) {
     // __builtin_mul_overflow is a type-generic function, this inline ensures the argument
     // types are checked to match mp_int_t.
+    #ifdef __CUDA_ARCH__
+    // Use __int128 for overflow checking on device
+    __int128_t prod = (__int128_t)x * (__int128_t)y;
+    *res = (mp_int_t)prod;
+    return prod != (__int128_t)*res;
+    #else
     return __builtin_mul_overflow(x, y, res);
+    #endif
 }
 
 #else

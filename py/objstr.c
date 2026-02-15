@@ -2376,7 +2376,7 @@ static MAYBE_CUDA MP_NORETURN void bad_implicit_conversion(mp_obj_t self_in) {
 
 // use this if you will anyway convert the string to a qstr
 // will be more efficient for the case where it's already a qstr
-qstr mp_obj_str_get_qstr(mp_obj_t self_in) {
+MAYBE_CUDA qstr mp_obj_str_get_qstr(mp_obj_t self_in) {
     if (mp_obj_is_qstr(self_in)) {
         return MP_OBJ_QSTR_VALUE(self_in);
     } else if (mp_obj_is_exact_type(self_in, &mp_type_str)) {

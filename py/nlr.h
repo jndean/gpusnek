@@ -170,7 +170,11 @@ struct _nlr_jump_callback_node_t {
 // nlr_push() must be defined as a macro, because "The stack context will be
 // invalidated if the function which called setjmp() returns."
 // For this case it is safe to call nlr_push_tail() first.
+#ifdef __CUDA_ARCH__
+#define nlr_push(buf) (nlr_push_tail(buf), 0)
+#else
 #define nlr_push(buf) (nlr_push_tail(buf), setjmp((buf)->jmpbuf))
+#endif
 #else
 unsigned int nlr_push(nlr_buf_t *);
 #endif

@@ -107,7 +107,7 @@ MP_DECLARE_CONST_FUN_OBJ_KW(mp_builtin_min_obj);
 #if MICROPY_PY_BUILTINS_NEXT2
 MP_DECLARE_CONST_FUN_OBJ_VAR_BETWEEN(mp_builtin_next_obj);
 #else
-MP_DECLARE_CONST_FUN_OBJ_1(mp_builtin_next_obj);
+MAYBE_CUDA MP_DECLARE_CONST_FUN_OBJ_1(mp_builtin_next_obj);
 #endif
 MP_DECLARE_CONST_FUN_OBJ_1(mp_builtin_oct_obj);
 MP_DECLARE_CONST_FUN_OBJ_1(mp_builtin_ord_obj);
@@ -129,7 +129,7 @@ MP_DECLARE_CONST_FUN_OBJ_2(mp_op_delitem_obj);
 MP_DECLARE_CONST_FUN_OBJ_VAR_BETWEEN(mp_sys_exit_obj);
 
 // Modules needed by the runtime.
-extern const mp_obj_dict_t mp_module_builtins_globals;
+extern MAYBE_CUDA const mp_obj_dict_t mp_module_builtins_globals;
 extern const mp_obj_module_t mp_module___main__;
 extern const mp_obj_module_t mp_module_builtins;
 extern const mp_obj_module_t mp_module_sys;

@@ -28,7 +28,12 @@
 
 #if MICROPY_NLR_SETJMP
 
-void nlr_jump(void *val) {
+MAYBE_CUDA void nlr_jump(void *val) {
+#ifdef __CUDA_ARCH__
+    // Device code cannot use longjmp. Trap or print error.
+    printf("nlr_jump called on device\n");
+    asm("trap;");
+#endif
     MP_NLR_JUMP_HEAD(val, top);
     longjmp(top->jmpbuf, 1);
 }

@@ -62,7 +62,7 @@ typedef long mp_off_t;
 #define MICROPY_HEAP_SIZE               (16384)  // 16KB heap
 
 // Port-specific function annotation
-#ifdef __CUDA_ARCH__
+#ifdef __CUDACC__
 #define MAYBE_CUDA __device__
 #else
 #define MAYBE_CUDA

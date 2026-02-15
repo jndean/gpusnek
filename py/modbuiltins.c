@@ -323,7 +323,7 @@ static MAYBE_CUDA mp_obj_t mp_builtin_next(mp_obj_t o) {
         return ret;
     }
 }
-MP_DEFINE_CONST_FUN_OBJ_1(mp_builtin_next_obj, mp_builtin_next);
+MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(mp_builtin_next_obj, mp_builtin_next);
 #endif
 
 static MAYBE_CUDA mp_obj_t mp_builtin_oct(mp_obj_t o_in) {
