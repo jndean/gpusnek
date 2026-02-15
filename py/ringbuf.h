@@ -123,11 +123,11 @@ static inline MAYBE_CUDA void ringbuf_memcpy_put_internal(ringbuf_t *r, const ui
 }
 
 // Note: big-endian. No-op if not enough room available for both bytes.
-int ringbuf_get16(ringbuf_t *r);
-int ringbuf_peek16(ringbuf_t *r);
-int ringbuf_put16(ringbuf_t *r, uint16_t v);
+MAYBE_CUDA int ringbuf_get16(ringbuf_t *r);
+MAYBE_CUDA int ringbuf_peek16(ringbuf_t *r);
+MAYBE_CUDA int ringbuf_put16(ringbuf_t *r, uint16_t v);
 
-int ringbuf_get_bytes(ringbuf_t *r, uint8_t *data, size_t data_len);
-int ringbuf_put_bytes(ringbuf_t *r, const uint8_t *data, size_t data_len);
+MAYBE_CUDA int ringbuf_get_bytes(ringbuf_t *r, uint8_t *data, size_t data_len);
+MAYBE_CUDA int ringbuf_put_bytes(ringbuf_t *r, const uint8_t *data, size_t data_len);
 
 #endif // MICROPY_INCLUDED_PY_RINGBUF_H

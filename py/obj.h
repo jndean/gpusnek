@@ -394,25 +394,25 @@ typedef struct _mp_rom_obj_t { mp_const_obj_t o; } mp_rom_obj_t;
 #define MP_OBJ_FUN_MAKE_SIG(n_args_min, n_args_max, takes_kw) ((uint32_t)((((uint32_t)(n_args_min)) << 17) | (((uint32_t)(n_args_max)) << 1) | ((takes_kw) ? 1 : 0)))
 
 #define MP_DEFINE_CONST_FUN_OBJ_0(obj_name, fun_name) \
-    const mp_obj_fun_builtin_fixed_t obj_name = \
+    MAYBE_CUDA const mp_obj_fun_builtin_fixed_t obj_name = \
     {.base = {.type = &mp_type_fun_builtin_0}, .fun = {._0 = fun_name}}
 #define MP_DEFINE_CONST_FUN_OBJ_1(obj_name, fun_name) \
-    const mp_obj_fun_builtin_fixed_t obj_name = \
+    MAYBE_CUDA const mp_obj_fun_builtin_fixed_t obj_name = \
     {.base = {.type = &mp_type_fun_builtin_1}, .fun = {._1 = fun_name}}
 #define MP_DEFINE_CONST_FUN_OBJ_2(obj_name, fun_name) \
-    const mp_obj_fun_builtin_fixed_t obj_name = \
+    MAYBE_CUDA const mp_obj_fun_builtin_fixed_t obj_name = \
     {.base = {.type = &mp_type_fun_builtin_2}, .fun = {._2 = fun_name}}
 #define MP_DEFINE_CONST_FUN_OBJ_3(obj_name, fun_name) \
-    const mp_obj_fun_builtin_fixed_t obj_name = \
+    MAYBE_CUDA const mp_obj_fun_builtin_fixed_t obj_name = \
     {.base = {.type = &mp_type_fun_builtin_3}, .fun = {._3 = fun_name}}
 #define MP_DEFINE_CONST_FUN_OBJ_VAR(obj_name, n_args_min, fun_name) \
-    const mp_obj_fun_builtin_var_t obj_name = \
+    MAYBE_CUDA const mp_obj_fun_builtin_var_t obj_name = \
     {.base = {.type = &mp_type_fun_builtin_var}, .sig = MP_OBJ_FUN_MAKE_SIG(n_args_min, MP_OBJ_FUN_ARGS_MAX, false), .fun = {.var = fun_name}}
 #define MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(obj_name, n_args_min, n_args_max, fun_name) \
-    const mp_obj_fun_builtin_var_t obj_name = \
+    MAYBE_CUDA const mp_obj_fun_builtin_var_t obj_name = \
     {.base = {.type = &mp_type_fun_builtin_var}, .sig = MP_OBJ_FUN_MAKE_SIG(n_args_min, n_args_max, false), .fun = {.var = fun_name}}
 #define MP_DEFINE_CONST_FUN_OBJ_KW(obj_name, n_args_min, fun_name) \
-    const mp_obj_fun_builtin_var_t obj_name = \
+    MAYBE_CUDA const mp_obj_fun_builtin_var_t obj_name = \
     {.base = {.type = &mp_type_fun_builtin_var}, .sig = MP_OBJ_FUN_MAKE_SIG(n_args_min, MP_OBJ_FUN_ARGS_MAX, true), .fun = {.kw = fun_name}}
 
 // These macros are used to define constant map/dict objects
@@ -449,8 +449,8 @@ typedef struct _mp_rom_obj_t { mp_const_obj_t o; } mp_rom_obj_t;
 #define MP_DECLARE_CONST_STATICMETHOD_OBJ(obj_name) extern const mp_rom_obj_static_class_method_t obj_name
 #define MP_DECLARE_CONST_CLASSMETHOD_OBJ(obj_name) extern const mp_rom_obj_static_class_method_t obj_name
 
-#define MP_DEFINE_CONST_STATICMETHOD_OBJ(obj_name, fun_name) const mp_rom_obj_static_class_method_t obj_name = {{&mp_type_staticmethod}, fun_name}
-#define MP_DEFINE_CONST_CLASSMETHOD_OBJ(obj_name, fun_name) const mp_rom_obj_static_class_method_t obj_name = {{&mp_type_classmethod}, fun_name}
+#define MP_DEFINE_CONST_STATICMETHOD_OBJ(obj_name, fun_name) MAYBE_CUDA const mp_rom_obj_static_class_method_t obj_name = {{&mp_type_staticmethod}, fun_name}
+#define MP_DEFINE_CONST_CLASSMETHOD_OBJ(obj_name, fun_name) MAYBE_CUDA const mp_rom_obj_static_class_method_t obj_name = {{&mp_type_classmethod}, fun_name}
 
 #ifndef NO_QSTR
 
@@ -719,7 +719,11 @@ struct _mp_obj_type_t {
     // A dict mapping qstrs to objects local methods/constants/etc.
     uint8_t slot_index_locals_dict;
 
+    #ifdef __CUDACC__
+    const void *slots[12];
+    #else
     const void *slots[];
+    #endif
 };
 
 // Non-variable sized versions of mp_obj_type_t to be used as a member
@@ -925,9 +929,9 @@ MAYBE_CUDA extern const mp_obj_type_t mp_type_ZeroDivisionError;
 #define mp_const_none (MP_OBJ_FROM_PTR(&mp_const_none_obj))
 #define mp_const_false (MP_OBJ_FROM_PTR(&mp_const_false_obj))
 #define mp_const_true (MP_OBJ_FROM_PTR(&mp_const_true_obj))
-extern const struct _mp_obj_none_t mp_const_none_obj;
-extern const struct _mp_obj_bool_t mp_const_false_obj;
-extern const struct _mp_obj_bool_t mp_const_true_obj;
+extern MAYBE_CUDA const struct _mp_obj_none_t mp_const_none_obj;
+extern MAYBE_CUDA const struct _mp_obj_bool_t mp_const_false_obj;
+extern MAYBE_CUDA const struct _mp_obj_bool_t mp_const_true_obj;
 #endif
 
 // Constant objects, globally accessible: b'', (), {}, Ellipsis, NotImplemented, GeneratorExit()
@@ -935,12 +939,12 @@ extern const struct _mp_obj_bool_t mp_const_true_obj;
 #define mp_const_empty_bytes (MP_OBJ_FROM_PTR(&mp_const_empty_bytes_obj))
 #define mp_const_empty_tuple (MP_OBJ_FROM_PTR(&mp_const_empty_tuple_obj))
 #define mp_const_notimplemented (MP_OBJ_FROM_PTR(&mp_const_notimplemented_obj))
-extern const struct _mp_obj_str_t mp_const_empty_bytes_obj;
-extern const struct _mp_obj_tuple_t mp_const_empty_tuple_obj;
-extern const struct _mp_obj_dict_t mp_const_empty_dict_obj;
+extern MAYBE_CUDA const struct _mp_obj_str_t mp_const_empty_bytes_obj;
+extern MAYBE_CUDA const struct _mp_obj_tuple_t mp_const_empty_tuple_obj;
+extern MAYBE_CUDA const struct _mp_obj_dict_t mp_const_empty_dict_obj;
 extern MAYBE_CUDA const struct _mp_obj_singleton_t mp_const_ellipsis_obj;
-extern const struct _mp_obj_singleton_t mp_const_notimplemented_obj;
-extern const struct _mp_obj_exception_t mp_const_GeneratorExit_obj;
+extern MAYBE_CUDA const struct _mp_obj_singleton_t mp_const_notimplemented_obj;
+extern MAYBE_CUDA const struct _mp_obj_exception_t mp_const_GeneratorExit_obj;
 
 // Fixed empty map. Useful when calling keyword-receiving functions
 // without any keywords from C, etc.
@@ -1280,7 +1284,7 @@ typedef struct _mp_rom_obj_static_class_method_t {
 } mp_rom_obj_static_class_method_t;
 
 // property
-const mp_obj_t *mp_obj_property_get(mp_obj_t self_in);
+MAYBE_CUDA const mp_obj_t *mp_obj_property_get(mp_obj_t self_in);
 
 // sequence helpers
 

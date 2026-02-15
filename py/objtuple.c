@@ -235,7 +235,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     );
 
 // the zero-length tuple
-const mp_obj_tuple_t mp_const_empty_tuple_obj = {{&mp_type_tuple}, 0};
+MAYBE_CUDA const mp_obj_tuple_t mp_const_empty_tuple_obj = {{&mp_type_tuple}, 0};
 
 MAYBE_CUDA mp_obj_t mp_obj_new_tuple(size_t n, const mp_obj_t *items) {
     if (n == 0) {
