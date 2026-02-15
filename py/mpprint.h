@@ -76,7 +76,7 @@ int mp_print_float(const mp_print_t *print, mp_float_t f, char fmt, unsigned int
 
 MAYBE_CUDA int mp_printf(const mp_print_t *print, const char *fmt, ...);
 #ifdef va_start
-int mp_vprintf(const mp_print_t *print, const char *fmt, va_list args);
+MAYBE_CUDA int mp_vprintf(const mp_print_t *print, const char *fmt, va_list args);
 #endif
 
 #endif // MICROPY_INCLUDED_PY_MPPRINT_H

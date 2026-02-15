@@ -175,7 +175,7 @@ struct _nlr_jump_callback_node_t {
 unsigned int nlr_push(nlr_buf_t *);
 #endif
 
-unsigned int nlr_push_tail(nlr_buf_t *top);
+MAYBE_CUDA unsigned int nlr_push_tail(nlr_buf_t *top);
 MAYBE_CUDA void nlr_pop(void);
 MAYBE_CUDA MP_NORETURN void nlr_jump(void *val);
 

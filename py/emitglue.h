@@ -120,7 +120,7 @@ typedef struct _mp_raw_code_truncated_t {
     #endif
 } mp_raw_code_truncated_t;
 
-mp_raw_code_t *mp_emit_glue_new_raw_code(void);
+MAYBE_CUDA mp_raw_code_t *mp_emit_glue_new_raw_code(void);
 
 MAYBE_CUDA void mp_emit_glue_assign_bytecode(mp_raw_code_t *rc, const byte *code,
     mp_raw_code_t **children,
