@@ -98,7 +98,7 @@ MAYBE_CUDA bool mp_obj_int_to_bytes_impl(mp_obj_t self_in, bool big_endian, size
     return true;
 }
 
-int mp_obj_int_sign(mp_obj_t self_in) {
+MAYBE_CUDA int mp_obj_int_sign(mp_obj_t self_in) {
     mp_longint_impl_t val;
     if (mp_obj_is_small_int(self_in)) {
         val = MP_OBJ_SMALL_INT_VALUE(self_in);

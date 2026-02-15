@@ -101,7 +101,7 @@ MAYBE_CUDA size_t mp_emit_common_use_const_obj(mp_emit_common_t *emit, mp_obj_t 
     return emit->const_obj_list.len - 1;
 }
 
-id_info_t *mp_emit_common_get_id_for_modification(scope_t *scope, qstr qst) {
+MAYBE_CUDA id_info_t *mp_emit_common_get_id_for_modification(scope_t *scope, qstr qst) {
     // name adding/lookup
     id_info_t *id = scope_find_or_add_id(scope, qst, ID_INFO_KIND_GLOBAL_IMPLICIT);
     if (id->kind == ID_INFO_KIND_GLOBAL_IMPLICIT) {

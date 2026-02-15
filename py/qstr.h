@@ -93,7 +93,7 @@ typedef struct _qstr_pool_t {
 
 #define QSTR_TOTAL() (MP_STATE_VM(last_pool)->total_prev_len + MP_STATE_VM(last_pool)->len)
 
-void qstr_init(void);
+MAYBE_CUDA void qstr_init(void);
 
 size_t qstr_compute_hash(const byte *data, size_t len);
 
@@ -105,7 +105,7 @@ MAYBE_CUDA qstr qstr_from_strn(const char *str, size_t len);
 MAYBE_CUDA qstr qstr_from_strn_static(const char *str, size_t len);
 #endif
 
-mp_uint_t qstr_hash(qstr q);
+MAYBE_CUDA mp_uint_t qstr_hash(qstr q);
 MAYBE_CUDA const char *qstr_str(qstr q);
 MAYBE_CUDA size_t qstr_len(qstr q);
 MAYBE_CUDA const byte *qstr_data(qstr q, size_t *len);

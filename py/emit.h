@@ -194,7 +194,7 @@ static inline MAYBE_CUDA void mp_emit_common_get_id_for_load(scope_t *scope, qst
     scope_find_or_add_id(scope, qst, ID_INFO_KIND_GLOBAL_IMPLICIT);
 }
 
-id_info_t *mp_emit_common_get_id_for_modification(scope_t *scope, qstr qst);
+MAYBE_CUDA id_info_t *mp_emit_common_get_id_for_modification(scope_t *scope, qstr qst);
 MAYBE_CUDA void mp_emit_common_id_op(emit_t *emit, const mp_emit_method_table_id_ops_t *emit_method_table, scope_t *scope, qstr qst);
 
 extern const emit_method_table_t emit_bc_method_table;
@@ -207,9 +207,10 @@ extern const emit_method_table_t emit_native_xtensawin_method_table;
 extern const emit_method_table_t emit_native_rv32_method_table;
 extern const emit_method_table_t emit_native_debug_method_table;
 
-extern const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_load_id_ops;
-extern const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_store_id_ops;
-extern const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_delete_id_ops;
+extern MAYBE_CUDA const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_load_id_ops;
+extern MAYBE_CUDA const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_store_id_ops;
+extern MAYBE_CUDA const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_delete_id_ops;
+
 
 MAYBE_CUDA emit_t *emit_bc_new(mp_emit_common_t *emit_common);
 emit_t *emit_native_x64_new(mp_emit_common_t *emit_common, mp_obj_t *error_slot, uint *label_slot, mp_uint_t max_num_labels);

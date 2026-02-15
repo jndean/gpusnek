@@ -110,7 +110,7 @@ typedef struct _mp_parse_t {
 
 // the parser will raise an exception if an error occurred
 // the parser will free the lexer before it returns
-mp_parse_tree_t mp_parse(struct _mp_lexer_t *lex, mp_parse_input_kind_t input_kind);
+MAYBE_CUDA mp_parse_tree_t mp_parse(struct _mp_lexer_t *lex, mp_parse_input_kind_t input_kind);
 MAYBE_CUDA void mp_parse_tree_clear(mp_parse_tree_t *tree);
 
 #endif // MICROPY_INCLUDED_PY_PARSE_H

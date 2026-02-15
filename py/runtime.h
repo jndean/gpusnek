@@ -166,7 +166,7 @@ static inline MAYBE_CUDA void mp_globals_set(mp_obj_dict_t *d) {
 }
 
 MAYBE_CUDA void mp_globals_locals_set_from_nlr_jump_callback(void *ctx_in);
-void mp_call_function_1_from_nlr_jump_callback(void *ctx_in);
+MAYBE_CUDA void mp_call_function_1_from_nlr_jump_callback(void *ctx_in);
 
 #if MICROPY_PY_THREAD
 static inline MAYBE_CUDA void mp_thread_init_state(mp_state_thread_t *ts, size_t stack_size, mp_obj_dict_t *locals, mp_obj_dict_t *globals) {
@@ -211,7 +211,7 @@ MAYBE_CUDA void mp_delete_global(qstr qst);
 MAYBE_CUDA mp_obj_t mp_unary_op(mp_unary_op_t op, mp_obj_t arg);
 MAYBE_CUDA mp_obj_t mp_binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs);
 
-mp_obj_t mp_call_function_0(mp_obj_t fun);
+MAYBE_CUDA mp_obj_t mp_call_function_0(mp_obj_t fun);
 mp_obj_t mp_call_function_1(mp_obj_t fun, mp_obj_t arg);
 mp_obj_t mp_call_function_2(mp_obj_t fun, mp_obj_t arg1, mp_obj_t arg2);
 MAYBE_CUDA mp_obj_t mp_call_function_n_kw(mp_obj_t fun, size_t n_args, size_t n_kw, const mp_obj_t *args);

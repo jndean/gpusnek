@@ -211,7 +211,7 @@ MAYBE_CUDA void mp_globals_locals_set_from_nlr_jump_callback(void *ctx_in) {
     mp_locals_set(ctx->locals);
 }
 
-void mp_call_function_1_from_nlr_jump_callback(void *ctx_in) {
+MAYBE_CUDA void mp_call_function_1_from_nlr_jump_callback(void *ctx_in) {
     nlr_jump_callback_node_call_function_1_t *ctx = (nlr_jump_callback_node_call_function_1_t *)ctx_in;
     ctx->func(ctx->arg);
 }
@@ -682,7 +682,7 @@ zero_division:
     mp_raise_msg(&mp_type_ZeroDivisionError, MP_ERROR_TEXT("divide by zero"));
 }
 
-mp_obj_t mp_call_function_0(mp_obj_t fun) {
+MAYBE_CUDA mp_obj_t mp_call_function_0(mp_obj_t fun) {
     return mp_call_function_n_kw(fun, 0, 0, NULL);
 }
 

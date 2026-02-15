@@ -910,17 +910,17 @@ const emit_method_table_t emit_bc_method_table = {
     mp_emit_bc_end_except_handler,
 };
 #else
-const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_load_id_ops = {
+MAYBE_CUDA const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_load_id_ops = {
     mp_emit_bc_load_local,
     mp_emit_bc_load_global,
 };
 
-const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_store_id_ops = {
+MAYBE_CUDA const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_store_id_ops = {
     mp_emit_bc_store_local,
     mp_emit_bc_store_global,
 };
 
-const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_delete_id_ops = {
+MAYBE_CUDA const mp_emit_method_table_id_ops_t mp_emit_bc_method_table_delete_id_ops = {
     mp_emit_bc_delete_local,
     mp_emit_bc_delete_global,
 };

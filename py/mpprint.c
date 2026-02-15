@@ -60,7 +60,7 @@ static MAYBE_CUDA void plat_print_strn(void *env, const char *str, size_t len) {
     MP_PLAT_PRINT_STRN(str, len);
 }
 
-const mp_print_t mp_plat_print = {NULL, plat_print_strn};
+MAYBE_CUDA const mp_print_t mp_plat_print = {NULL, plat_print_strn};
 
 MAYBE_CUDA int mp_print_str(const mp_print_t *print, const char *str) {
     size_t len = strlen(str);

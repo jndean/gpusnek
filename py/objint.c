@@ -227,7 +227,7 @@ MAYBE_CUDA size_t mp_int_format_size(size_t num_bits, int base, const char *pref
 //
 // The resulting formatted string will be returned from this function and the
 // formatted size will be in *fmt_size.
-char *mp_obj_int_formatted(char **buf, size_t *buf_size, size_t *fmt_size, mp_const_obj_t self_in,
+MAYBE_CUDA char *mp_obj_int_formatted(char **buf, size_t *buf_size, size_t *fmt_size, mp_const_obj_t self_in,
     int base, const char *prefix, char base_char, char comma) {
     fmt_int_t num;
     #if MICROPY_LONGINT_IMPL == MICROPY_LONGINT_IMPL_NONE

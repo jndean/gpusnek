@@ -843,7 +843,7 @@ MAYBE_CUDA void mp_lexer_to_next(mp_lexer_t *lex) {
     }
 }
 
-mp_lexer_t *mp_lexer_new(qstr src_name, mp_reader_t reader) {
+MAYBE_CUDA mp_lexer_t *mp_lexer_new(qstr src_name, mp_reader_t reader) {
     mp_lexer_t *lex = m_new_obj(mp_lexer_t);
 
     lex->source_name = src_name;
@@ -884,7 +884,7 @@ mp_lexer_t *mp_lexer_new(qstr src_name, mp_reader_t reader) {
     return lex;
 }
 
-mp_lexer_t *mp_lexer_new_from_str_len(qstr src_name, const char *str, size_t len, size_t free_len) {
+MAYBE_CUDA mp_lexer_t *mp_lexer_new_from_str_len(qstr src_name, const char *str, size_t len, size_t free_len) {
     mp_reader_t reader;
     mp_reader_new_mem(&reader, (const byte *)str, len, free_len);
     return mp_lexer_new(src_name, reader);
@@ -892,7 +892,7 @@ mp_lexer_t *mp_lexer_new_from_str_len(qstr src_name, const char *str, size_t len
 
 #if MICROPY_READER_POSIX || MICROPY_READER_VFS
 
-mp_lexer_t *mp_lexer_new_from_file(qstr filename) {
+MAYBE_CUDA mp_lexer_t *mp_lexer_new_from_file(qstr filename) {
     mp_reader_t reader;
     mp_reader_new_file(&reader, filename);
     return mp_lexer_new(filename, reader);

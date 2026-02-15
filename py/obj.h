@@ -382,13 +382,13 @@ typedef struct _mp_rom_obj_t { mp_const_obj_t o; } mp_rom_obj_t;
 // These macros are used to declare and define constant function objects
 // You can put "static" in front of the definitions to make them local
 
-#define MP_DECLARE_CONST_FUN_OBJ_0(obj_name) extern const mp_obj_fun_builtin_fixed_t obj_name
-#define MP_DECLARE_CONST_FUN_OBJ_1(obj_name) extern const mp_obj_fun_builtin_fixed_t obj_name
-#define MP_DECLARE_CONST_FUN_OBJ_2(obj_name) extern const mp_obj_fun_builtin_fixed_t obj_name
-#define MP_DECLARE_CONST_FUN_OBJ_3(obj_name) extern const mp_obj_fun_builtin_fixed_t obj_name
-#define MP_DECLARE_CONST_FUN_OBJ_VAR(obj_name) extern const mp_obj_fun_builtin_var_t obj_name
-#define MP_DECLARE_CONST_FUN_OBJ_VAR_BETWEEN(obj_name) extern const mp_obj_fun_builtin_var_t obj_name
-#define MP_DECLARE_CONST_FUN_OBJ_KW(obj_name) extern const mp_obj_fun_builtin_var_t obj_name
+#define MP_DECLARE_CONST_FUN_OBJ_0(obj_name) extern MAYBE_CUDA const mp_obj_fun_builtin_fixed_t obj_name
+#define MP_DECLARE_CONST_FUN_OBJ_1(obj_name) extern MAYBE_CUDA const mp_obj_fun_builtin_fixed_t obj_name
+#define MP_DECLARE_CONST_FUN_OBJ_2(obj_name) extern MAYBE_CUDA const mp_obj_fun_builtin_fixed_t obj_name
+#define MP_DECLARE_CONST_FUN_OBJ_3(obj_name) extern MAYBE_CUDA const mp_obj_fun_builtin_fixed_t obj_name
+#define MP_DECLARE_CONST_FUN_OBJ_VAR(obj_name) extern MAYBE_CUDA const mp_obj_fun_builtin_var_t obj_name
+#define MP_DECLARE_CONST_FUN_OBJ_VAR_BETWEEN(obj_name) extern MAYBE_CUDA const mp_obj_fun_builtin_var_t obj_name
+#define MP_DECLARE_CONST_FUN_OBJ_KW(obj_name) extern MAYBE_CUDA const mp_obj_fun_builtin_var_t obj_name
 
 #define MP_OBJ_FUN_ARGS_MAX (0xffff) // to set maximum value in n_args_max below
 #define MP_OBJ_FUN_MAKE_SIG(n_args_min, n_args_max, takes_kw) ((uint32_t)((((uint32_t)(n_args_min)) << 17) | (((uint32_t)(n_args_max)) << 1) | ((takes_kw) ? 1 : 0)))
@@ -429,7 +429,7 @@ typedef struct _mp_rom_obj_t { mp_const_obj_t o; } mp_rom_obj_t;
     }
 
 #define MP_DEFINE_CONST_DICT_WITH_SIZE(dict_name, table_name, n) \
-    const mp_obj_dict_t dict_name = { \
+    MAYBE_CUDA const mp_obj_dict_t dict_name = { \
         .base = {&mp_type_dict}, \
         .map = { \
             .all_keys_are_qstrs = 1, \
@@ -938,7 +938,7 @@ extern const struct _mp_obj_bool_t mp_const_true_obj;
 extern const struct _mp_obj_str_t mp_const_empty_bytes_obj;
 extern const struct _mp_obj_tuple_t mp_const_empty_tuple_obj;
 extern const struct _mp_obj_dict_t mp_const_empty_dict_obj;
-extern const struct _mp_obj_singleton_t mp_const_ellipsis_obj;
+extern MAYBE_CUDA const struct _mp_obj_singleton_t mp_const_ellipsis_obj;
 extern const struct _mp_obj_singleton_t mp_const_notimplemented_obj;
 extern const struct _mp_obj_exception_t mp_const_GeneratorExit_obj;
 
@@ -1127,7 +1127,7 @@ static inline MAYBE_CUDA mp_obj_t mp_obj_new_exception_arg1(const mp_obj_type_t 
 
 // str
 MAYBE_CUDA bool mp_obj_str_equal(mp_obj_t s1, mp_obj_t s2);
-qstr mp_obj_str_get_qstr(mp_obj_t self_in); // use this if you will anyway convert the string to a qstr
+MAYBE_CUDA qstr mp_obj_str_get_qstr(mp_obj_t self_in); // use this if you will anyway convert the string to a qstr
 MAYBE_CUDA const char *mp_obj_str_get_str(mp_obj_t self_in); // use this only if you need the string to be null terminated
 MAYBE_CUDA const char *mp_obj_str_get_data(mp_obj_t self_in, size_t *len);
 MAYBE_CUDA mp_obj_t mp_obj_str_intern(mp_obj_t str);
