@@ -97,12 +97,12 @@ void qstr_init(void);
 
 size_t qstr_compute_hash(const byte *data, size_t len);
 
-qstr qstr_find_strn(const char *str, size_t str_len); // returns MP_QSTRnull if not found
+MAYBE_CUDA qstr qstr_find_strn(const char *str, size_t str_len); // returns MP_QSTRnull if not found
 
-qstr qstr_from_str(const char *str);
-qstr qstr_from_strn(const char *str, size_t len);
+MAYBE_CUDA qstr qstr_from_str(const char *str);
+MAYBE_CUDA qstr qstr_from_strn(const char *str, size_t len);
 #if MICROPY_VFS_ROM
-qstr qstr_from_strn_static(const char *str, size_t len);
+MAYBE_CUDA qstr qstr_from_strn_static(const char *str, size_t len);
 #endif
 
 mp_uint_t qstr_hash(qstr q);

@@ -182,18 +182,18 @@ static inline MAYBE_CUDA size_t utf8_charlen(const byte *str, size_t len) {
 }
 #endif
 
-bool unichar_isspace(unichar c);
-bool unichar_isalpha(unichar c);
-bool unichar_isprint(unichar c);
-bool unichar_isdigit(unichar c);
-bool unichar_isxdigit(unichar c);
-bool unichar_isident(unichar c);
-bool unichar_isalnum(unichar c);
-bool unichar_isupper(unichar c);
-bool unichar_islower(unichar c);
-unichar unichar_tolower(unichar c);
-unichar unichar_toupper(unichar c);
-mp_uint_t unichar_xdigit_value(unichar c);
+MAYBE_CUDA bool unichar_isspace(unichar c);
+MAYBE_CUDA bool unichar_isalpha(unichar c);
+MAYBE_CUDA bool unichar_isprint(unichar c);
+MAYBE_CUDA bool unichar_isdigit(unichar c);
+MAYBE_CUDA bool unichar_isxdigit(unichar c);
+MAYBE_CUDA bool unichar_isident(unichar c);
+MAYBE_CUDA bool unichar_isalnum(unichar c);
+MAYBE_CUDA bool unichar_isupper(unichar c);
+MAYBE_CUDA bool unichar_islower(unichar c);
+MAYBE_CUDA unichar unichar_tolower(unichar c);
+MAYBE_CUDA unichar unichar_toupper(unichar c);
+MAYBE_CUDA mp_uint_t unichar_xdigit_value(unichar c);
 #define UTF8_IS_NONASCII(ch) ((ch) & 0x80)
 #define UTF8_IS_CONT(ch) (((ch) & 0xC0) == 0x80)
 
