@@ -95,8 +95,8 @@ typedef struct _nlr_jump_callback_node_call_function_1_t {
 } nlr_jump_callback_node_call_function_1_t;
 
 // Tables mapping operator enums to qstrs, defined in objtype.c
-extern const byte mp_unary_op_method_name[];
-extern const byte mp_binary_op_method_name[];
+MAYBE_CUDA extern const byte mp_unary_op_method_name[];
+MAYBE_CUDA extern const byte mp_binary_op_method_name[];
 
 MAYBE_CUDA void mp_init(void);
 MAYBE_CUDA void mp_deinit(void);
@@ -149,8 +149,8 @@ static inline MAYBE_CUDA void mp_arg_check_num(size_t n_args, size_t n_kw, size_
 }
 MAYBE_CUDA void mp_arg_parse_all(size_t n_pos, const mp_obj_t *pos, mp_map_t *kws, size_t n_allowed, const mp_arg_t *allowed, mp_arg_val_t *out_vals);
 MAYBE_CUDA void mp_arg_parse_all_kw_array(size_t n_pos, size_t n_kw, const mp_obj_t *args, size_t n_allowed, const mp_arg_t *allowed, mp_arg_val_t *out_vals);
-MP_NORETURN void mp_arg_error_terse_mismatch(void);
-MP_NORETURN void mp_arg_error_unimpl_kw(void);
+MAYBE_CUDA MP_NORETURN void mp_arg_error_terse_mismatch(void);
+MAYBE_CUDA MP_NORETURN void mp_arg_error_unimpl_kw(void);
 
 static inline MAYBE_CUDA mp_obj_dict_t *mp_locals_get(void) {
     return MP_STATE_THREAD(dict_locals);
@@ -212,16 +212,16 @@ MAYBE_CUDA mp_obj_t mp_unary_op(mp_unary_op_t op, mp_obj_t arg);
 MAYBE_CUDA mp_obj_t mp_binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs);
 
 MAYBE_CUDA mp_obj_t mp_call_function_0(mp_obj_t fun);
-mp_obj_t mp_call_function_1(mp_obj_t fun, mp_obj_t arg);
-mp_obj_t mp_call_function_2(mp_obj_t fun, mp_obj_t arg1, mp_obj_t arg2);
+MAYBE_CUDA mp_obj_t mp_call_function_1(mp_obj_t fun, mp_obj_t arg);
+MAYBE_CUDA mp_obj_t mp_call_function_2(mp_obj_t fun, mp_obj_t arg1, mp_obj_t arg2);
 MAYBE_CUDA mp_obj_t mp_call_function_n_kw(mp_obj_t fun, size_t n_args, size_t n_kw, const mp_obj_t *args);
 MAYBE_CUDA mp_obj_t mp_call_method_n_kw(size_t n_args, size_t n_kw, const mp_obj_t *args);
 MAYBE_CUDA mp_obj_t mp_call_method_n_kw_var(bool have_self, size_t n_args_n_kw, const mp_obj_t *args);
 MAYBE_CUDA mp_obj_t mp_call_method_self_n_kw(mp_obj_t meth, mp_obj_t self, size_t n_args, size_t n_kw, const mp_obj_t *args);
 // Call function and catch/dump exception - for Python callbacks from C code
 // (return MP_OBJ_NULL in case of exception).
-mp_obj_t mp_call_function_1_protected(mp_obj_t fun, mp_obj_t arg);
-mp_obj_t mp_call_function_2_protected(mp_obj_t fun, mp_obj_t arg1, mp_obj_t arg2);
+MAYBE_CUDA mp_obj_t mp_call_function_1_protected(mp_obj_t fun, mp_obj_t arg);
+MAYBE_CUDA mp_obj_t mp_call_function_2_protected(mp_obj_t fun, mp_obj_t arg1, mp_obj_t arg2);
 
 typedef struct _mp_call_args_t {
     mp_obj_t fun;
@@ -251,7 +251,7 @@ MAYBE_CUDA void mp_store_attr(mp_obj_t base, qstr attr, mp_obj_t val);
 MAYBE_CUDA mp_obj_t mp_getiter(mp_obj_t o, mp_obj_iter_buf_t *iter_buf);
 MAYBE_CUDA mp_obj_t mp_iternext_allow_raise(mp_obj_t o); // may return MP_OBJ_STOP_ITERATION instead of raising StopIteration()
 MAYBE_CUDA mp_obj_t mp_iternext(mp_obj_t o); // will always return MP_OBJ_STOP_ITERATION instead of raising StopIteration(...)
-mp_vm_return_kind_t mp_resume(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, mp_obj_t *ret_val);
+MAYBE_CUDA mp_vm_return_kind_t mp_resume(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, mp_obj_t *ret_val);
 
 static inline MAYBE_CUDA mp_obj_t mp_make_stop_iteration(mp_obj_t o) {
     MP_STATE_THREAD(stop_iteration_arg) = o;
@@ -301,7 +301,7 @@ MAYBE_CUDA MP_NORETURN void mp_raise_recursion_depth(void);
 #endif
 
 // helper functions for native/viper code
-int mp_native_type_from_qstr(qstr qst);
+MAYBE_CUDA int mp_native_type_from_qstr(qstr qst);
 MAYBE_CUDA mp_uint_t mp_native_from_obj(mp_obj_t obj, mp_uint_t type);
 MAYBE_CUDA mp_obj_t mp_native_to_obj(mp_uint_t val, mp_uint_t type);
 

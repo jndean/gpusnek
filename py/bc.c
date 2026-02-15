@@ -82,7 +82,7 @@ MAYBE_CUDA mp_uint_t mp_decode_uint_value(const byte *ptr) {
 
 // This function is used to help reduce stack usage at the caller, for the case when
 // the caller doesn't need the actual value and just wants to skip over it.
-const byte *mp_decode_uint_skip(const byte *ptr) {
+MAYBE_CUDA const byte *mp_decode_uint_skip(const byte *ptr) {
     while ((*ptr++) & 0x80) {
     }
     return ptr;
