@@ -132,7 +132,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 /******************************************************************************/
 /* byte code functions                                                        */
 
-qstr mp_obj_fun_get_name(mp_const_obj_t fun_in) {
+MAYBE_CUDA qstr mp_obj_fun_get_name(mp_const_obj_t fun_in) {
     const mp_obj_fun_bc_t *fun = (const mp_obj_fun_bc_t *)MP_OBJ_TO_PTR(fun_in);
     const byte *bc = fun->bytecode;
 

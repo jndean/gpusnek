@@ -37,7 +37,7 @@ MAYBE_CUDA bool mp_obj_is_dict_or_ordereddict(mp_obj_t o) {
     return mp_obj_is_obj(o) && MP_OBJ_TYPE_GET_SLOT_OR_NULL(((mp_obj_base_t *)MP_OBJ_TO_PTR(o))->type, make_new) == mp_obj_dict_make_new;
 }
 
-const mp_obj_dict_t mp_const_empty_dict_obj = {
+MAYBE_CUDA const mp_obj_dict_t mp_const_empty_dict_obj = {
     .base = { .type = &mp_type_dict },
     .map = {
         .all_keys_are_qstrs = 0,
@@ -430,8 +430,8 @@ static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_KW(dict_update_obj, 1, dict_update);
 /******************************************************************************/
 /* dict views                                                                 */
 
-extern const mp_obj_type_t mp_type_dict_view;
-extern const mp_obj_type_t mp_type_dict_view_it;
+extern MAYBE_CUDA const mp_obj_type_t mp_type_dict_view;
+extern MAYBE_CUDA const mp_obj_type_t mp_type_dict_view_it;
 
 typedef enum _mp_dict_view_kind_t {
     MP_DICT_VIEW_ITEMS,
@@ -476,7 +476,7 @@ static MAYBE_CUDA mp_obj_t dict_view_it_iternext(mp_obj_t self_in) {
     }
 }
 
-MP_DEFINE_CONST_OBJ_TYPE(
+MAYBE_CUDA MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_dict_view_it,
     MP_QSTR_iterator,
     MP_TYPE_FLAG_ITER_IS_ITERNEXT,
@@ -591,7 +591,7 @@ static MAYBE_CUDA mp_obj_t dict_getiter(mp_obj_t self_in, mp_obj_iter_buf_t *ite
 /******************************************************************************/
 /* dict constructors & public C API                                           */
 
-static MAYBE_CUDA const mp_rom_map_elem_t dict_locals_dict_table[] = {
+MAYBE_CUDA mp_rom_map_elem_t dict_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&dict_clear_obj) },
     { MP_ROM_QSTR(MP_QSTR_copy), MP_ROM_PTR(&dict_copy_obj) },
     #if MICROPY_PY_BUILTINS_DICT_FROMKEYS
@@ -610,7 +610,17 @@ static MAYBE_CUDA const mp_rom_map_elem_t dict_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR___delitem__), MP_ROM_PTR(&mp_op_delitem_obj) },
 };
 
-static MAYBE_CUDA MP_DEFINE_CONST_DICT(dict_locals_dict, dict_locals_dict_table);
+MAYBE_CUDA mp_obj_dict_t dict_locals_dict = {
+    .base = {0}, // Break circular dependency: .type = &mp_type_dict
+    .map = {
+        .all_keys_are_qstrs = 1,
+        .is_fixed = 1,
+        .is_ordered = 1,
+        .used = MP_ARRAY_SIZE(dict_locals_dict_table),
+        .alloc = MP_ARRAY_SIZE(dict_locals_dict_table),
+        .table = (mp_map_elem_t *)(mp_rom_map_elem_t *)dict_locals_dict_table,
+    },
+};
 
 MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_dict,

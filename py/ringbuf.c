@@ -26,7 +26,7 @@
 
 #include "ringbuf.h"
 
-int ringbuf_get16(ringbuf_t *r) {
+MAYBE_CUDA int ringbuf_get16(ringbuf_t *r) {
     int v = ringbuf_peek16(r);
     if (v == -1) {
         return v;
@@ -38,7 +38,7 @@ int ringbuf_get16(ringbuf_t *r) {
     return v;
 }
 
-int ringbuf_peek16(ringbuf_t *r) {
+MAYBE_CUDA int ringbuf_peek16(ringbuf_t *r) {
     if (r->iget == r->iput) {
         return -1;
     }
@@ -52,7 +52,7 @@ int ringbuf_peek16(ringbuf_t *r) {
     return (r->buf[r->iget] << 8) | (r->buf[iget_a]);
 }
 
-int ringbuf_put16(ringbuf_t *r, uint16_t v) {
+MAYBE_CUDA int ringbuf_put16(ringbuf_t *r, uint16_t v) {
     uint32_t iput_a = r->iput + 1;
     if (iput_a == r->size) {
         iput_a = 0;
@@ -77,7 +77,7 @@ int ringbuf_put16(ringbuf_t *r, uint16_t v) {
 //    0: Success
 //   -1: Not enough data available to complete read (try again later)
 //   -2: Requested read is larger than buffer - will never succeed
-int ringbuf_get_bytes(ringbuf_t *r, uint8_t *data, size_t data_len) {
+MAYBE_CUDA int ringbuf_get_bytes(ringbuf_t *r, uint8_t *data, size_t data_len) {
     if (ringbuf_avail(r) < data_len) {
         return (r->size <= data_len) ? -2 : -1;
     }
@@ -89,7 +89,7 @@ int ringbuf_get_bytes(ringbuf_t *r, uint8_t *data, size_t data_len) {
 //    0: Success
 //   -1: Not enough free space available to complete write (try again later)
 //   -2: Requested write is larger than buffer - will never succeed
-int ringbuf_put_bytes(ringbuf_t *r, const uint8_t *data, size_t data_len) {
+MAYBE_CUDA int ringbuf_put_bytes(ringbuf_t *r, const uint8_t *data, size_t data_len) {
     if (ringbuf_free(r) < data_len) {
         return (r->size <= data_len) ? -2 : -1;
     }
