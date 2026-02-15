@@ -33,9 +33,10 @@ MAYBE_CUDA void nlr_jump(void *val) {
     // Device code cannot use longjmp. Trap or print error.
     printf("nlr_jump called on device\n");
     asm("trap;");
-#endif
+#else
     MP_NLR_JUMP_HEAD(val, top);
     longjmp(top->jmpbuf, 1);
+#endif
 }
 
 #endif

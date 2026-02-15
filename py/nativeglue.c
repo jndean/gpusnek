@@ -43,7 +43,7 @@
 
 #if MICROPY_EMIT_NATIVE
 
-int mp_native_type_from_qstr(qstr qst) {
+MAYBE_CUDA int mp_native_type_from_qstr(qstr qst) {
     switch (qst) {
         case MP_QSTR_object:
             return MP_NATIVE_TYPE_OBJ;

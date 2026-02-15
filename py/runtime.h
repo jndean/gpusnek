@@ -141,7 +141,7 @@ MAYBE_CUDA void mp_event_wait_indefinite(void);
 MAYBE_CUDA void mp_event_wait_ms(mp_uint_t timeout_ms);
 
 // extra printing method specifically for mp_obj_t's which are integral type
-int mp_print_mp_int(const mp_print_t *print, mp_obj_t x, unsigned base, int base_char, int flags, char fill, int width, int prec);
+MAYBE_CUDA int mp_print_mp_int(const mp_print_t *print, mp_obj_t x, unsigned base, int base_char, int flags, char fill, int width, int prec);
 
 MAYBE_CUDA void mp_arg_check_num_sig(size_t n_args, size_t n_kw, uint32_t sig);
 static inline MAYBE_CUDA void mp_arg_check_num(size_t n_args, size_t n_kw, size_t n_args_min, size_t n_args_max, bool takes_kw) {

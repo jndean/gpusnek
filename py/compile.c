@@ -208,7 +208,7 @@ typedef struct _compiler_t {
 } compiler_t;
 
 #if MICROPY_COMP_ALLOW_TOP_LEVEL_AWAIT
-bool mp_compile_allow_top_level_await = false;
+MAYBE_CUDA bool mp_compile_allow_top_level_await = false;
 #endif
 
 /******************************************************************************/

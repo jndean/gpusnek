@@ -95,7 +95,7 @@ typedef struct _qstr_pool_t {
 
 MAYBE_CUDA void qstr_init(void);
 
-size_t qstr_compute_hash(const byte *data, size_t len);
+MAYBE_CUDA size_t qstr_compute_hash(const byte *data, size_t len);
 
 MAYBE_CUDA qstr qstr_find_strn(const char *str, size_t str_len); // returns MP_QSTRnull if not found
 

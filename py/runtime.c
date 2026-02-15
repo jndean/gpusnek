@@ -59,7 +59,7 @@
 #define DEBUG_OP_printf(...) (void)0
 #endif
 
-const mp_obj_module_t mp_module___main__ = {
+MAYBE_CUDA const mp_obj_module_t mp_module___main__ = {
     .base = { &mp_type_module },
     .globals = (mp_obj_dict_t *)&MP_STATE_VM(dict_main),
 };
@@ -216,7 +216,7 @@ MAYBE_CUDA void mp_call_function_1_from_nlr_jump_callback(void *ctx_in) {
     ctx->func(ctx->arg);
 }
 
-mp_obj_t MICROPY_WRAP_MP_LOAD_NAME(mp_load_name)(qstr qst) {
+MAYBE_CUDA mp_obj_t MICROPY_WRAP_MP_LOAD_NAME(mp_load_name)(qstr qst) {
     // logic: search locals, globals, builtins
     DEBUG_OP_printf("load name %s\n", qstr_str(qst));
     // If we're at the outer scope (locals == globals), dispatch to load_global right away
@@ -229,7 +229,7 @@ mp_obj_t MICROPY_WRAP_MP_LOAD_NAME(mp_load_name)(qstr qst) {
     return mp_load_global(qst);
 }
 
-mp_obj_t MICROPY_WRAP_MP_LOAD_GLOBAL(mp_load_global)(qstr qst) {
+MAYBE_CUDA mp_obj_t MICROPY_WRAP_MP_LOAD_GLOBAL(mp_load_global)(qstr qst) {
     // logic: search globals, builtins
     DEBUG_OP_printf("load global %s\n", qstr_str(qst));
     mp_map_elem_t *elem = mp_map_lookup(&mp_globals_get()->map, MP_OBJ_NEW_QSTR(qst), MP_MAP_LOOKUP);
@@ -373,7 +373,7 @@ MAYBE_CUDA mp_obj_t mp_unary_op(mp_unary_op_t op, mp_obj_t arg) {
     }
 }
 
-mp_obj_t MICROPY_WRAP_MP_BINARY_OP(mp_binary_op)(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs) {
+MAYBE_CUDA mp_obj_t MICROPY_WRAP_MP_BINARY_OP(mp_binary_op)(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs) {
     DEBUG_OP_printf("binary " UINT_FMT " %q %p %p\n", op, mp_binary_op_method_name[op], lhs, rhs);
 
     // TODO correctly distinguish inplace operators for mutable objects
@@ -686,11 +686,11 @@ MAYBE_CUDA mp_obj_t mp_call_function_0(mp_obj_t fun) {
     return mp_call_function_n_kw(fun, 0, 0, NULL);
 }
 
-mp_obj_t mp_call_function_1(mp_obj_t fun, mp_obj_t arg) {
+MAYBE_CUDA mp_obj_t mp_call_function_1(mp_obj_t fun, mp_obj_t arg) {
     return mp_call_function_n_kw(fun, 1, 0, &arg);
 }
 
-mp_obj_t mp_call_function_2(mp_obj_t fun, mp_obj_t arg1, mp_obj_t arg2) {
+MAYBE_CUDA mp_obj_t mp_call_function_2(mp_obj_t fun, mp_obj_t arg1, mp_obj_t arg2) {
     mp_obj_t args[2];
     args[0] = arg1;
     args[1] = arg2;
@@ -1416,7 +1416,7 @@ MAYBE_CUDA mp_obj_t mp_iternext(mp_obj_t o_in) {
     }
 }
 
-mp_vm_return_kind_t mp_resume(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, mp_obj_t *ret_val) {
+MAYBE_CUDA mp_vm_return_kind_t mp_resume(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, mp_obj_t *ret_val) {
     assert((send_value != MP_OBJ_NULL) ^ (throw_value != MP_OBJ_NULL));
     const mp_obj_type_t *type = mp_obj_get_type(self_in);
 
