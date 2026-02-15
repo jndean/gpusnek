@@ -31,7 +31,7 @@
 
 // Schedules an exception on the main thread (for exceptions "thrown" by async
 // sources such as interrupts and UNIX signal handlers).
-void MICROPY_WRAP_MP_SCHED_EXCEPTION(mp_sched_exception)(mp_obj_t exc) {
+MAYBE_CUDA void MICROPY_WRAP_MP_SCHED_EXCEPTION(mp_sched_exception)(mp_obj_t exc) {
     MP_STATE_MAIN_THREAD(mp_pending_exception) = exc;
 
     #if MICROPY_ENABLE_SCHEDULER && !MICROPY_PY_THREAD
@@ -46,14 +46,14 @@ void MICROPY_WRAP_MP_SCHED_EXCEPTION(mp_sched_exception)(mp_obj_t exc) {
 
 #if MICROPY_KBD_EXCEPTION
 // This function may be called asynchronously at any time so only do the bare minimum.
-void MICROPY_WRAP_MP_SCHED_KEYBOARD_INTERRUPT(mp_sched_keyboard_interrupt)(void) {
+MAYBE_CUDA void MICROPY_WRAP_MP_SCHED_KEYBOARD_INTERRUPT(mp_sched_keyboard_interrupt)(void) {
     MP_STATE_VM(mp_kbd_exception).traceback_data = NULL;
     mp_sched_exception(MP_OBJ_FROM_PTR(&MP_STATE_VM(mp_kbd_exception)));
 }
 #endif
 
 #if MICROPY_ENABLE_VM_ABORT
-void MICROPY_WRAP_MP_SCHED_VM_ABORT(mp_sched_vm_abort)(void) {
+MAYBE_CUDA void MICROPY_WRAP_MP_SCHED_VM_ABORT(mp_sched_vm_abort)(void) {
     MP_STATE_VM(vm_abort) = true;
 }
 #endif
@@ -160,7 +160,7 @@ MAYBE_CUDA void mp_sched_unlock(void) {
     MICROPY_END_ATOMIC_SECTION(atomic_state);
 }
 
-bool MICROPY_WRAP_MP_SCHED_SCHEDULE(mp_sched_schedule)(mp_obj_t function, mp_obj_t arg) {
+MAYBE_CUDA bool MICROPY_WRAP_MP_SCHED_SCHEDULE(mp_sched_schedule)(mp_obj_t function, mp_obj_t arg) {
     mp_uint_t atomic_state = MICROPY_BEGIN_ATOMIC_SECTION();
     bool ret;
     if (!mp_sched_full()) {

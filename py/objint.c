@@ -309,7 +309,7 @@ MAYBE_CUDA char *mp_obj_int_formatted(char **buf, size_t *buf_size, size_t *fmt_
 
 #if MICROPY_LONGINT_IMPL == MICROPY_LONGINT_IMPL_NONE
 
-int mp_obj_int_sign(mp_obj_t self_in) {
+MAYBE_CUDA int mp_obj_int_sign(mp_obj_t self_in) {
     mp_int_t val = mp_obj_get_int(self_in);
     if (val < 0) {
         return -1;

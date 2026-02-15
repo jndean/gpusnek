@@ -2299,7 +2299,7 @@ MAYBE_CUDA mp_obj_t mp_obj_new_str_from_vstr(vstr_t *vstr) {
 }
 
 #if MICROPY_PY_BUILTINS_STR_UNICODE && MICROPY_PY_BUILTINS_STR_UNICODE_CHECK
-mp_obj_t mp_obj_new_str_from_utf8_vstr(vstr_t *vstr) {
+MAYBE_CUDA mp_obj_t mp_obj_new_str_from_utf8_vstr(vstr_t *vstr) {
     // bypasses utf8_check.
     return mp_obj_new_str_type_from_vstr(&mp_type_str, vstr);
 }

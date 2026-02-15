@@ -71,7 +71,7 @@ MAYBE_CUDA extern const mp_print_t mp_sys_stdout_print;
 MAYBE_CUDA int mp_print_str(const mp_print_t *print, const char *str);
 MAYBE_CUDA int mp_print_strn(const mp_print_t *print, const char *str, size_t len, unsigned int flags, char fill, int width);
 #if MICROPY_PY_BUILTINS_FLOAT
-int mp_print_float(const mp_print_t *print, mp_float_t f, char fmt, unsigned int flags, char fill, int width, int prec);
+MAYBE_CUDA int mp_print_float(const mp_print_t *print, mp_float_t f, char fmt, unsigned int flags, char fill, int width, int prec);
 #endif
 
 MAYBE_CUDA int mp_printf(const mp_print_t *print, const char *fmt, ...);
