@@ -36,7 +36,7 @@
 #include "py/cstack.h"
 
 // Instance of GeneratorExit exception - needed by generator.close()
-const mp_obj_exception_t mp_const_GeneratorExit_obj = {{&mp_type_GeneratorExit}, 0, 0, NULL, (mp_obj_tuple_t *)&mp_const_empty_tuple_obj};
+MAYBE_CUDA const mp_obj_exception_t mp_const_GeneratorExit_obj = {{&mp_type_GeneratorExit}, 0, 0, NULL, (mp_obj_tuple_t *)&mp_const_empty_tuple_obj};
 
 /******************************************************************************/
 /* generator wrapper                                                          */
@@ -150,7 +150,7 @@ static MAYBE_CUDA void gen_instance_print(const mp_print_t *print, mp_obj_t self
     mp_printf(print, "<generator object '%q' at %p>", mp_obj_fun_get_name(MP_OBJ_FROM_PTR(self->code_state.fun_bc)), self);
 }
 
-mp_vm_return_kind_t mp_obj_gen_resume(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, mp_obj_t *ret_val) {
+MAYBE_CUDA mp_vm_return_kind_t mp_obj_gen_resume(mp_obj_t self_in, mp_obj_t send_value, mp_obj_t throw_value, mp_obj_t *ret_val) {
     mp_cstack_check();
     mp_check_self(mp_obj_is_type(self_in, &mp_type_gen_instance));
     mp_obj_gen_instance_t *self = (mp_obj_gen_instance_t *)MP_OBJ_TO_PTR(self_in);
@@ -343,16 +343,26 @@ static MAYBE_CUDA mp_obj_t gen_instance_pend_throw(mp_obj_t self_in, mp_obj_t ex
 static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_2(gen_instance_pend_throw_obj, gen_instance_pend_throw);
 #endif
 
-static MAYBE_CUDA const mp_rom_map_elem_t gen_instance_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&gen_instance_close_obj) },
-    { MP_ROM_QSTR(MP_QSTR_send), MP_ROM_PTR(&gen_instance_send_obj) },
-    { MP_ROM_QSTR(MP_QSTR_throw), MP_ROM_PTR(&gen_instance_throw_obj) },
+MAYBE_CUDA const mp_map_elem_t gen_instance_locals_dict_table[] = {
+    { MP_ROM_QSTR(MP_QSTR_close), (mp_obj_t)&gen_instance_close_obj },
+    { MP_ROM_QSTR(MP_QSTR_send), (mp_obj_t)&gen_instance_send_obj },
+    { MP_ROM_QSTR(MP_QSTR_throw), (mp_obj_t)&gen_instance_throw_obj },
     #if MICROPY_PY_GENERATOR_PEND_THROW
-    { MP_ROM_QSTR(MP_QSTR_pend_throw), MP_ROM_PTR(&gen_instance_pend_throw_obj) },
+    { MP_ROM_QSTR(MP_QSTR_pend_throw), (mp_obj_t)&gen_instance_pend_throw_obj },
     #endif
 };
 
-static MAYBE_CUDA MP_DEFINE_CONST_DICT(gen_instance_locals_dict, gen_instance_locals_dict_table);
+MAYBE_CUDA const mp_obj_dict_t gen_instance_locals_dict = {
+    .base = {0}, // Break circular dependency: .type = &mp_type_dict
+    .map = {
+        .all_keys_are_qstrs = 1,
+        .is_fixed = 1,
+        .is_ordered = 1,
+        .used = MP_ARRAY_SIZE(gen_instance_locals_dict_table),
+        .alloc = MP_ARRAY_SIZE(gen_instance_locals_dict_table),
+        .table = (mp_map_elem_t *)gen_instance_locals_dict_table,
+    },
+};
 
 MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_gen_instance,
