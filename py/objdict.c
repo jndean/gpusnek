@@ -611,7 +611,11 @@ MAYBE_CUDA mp_rom_map_elem_t dict_locals_dict_table[] = {
 };
 
 MAYBE_CUDA mp_obj_dict_t dict_locals_dict = {
-    .base = {0}, // Break circular dependency: .type = &mp_type_dict
+#ifdef __CUDA_ARCH__
+    .base = {0},
+#else
+    .base = {&mp_type_dict},
+#endif
     .map = {
         .all_keys_are_qstrs = 1,
         .is_fixed = 1,
@@ -622,18 +626,27 @@ MAYBE_CUDA mp_obj_dict_t dict_locals_dict = {
     },
 };
 
-MP_DEFINE_CONST_OBJ_TYPE(
-    mp_type_dict,
-    MP_QSTR_dict,
-    MP_TYPE_FLAG_ITER_IS_GETITER,
-    make_new, mp_obj_dict_make_new,
-    print, dict_print,
-    unary_op, dict_unary_op,
-    binary_op, dict_binary_op,
-    subscr, dict_subscr,
-    iter, dict_getiter,
-    locals_dict, &dict_locals_dict
-    );
+MAYBE_CUDA const mp_obj_type_t mp_type_dict = {
+    .base = { &mp_type_type },
+    .flags = MP_TYPE_FLAG_ITER_IS_GETITER,
+    .name = MP_QSTR_dict,
+    .slot_index_make_new = 1,
+    .slot_index_print = 2,
+    .slot_index_unary_op = 3,
+    .slot_index_binary_op = 4,
+    .slot_index_subscr = 5,
+    .slot_index_iter = 6,
+    .slot_index_locals_dict = 7,
+    .slots = {
+        (const void *)(mp_obj_dict_make_new),
+        (const void *)(dict_print),
+        (const void *)(dict_unary_op),
+        (const void *)(dict_binary_op),
+        (const void *)(dict_subscr),
+        (const void *)(dict_getiter),
+        (const void *)(&dict_locals_dict),
+    }
+};
 
 #if MICROPY_PY_COLLECTIONS_ORDEREDDICT
 MP_DEFINE_CONST_OBJ_TYPE(

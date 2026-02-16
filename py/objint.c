@@ -477,12 +477,22 @@ static MAYBE_CUDA mp_obj_t int_to_bytes(size_t n_args, const mp_obj_t *args) {
 }
 static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(int_to_bytes_obj, 1, 4, int_to_bytes);
 
-static MAYBE_CUDA const mp_rom_map_elem_t int_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_from_bytes), MP_ROM_PTR(&int_from_bytes_obj) },
-    { MP_ROM_QSTR(MP_QSTR_to_bytes), MP_ROM_PTR(&int_to_bytes_obj) },
+MAYBE_CUDA const mp_map_elem_t int_locals_dict_table[] = {
+    { MP_ROM_QSTR(MP_QSTR_from_bytes), (mp_obj_t)&int_from_bytes_obj },
+    { MP_ROM_QSTR(MP_QSTR_to_bytes), (mp_obj_t)&int_to_bytes_obj },
 };
 
-static MAYBE_CUDA MP_DEFINE_CONST_DICT(int_locals_dict, int_locals_dict_table);
+MAYBE_CUDA const mp_obj_dict_t int_locals_dict = {
+    .base = {&mp_type_dict},
+    .map = {
+        .all_keys_are_qstrs = 1,
+        .is_fixed = 1,
+        .is_ordered = 1,
+        .used = MP_ARRAY_SIZE(int_locals_dict_table),
+        .alloc = MP_ARRAY_SIZE(int_locals_dict_table),
+        .table = (mp_map_elem_t *)int_locals_dict_table,
+    },
+};
 
 MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_int,

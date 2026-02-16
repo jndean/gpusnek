@@ -82,7 +82,7 @@ MAYBE_CUDA mp_uint_t mp_stream_rw(mp_obj_t stream, void *buf_, mp_uint_t size, i
     return done;
 }
 
-mp_off_t mp_stream_seek(mp_obj_t stream, mp_off_t offset, int whence, int *errcode) {
+MAYBE_CUDA mp_off_t mp_stream_seek(mp_obj_t stream, mp_off_t offset, int whence, int *errcode) {
     struct mp_stream_seek_t seek_s;
     seek_s.offset = offset;
     seek_s.whence = whence;
@@ -94,7 +94,7 @@ mp_off_t mp_stream_seek(mp_obj_t stream, mp_off_t offset, int whence, int *errco
     return seek_s.offset;
 }
 
-const mp_stream_p_t *mp_get_stream_raise(mp_obj_t self_in, int flags) {
+MAYBE_CUDA const mp_stream_p_t *mp_get_stream_raise(mp_obj_t self_in, int flags) {
     const mp_obj_type_t *type = mp_obj_get_type(self_in);
     if (MP_OBJ_TYPE_HAS_SLOT(type, protocol)) {
         const mp_stream_p_t *stream_p = (const mp_stream_p_t *)MP_OBJ_TYPE_GET_SLOT(type, protocol);

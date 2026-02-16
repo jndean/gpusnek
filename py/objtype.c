@@ -98,7 +98,7 @@ static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_KW(native_base_init_wrapper_obj, 1, na
 #if !MICROPY_CPYTHON_COMPAT
 static
 #endif
-mp_obj_instance_t *mp_obj_new_instance(const mp_obj_type_t *cls, const mp_obj_type_t **native_base) {
+MAYBE_CUDA mp_obj_instance_t *mp_obj_new_instance(const mp_obj_type_t *cls, const mp_obj_type_t **native_base) {
     size_t num_native_bases = instance_count_native_bases(cls, native_base);
     assert(num_native_bases < 2);
     mp_obj_instance_t *o = mp_obj_malloc_var(mp_obj_instance_t, subobj, mp_obj_t, num_native_bases, cls);
@@ -380,7 +380,7 @@ static MAYBE_CUDA mp_obj_t mp_obj_instance_make_new(const mp_obj_type_t *self, s
 // type to represent them.
 // The (unescaped) names appear in `unsorted_str_list` in the QSTR
 // generator script py/makeqstrdata.py to ensure they are assigned low numbers.
-const byte mp_unary_op_method_name[MP_UNARY_OP_NUM_RUNTIME] = {
+MAYBE_CUDA const byte mp_unary_op_method_name[MP_UNARY_OP_NUM_RUNTIME] = {
     // 0-3: POS, NEG, INVERT, NOT
     #if MICROPY_PY_ALL_SPECIAL_METHODS
     MP_QSTR___pos__, MP_QSTR___neg__, MP_QSTR___invert__,
@@ -494,7 +494,7 @@ static MAYBE_CUDA mp_obj_t instance_unary_op(mp_unary_op_t op, mp_obj_t self_in)
 // type to represent them.
 // The (unescaped) names appear in `unsorted_str_list` in the QSTR
 // generator script py/makeqstrdata.py to ensure they are assigned low numbers.
-const byte mp_binary_op_method_name[MP_BINARY_OP_NUM_RUNTIME] = {
+MAYBE_CUDA const byte mp_binary_op_method_name[MP_BINARY_OP_NUM_RUNTIME] = {
     // 0-5
     MP_QSTR___lt__, MP_QSTR___gt__, MP_QSTR___eq__, MP_QSTR___le__, MP_QSTR___ge__, MP_QSTR___ne__,
     // 6-8: IN, IS, EXC_MATCH (not used)
@@ -1157,15 +1157,25 @@ static MAYBE_CUDA void type_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     }
 }
 
-MP_DEFINE_CONST_OBJ_TYPE(
-    mp_type_type,
-    MP_QSTR_type,
-    MP_TYPE_FLAG_NONE,
-    make_new, type_make_new,
-    print, type_print,
-    call, type_call,
-    attr, type_attr
-    );
+MAYBE_CUDA const mp_obj_type_t mp_type_type = {
+    #ifdef __CUDACC__
+    .base = { 0 }, // Break circular dependency
+    #else
+    .base = { &mp_type_type },
+    #endif
+    .flags = MP_TYPE_FLAG_NONE,
+    .name = MP_QSTR_type,
+    .slot_index_make_new = 1,
+    .slot_index_print = 2,
+    .slot_index_call = 3,
+    .slot_index_attr = 4,
+    .slots = {
+        (const void *)(type_make_new),
+        (const void *)(type_print),
+        (const void *)(type_call),
+        (const void *)(type_attr),
+    }
+};
 
 static MAYBE_CUDA mp_obj_t mp_obj_new_type(qstr name, mp_obj_t bases_tuple, mp_obj_t locals_dict) {
     // Verify input objects have expected type

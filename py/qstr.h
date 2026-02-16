@@ -110,8 +110,8 @@ MAYBE_CUDA const char *qstr_str(qstr q);
 MAYBE_CUDA size_t qstr_len(qstr q);
 MAYBE_CUDA const byte *qstr_data(qstr q, size_t *len);
 
-void qstr_pool_info(size_t *n_pool, size_t *n_qstr, size_t *n_str_data_bytes, size_t *n_total_bytes);
-void qstr_dump_data(void);
+MAYBE_CUDA void qstr_pool_info(size_t *n_pool, size_t *n_qstr, size_t *n_str_data_bytes, size_t *n_total_bytes);
+MAYBE_CUDA void qstr_dump_data(void);
 
 #if MICROPY_ROM_TEXT_COMPRESSION
 MAYBE_CUDA void mp_decompress_rom_string(byte *dst, const mp_rom_error_text_t src);

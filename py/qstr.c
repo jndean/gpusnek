@@ -417,7 +417,7 @@ MAYBE_CUDA const byte *qstr_data(qstr q, size_t *len) {
     return (byte *)pool->qstrs[q];
 }
 
-void qstr_pool_info(size_t *n_pool, size_t *n_qstr, size_t *n_str_data_bytes, size_t *n_total_bytes) {
+MAYBE_CUDA void qstr_pool_info(size_t *n_pool, size_t *n_qstr, size_t *n_str_data_bytes, size_t *n_total_bytes) {
     QSTR_ENTER();
     *n_pool = 0;
     *n_qstr = 0;

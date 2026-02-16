@@ -435,21 +435,31 @@ static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_2(list_remove_obj, mp_obj_list_remove)
 static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(list_reverse_obj, list_reverse);
 static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_KW(list_sort_obj, 1, mp_obj_list_sort);
 
-static MAYBE_CUDA const mp_rom_map_elem_t list_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_append), MP_ROM_PTR(&list_append_obj) },
-    { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&list_clear_obj) },
-    { MP_ROM_QSTR(MP_QSTR_copy), MP_ROM_PTR(&list_copy_obj) },
-    { MP_ROM_QSTR(MP_QSTR_count), MP_ROM_PTR(&list_count_obj) },
-    { MP_ROM_QSTR(MP_QSTR_extend), MP_ROM_PTR(&list_extend_obj) },
-    { MP_ROM_QSTR(MP_QSTR_index), MP_ROM_PTR(&list_index_obj) },
-    { MP_ROM_QSTR(MP_QSTR_insert), MP_ROM_PTR(&list_insert_obj) },
-    { MP_ROM_QSTR(MP_QSTR_pop), MP_ROM_PTR(&list_pop_obj) },
-    { MP_ROM_QSTR(MP_QSTR_remove), MP_ROM_PTR(&list_remove_obj) },
-    { MP_ROM_QSTR(MP_QSTR_reverse), MP_ROM_PTR(&list_reverse_obj) },
-    { MP_ROM_QSTR(MP_QSTR_sort), MP_ROM_PTR(&list_sort_obj) },
+MAYBE_CUDA const mp_map_elem_t list_locals_dict_table[] = {
+    { MP_ROM_QSTR(MP_QSTR_append), (mp_obj_t)&list_append_obj },
+    { MP_ROM_QSTR(MP_QSTR_clear), (mp_obj_t)&list_clear_obj },
+    { MP_ROM_QSTR(MP_QSTR_copy), (mp_obj_t)&list_copy_obj },
+    { MP_ROM_QSTR(MP_QSTR_count), (mp_obj_t)&list_count_obj },
+    { MP_ROM_QSTR(MP_QSTR_extend), (mp_obj_t)&list_extend_obj },
+    { MP_ROM_QSTR(MP_QSTR_index), (mp_obj_t)&list_index_obj },
+    { MP_ROM_QSTR(MP_QSTR_insert), (mp_obj_t)&list_insert_obj },
+    { MP_ROM_QSTR(MP_QSTR_pop), (mp_obj_t)&list_pop_obj },
+    { MP_ROM_QSTR(MP_QSTR_remove), (mp_obj_t)&list_remove_obj },
+    { MP_ROM_QSTR(MP_QSTR_reverse), (mp_obj_t)&list_reverse_obj },
+    { MP_ROM_QSTR(MP_QSTR_sort), (mp_obj_t)&list_sort_obj },
 };
 
-static MAYBE_CUDA MP_DEFINE_CONST_DICT(list_locals_dict, list_locals_dict_table);
+MAYBE_CUDA const mp_obj_dict_t list_locals_dict = {
+    .base = {&mp_type_dict},
+    .map = {
+        .all_keys_are_qstrs = 1,
+        .is_fixed = 1,
+        .is_ordered = 1,
+        .used = MP_ARRAY_SIZE(list_locals_dict_table),
+        .alloc = MP_ARRAY_SIZE(list_locals_dict_table),
+        .table = (mp_map_elem_t *)list_locals_dict_table,
+    },
+};
 
 MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_list,

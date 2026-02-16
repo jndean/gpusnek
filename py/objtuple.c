@@ -214,12 +214,22 @@ static MAYBE_CUDA mp_obj_t tuple_index(size_t n_args, const mp_obj_t *args) {
 }
 static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(tuple_index_obj, 2, 4, tuple_index);
 
-static MAYBE_CUDA const mp_rom_map_elem_t tuple_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_count), MP_ROM_PTR(&tuple_count_obj) },
-    { MP_ROM_QSTR(MP_QSTR_index), MP_ROM_PTR(&tuple_index_obj) },
+static MAYBE_CUDA const mp_map_elem_t tuple_locals_dict_table[] = {
+    { MP_ROM_QSTR(MP_QSTR_count), (mp_obj_t)&tuple_count_obj },
+    { MP_ROM_QSTR(MP_QSTR_index), (mp_obj_t)&tuple_index_obj },
 };
 
-static MAYBE_CUDA MP_DEFINE_CONST_DICT(tuple_locals_dict, tuple_locals_dict_table);
+static MAYBE_CUDA const mp_obj_dict_t tuple_locals_dict = {
+    .base = {&mp_type_dict},
+    .map = {
+        .all_keys_are_qstrs = 1,
+        .is_fixed = 1,
+        .is_ordered = 1,
+        .used = MP_ARRAY_SIZE(tuple_locals_dict_table),
+        .alloc = MP_ARRAY_SIZE(tuple_locals_dict_table),
+        .table = (mp_map_elem_t *)tuple_locals_dict_table,
+    },
+};
 
 MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_tuple,
