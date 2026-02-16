@@ -99,6 +99,14 @@ MAYBE_CUDA void mp_init(void) {
     MP_STATE_VM(mp_kbd_exception).args = (mp_obj_tuple_t *)&mp_const_empty_tuple_obj;
     #endif
 
+    #ifdef __CUDA_ARCH__
+    // Break circular dependency for mp_type_type on device
+    ((mp_obj_type_t *)&mp_type_type)->base.type = &mp_type_type;
+    // Break circular dependency for dict_locals_dict on device
+    extern MAYBE_CUDA mp_obj_dict_t dict_locals_dict;
+    dict_locals_dict.base.type = &mp_type_dict;
+    #endif
+
     #if MICROPY_ENABLE_COMPILER
     // optimization disabled by default
     MP_STATE_VM(mp_optimise_value) = 0;

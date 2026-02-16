@@ -187,15 +187,15 @@ typedef struct _mp_lexer_t {
     #endif
 } mp_lexer_t;
 
-mp_lexer_t *mp_lexer_new(qstr src_name, mp_reader_t reader);
-mp_lexer_t *mp_lexer_new_from_str_len(qstr src_name, const char *str, size_t len, size_t free_len);
+MAYBE_CUDA mp_lexer_t *mp_lexer_new(qstr src_name, mp_reader_t reader);
+MAYBE_CUDA mp_lexer_t *mp_lexer_new_from_str_len(qstr src_name, const char *str, size_t len, size_t free_len);
 
 // If MICROPY_READER_POSIX or MICROPY_READER_VFS aren't enabled then
 // this function must be implemented by the port.
-mp_lexer_t *mp_lexer_new_from_file(qstr filename);
+MAYBE_CUDA mp_lexer_t *mp_lexer_new_from_file(qstr filename);
 
 #if MICROPY_HELPER_LEXER_UNIX
-mp_lexer_t *mp_lexer_new_from_fd(qstr filename, int fd, bool close_fd);
+MAYBE_CUDA mp_lexer_t *mp_lexer_new_from_fd(qstr filename, int fd, bool close_fd);
 #endif
 
 MAYBE_CUDA void mp_lexer_free(mp_lexer_t *lex);

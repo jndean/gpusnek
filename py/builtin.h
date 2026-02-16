@@ -130,15 +130,15 @@ MP_DECLARE_CONST_FUN_OBJ_VAR_BETWEEN(mp_sys_exit_obj);
 
 // Modules needed by the runtime.
 extern MAYBE_CUDA const mp_obj_dict_t mp_module_builtins_globals;
-extern const mp_obj_module_t mp_module___main__;
-extern const mp_obj_module_t mp_module_builtins;
-extern const mp_obj_module_t mp_module_sys;
+extern MAYBE_CUDA const mp_obj_module_t mp_module___main__;
+extern MAYBE_CUDA const mp_obj_module_t mp_module_builtins;
+extern MAYBE_CUDA const mp_obj_module_t mp_module_sys;
 
 // Modules needed by the parser when MICROPY_COMP_MODULE_CONST is enabled.
-extern const mp_obj_module_t mp_module_errno;
-extern const mp_obj_module_t mp_module_uctypes;
-extern const mp_obj_module_t mp_module_machine;
-extern const mp_obj_module_t mp_module_math;
+extern MAYBE_CUDA const mp_obj_module_t mp_module_errno;
+extern MAYBE_CUDA const mp_obj_module_t mp_module_uctypes;
+extern MAYBE_CUDA const mp_obj_module_t mp_module_machine;
+extern MAYBE_CUDA const mp_obj_module_t mp_module_math;
 
 extern const char MICROPY_PY_BUILTINS_HELP_TEXT[];
 

@@ -327,7 +327,7 @@ wrong_args:
 
 // like strstr but with specified length and allows \0 bytes
 // TODO replace with something more efficient/standard
-const byte *find_subbytes(const byte *haystack, size_t hlen, const byte *needle, size_t nlen, int direction) {
+MAYBE_CUDA const byte *find_subbytes(const byte *haystack, size_t hlen, const byte *needle, size_t nlen, int direction) {
     if (hlen >= nlen) {
         size_t str_index, str_index_end;
         if (direction > 0) {
@@ -474,7 +474,7 @@ MAYBE_CUDA mp_obj_t mp_obj_str_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_
 
 #if !MICROPY_PY_BUILTINS_STR_UNICODE
 // objstrunicode defines own version
-const byte *str_index_to_ptr(const mp_obj_type_t *type, const byte *self_data, size_t self_len,
+MAYBE_CUDA const byte *str_index_to_ptr(const mp_obj_type_t *type, const byte *self_data, size_t self_len,
     mp_obj_t index, bool is_slice) {
     size_t index_val = mp_get_index(type, self_len, index, is_slice);
     return self_data + index_val;
@@ -2085,7 +2085,11 @@ MAYBE_CUDA void mp_obj_str_set_data(mp_obj_str_t *str, const byte *data, size_t 
 
 // This locals table is used for the following types: str, bytes, bytearray, array.array.
 // Each type takes a different section (start to end offset) of this table.
-static MAYBE_CUDA const mp_rom_map_elem_t array_bytearray_str_bytes_locals_table[] = {
+// Fix for CUDA dynamic initialization: cast const pointers to mp_obj_t
+#undef MP_ROM_PTR
+#define MP_ROM_PTR(p) ((mp_obj_t)(p))
+
+static MAYBE_CUDA const mp_map_elem_t array_bytearray_str_bytes_locals_table[] = {
     #if MICROPY_PY_ARRAY || MICROPY_PY_BUILTINS_BYTEARRAY
     { MP_ROM_QSTR(MP_QSTR_append), MP_ROM_PTR(&mp_obj_array_append_obj) },
     { MP_ROM_QSTR(MP_QSTR_extend), MP_ROM_PTR(&mp_obj_array_extend_obj) },
@@ -2154,6 +2158,20 @@ static MAYBE_CUDA const mp_rom_map_elem_t array_bytearray_str_bytes_locals_table
 #define TABLE_ENTRIES_ARRAY 0
 #endif
 
+#undef MP_DEFINE_CONST_DICT_WITH_SIZE
+#define MP_DEFINE_CONST_DICT_WITH_SIZE(name, table_ptr, size) \
+    MAYBE_CUDA const mp_obj_dict_t name = { \
+        .base = {&mp_type_dict}, \
+        .map = { \
+            .all_keys_are_qstrs = 1, \
+            .is_fixed = 1, \
+            .is_ordered = 1, \
+            .used = size, \
+            .alloc = size, \
+            .table = (mp_map_elem_t *)(table_ptr), \
+        }, \
+    }
+
 MP_DEFINE_CONST_DICT_WITH_SIZE(mp_obj_str_locals_dict,
     array_bytearray_str_bytes_locals_table + TABLE_ENTRIES_ARRAY + TABLE_ENTRIES_HEX + TABLE_ENTRIES_COMPAT,
     MP_ARRAY_SIZE(array_bytearray_str_bytes_locals_table) - (TABLE_ENTRIES_ARRAY + TABLE_ENTRIES_HEX + TABLE_ENTRIES_COMPAT));
@@ -2216,7 +2234,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     );
 
 // The zero-length bytes object, with data that includes a null-terminating byte
-const mp_obj_str_t mp_const_empty_bytes_obj = {{&mp_type_bytes}, 0, 0, (const byte *)""};
+MAYBE_CUDA const mp_obj_str_t mp_const_empty_bytes_obj = {{&mp_type_bytes}, 0, 0, (const byte *)""};
 
 // Create a str/bytes object using the given data.  New memory is allocated and
 // the data is copied across.  This function should only be used if the type is bytes,

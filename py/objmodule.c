@@ -146,11 +146,23 @@ MAYBE_CUDA mp_obj_t mp_obj_new_module(qstr module_name) {
 /******************************************************************************/
 // Global module table and related functions
 
-static MAYBE_CUDA const mp_rom_map_elem_t mp_builtin_module_table[] = {
+// Fix for CUDA dynamic initialization: cast const pointers to mp_obj_t
+#undef MP_ROM_PTR
+#define MP_ROM_PTR(p) ((mp_obj_t)(p))
+
+MAYBE_CUDA const mp_map_elem_t mp_builtin_module_table[] = {
     // built-in modules declared with MP_REGISTER_MODULE()
     MICROPY_REGISTERED_MODULES
 };
-MP_DEFINE_CONST_MAP(mp_builtin_module_map, mp_builtin_module_table);
+
+MAYBE_CUDA const mp_map_t mp_builtin_module_map = {
+    .all_keys_are_qstrs = 1,
+    .is_fixed = 1,
+    .is_ordered = 1,
+    .used = MP_ARRAY_SIZE(mp_builtin_module_table),
+    .alloc = MP_ARRAY_SIZE(mp_builtin_module_table),
+    .table = (mp_map_elem_t *)mp_builtin_module_table,
+};
 
 #if MICROPY_HAVE_REGISTERED_EXTENSIBLE_MODULES
 static MAYBE_CUDA const mp_rom_map_elem_t mp_builtin_extensible_module_table[] = {

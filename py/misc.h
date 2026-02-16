@@ -394,15 +394,19 @@ static inline MAYBE_CUDA uint32_t mp_clzl(unsigned long x) {
 }
 
 #ifdef _WIN64
-static inline MAYBE_CUDA uint32_t mp_clzll(unsigned long long x) {
+static inline uint32_t mp_clzll(uint64_t x) {
     unsigned long lz = 0;
-    return _BitScanReverse64(&lz, x) ? (sizeof(x) * 8 - 1) - lz : 0;
+    return _BitScanReverse64(&lz, x) ? 63 - lz : 64;
 }
 #else
-// Microsoft don't ship _BitScanReverse64 on Win32, so emulate it
-static inline MAYBE_CUDA uint32_t mp_clzll(unsigned long long x) {
-    unsigned long h = x >> 32;
-    return h ? mp_clzl(h) : (mp_clzl((unsigned long)x) + 32);
+static inline uint32_t mp_clzll(uint64_t x) {
+    if (x == 0) {
+        return 64;
+    }
+    if ((uint32_t)(x >> 32) == 0) {
+        return 32 + mp_clz((uint32_t)x);
+    }
+    return mp_clz((uint32_t)(x >> 32));
 }
 #endif
 
@@ -419,7 +423,18 @@ static inline MAYBE_CUDA bool mp_check(bool value) {
 static inline MAYBE_CUDA uint32_t mp_popcount(uint32_t x) {
     return __popcnt(x);
 }
-#else // _MSC_VER
+
+#elif defined(__CUDA_ARCH__)
+
+#define mp_clz(x) __clz(x)
+#define mp_clzl(x) __clzll((unsigned long long)(x))
+#define mp_clzll(x) __clzll(x)
+#define mp_ctz(x) __ctz(x)
+#define mp_check(x) (x)
+#define mp_popcount(x) __popc(x)
+
+#else
+
 #define mp_clz(x) __builtin_clz(x)
 #define mp_clzl(x) __builtin_clzl(x)
 #define mp_clzll(x) __builtin_clzll(x)

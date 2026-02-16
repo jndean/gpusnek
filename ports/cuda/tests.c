@@ -83,5 +83,9 @@ MAYBE_CUDA void run_micropython_tests(void) {
     printf("Test 10: Generator expression\n");
     do_str("print(sum(x for x in range(10)))", MP_PARSE_FILE_INPUT);
 
+    // Test 11: Generator expression with sum
+    printf("Test 11: Types\n");
+    do_str("print(dir(type(type(1))))\n", MP_PARSE_FILE_INPUT);
+
     printf("MicroPython tests finished.\n");
 }
