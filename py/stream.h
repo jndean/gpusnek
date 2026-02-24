@@ -101,7 +101,7 @@ static inline MAYBE_CUDA const mp_stream_p_t *mp_get_stream(mp_const_obj_t self)
     return (const mp_stream_p_t *)MP_OBJ_TYPE_GET_SLOT(((const mp_obj_base_t *)MP_OBJ_TO_PTR(self))->type, protocol);
 }
 
-const mp_stream_p_t *mp_get_stream_raise(mp_obj_t self_in, int flags);
+MAYBE_CUDA const mp_stream_p_t *mp_get_stream_raise(mp_obj_t self_in, int flags);
 MAYBE_CUDA mp_obj_t mp_stream_close(mp_obj_t stream);
 
 // Iterator which uses mp_stream_unbuffered_readline_obj
@@ -116,7 +116,7 @@ MAYBE_CUDA mp_obj_t mp_stream_write(mp_obj_t self_in, const void *buf, size_t le
 MAYBE_CUDA mp_uint_t mp_stream_rw(mp_obj_t stream, void *buf, mp_uint_t size, int *errcode, byte flags);
 #define mp_stream_write_exactly(stream, buf, size, err) mp_stream_rw(stream, (byte *)buf, size, err, MP_STREAM_RW_WRITE)
 #define mp_stream_read_exactly(stream, buf, size, err) mp_stream_rw(stream, buf, size, err, MP_STREAM_RW_READ)
-mp_off_t mp_stream_seek(mp_obj_t stream, mp_off_t offset, int whence, int *errcode);
+MAYBE_CUDA mp_off_t mp_stream_seek(mp_obj_t stream, mp_off_t offset, int whence, int *errcode);
 
 MAYBE_CUDA void mp_stream_write_adaptor(void *self, const char *buf, size_t len);
 
@@ -124,10 +124,10 @@ MAYBE_CUDA void mp_stream_write_adaptor(void *self, const char *buf, size_t len)
 #include <sys/types.h>
 // Functions with POSIX-compatible signatures
 // "stream" is assumed to be a pointer to a concrete object with the stream protocol
-ssize_t mp_stream_posix_write(void *stream, const void *buf, size_t len);
-ssize_t mp_stream_posix_read(void *stream, void *buf, size_t len);
-off_t mp_stream_posix_lseek(void *stream, off_t offset, int whence);
-int mp_stream_posix_fsync(void *stream);
+MAYBE_CUDA ssize_t mp_stream_posix_write(void *stream, const void *buf, size_t len);
+MAYBE_CUDA ssize_t mp_stream_posix_read(void *stream, void *buf, size_t len);
+MAYBE_CUDA off_t mp_stream_posix_lseek(void *stream, off_t offset, int whence);
+MAYBE_CUDA int mp_stream_posix_fsync(void *stream);
 #endif
 
 #if MICROPY_STREAMS_NON_BLOCK
