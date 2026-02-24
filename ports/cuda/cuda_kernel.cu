@@ -16,6 +16,16 @@
 
 #define BUMP_ALLOC_HEAP_SIZE (100 * 1024)
 
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+
 // Simple test kernel
 __global__ void micropython_kernel(int *result, char *heap_ptr) {
     printf("GPU: micropython_kernel started\n");
@@ -50,10 +60,12 @@ extern "C" void run_cuda_test(void) {
         printf("Failed to allocate device heap: %s\n", cudaGetErrorString(err));
         return;
     }
+
+    gpuErrchk(cudaDeviceSetLimit(cudaLimitStackSize, 64*1024));
      
     // Launch a simple kernel
     micropython_kernel<<<1, 1>>>(d_result, d_heap);
-    cudaDeviceSynchronize();
+    gpuErrchk(cudaDeviceSynchronize());
      
     // Copy result back
     cudaMemcpy(&h_result, d_result, sizeof(int), cudaMemcpyDeviceToHost);

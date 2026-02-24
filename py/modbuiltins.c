@@ -767,7 +767,7 @@ static MAYBE_CUDA const mp_map_elem_t mp_module_builtins_globals_table[] = {
     MICROPY_PORT_EXTRA_BUILTINS
 };
 
-const mp_obj_dict_t mp_module_builtins_globals = {
+MAYBE_CUDA const mp_obj_dict_t mp_module_builtins_globals = {
     .base = {&mp_type_dict},
     .map = {
         .all_keys_are_qstrs = 1,

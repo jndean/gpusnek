@@ -18,7 +18,7 @@
 #define BUMP_ALLOC_HEAP_SIZE (100 * 1024)
 
 #ifdef __CUDACC__
-extern void run_cuda_test(void);
+extern "C" void run_cuda_test(void);
 #endif
 
 // Main function - can be called from CUDA kernel or host
@@ -43,17 +43,15 @@ int main(int argc, char **argv) {
     bump_alloc_init(heap_ptr, BUMP_ALLOC_HEAP_SIZE);
     #endif
 
-    // Initialize the MicroPython runtime
-    mp_init();
-
+    
     #ifdef __CUDACC__
     run_cuda_test();
     #else
+    mp_init();
     run_micropython_tests();
+    mp_deinit();
     #endif
 
-    // Deinitialize
-    mp_deinit();
     
     #ifndef __CUDACC__
     free(heap_ptr);
