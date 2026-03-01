@@ -326,15 +326,26 @@ typedef struct _mp_state_ctx_t {
     mp_state_mem_t mem;
 } mp_state_ctx_t;
 
-extern MAYBE_CUDA mp_state_ctx_t mp_state_ctx;
+// Per-thread state: array of contexts, indexed by thread ID
+extern MAYBE_CUDA mp_state_ctx_t *mp_state_ctx_array;
 
-#define MP_STATE_VM(x) (mp_state_ctx.vm.x)
-#define MP_STATE_MEM(x) (mp_state_ctx.mem.x)
-#define MP_STATE_MAIN_THREAD(x) (mp_state_ctx.thread.x)
+// Thread index: GPU uses threadIdx.x, host hardcoded to 0 for POC
+#ifdef __CUDA_ARCH__
+#define MP_THREAD_IDX  ((int)threadIdx.x)
+#else
+#define MP_THREAD_IDX  (0)
+#endif
+
+// Per-thread state context accessor
+#define MP_STATE_CTX       (mp_state_ctx_array[MP_THREAD_IDX])
+
+#define MP_STATE_VM(x) (MP_STATE_CTX.vm.x)
+#define MP_STATE_MEM(x) (MP_STATE_CTX.mem.x)
+#define MP_STATE_MAIN_THREAD(x) (MP_STATE_CTX.thread.x)
 
 #if MICROPY_PY_THREAD
 #define MP_STATE_THREAD(x) (mp_thread_get_state()->x)
-#define mp_thread_is_main_thread() (mp_thread_get_state() == &mp_state_ctx.thread)
+#define mp_thread_is_main_thread() (mp_thread_get_state() == &MP_STATE_CTX.thread)
 #else
 #define MP_STATE_THREAD(x)  MP_STATE_MAIN_THREAD(x)
 #define mp_thread_is_main_thread() (true)

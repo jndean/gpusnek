@@ -59,12 +59,9 @@
 #define DEBUG_OP_printf(...) (void)0
 #endif
 
-MAYBE_CUDA const mp_obj_module_t mp_module___main__ = {
-    .base = { &mp_type_module },
-    .globals = (mp_obj_dict_t *)&MP_STATE_VM(dict_main),
-};
-
-MP_REGISTER_MODULE(MP_QSTR___main__, mp_module___main__);
+// Per-thread __main__ module — each thread gets its own copy with its own .globals.
+// Allocated as an array (one element per thread)
+MAYBE_CUDA mp_obj_module_t *mp_module___main___array;
 
 #define TYPE_HAS_ITERNEXT(type) (type->flags & (MP_TYPE_FLAG_ITER_IS_ITERNEXT | MP_TYPE_FLAG_ITER_IS_CUSTOM | MP_TYPE_FLAG_ITER_IS_STREAM))
 
@@ -106,6 +103,10 @@ MAYBE_CUDA void mp_init(void) {
     extern MAYBE_CUDA mp_obj_dict_t dict_locals_dict;
     dict_locals_dict.base.type = &mp_type_dict;
     #endif
+
+    // Initialize this thread's __main__ module
+    mp_module___main__.base.type = &mp_type_module;
+    mp_module___main__.globals = (mp_obj_dict_t *)&MP_STATE_VM(dict_main);
 
     #if MICROPY_ENABLE_COMPILER
     // optimization disabled by default

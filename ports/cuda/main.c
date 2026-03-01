@@ -34,7 +34,18 @@ int main(int argc, char **argv) {
     // But here main() calls run_cuda_test(), which handles allocation.
     // See run_cuda_test in cuda_kernel.cu
     #else
-    // In Host simulation build: allocate heap and initialize
+    // In Host simulation build: allocate state context and heap
+    static mp_state_ctx_t host_state_ctx;
+    memset(&host_state_ctx, 0, sizeof(host_state_ctx));
+    mp_state_ctx_array = &host_state_ctx;
+
+    static bump_alloc_state_t host_bump_state;
+    bump_alloc_states = &host_bump_state;
+
+    static mp_obj_module_t host_module_main;
+    memset(&host_module_main, 0, sizeof(host_module_main));
+    mp_module___main___array = &host_module_main;
+
     char *heap_ptr = (char *)malloc(BUMP_ALLOC_HEAP_SIZE);
     if (!heap_ptr) {
         printf("FATAL: Failed to allocate heap\n");

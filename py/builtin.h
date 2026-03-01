@@ -130,7 +130,9 @@ MP_DECLARE_CONST_FUN_OBJ_VAR_BETWEEN(mp_sys_exit_obj);
 
 // Modules needed by the runtime.
 extern MAYBE_CUDA const mp_obj_dict_t mp_module_builtins_globals;
-extern MAYBE_CUDA const mp_obj_module_t mp_module___main__;
+// Per-thread __main__ module (same pattern as mp_state_ctx_array)
+extern MAYBE_CUDA mp_obj_module_t *mp_module___main___array;
+#define mp_module___main__ (mp_module___main___array[MP_THREAD_IDX])
 extern MAYBE_CUDA const mp_obj_module_t mp_module_builtins;
 extern MAYBE_CUDA const mp_obj_module_t mp_module_sys;
 

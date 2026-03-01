@@ -153,6 +153,8 @@ MAYBE_CUDA mp_obj_t mp_obj_new_module(qstr module_name) {
 MAYBE_CUDA const mp_map_elem_t mp_builtin_module_table[] = {
     // built-in modules declared with MP_REGISTER_MODULE()
     MICROPY_REGISTERED_MODULES
+    // NOTE: mp_module___main__ is NOT in this table — it's per-thread and its
+    // address is not a compile-time constant. Access it via mp_module___main__ macro.
 };
 
 MAYBE_CUDA const mp_map_t mp_builtin_module_map = {
