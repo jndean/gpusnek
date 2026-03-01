@@ -87,5 +87,28 @@ MAYBE_CUDA void run_micropython_tests(void) {
     printf("Test 11: Types\n");
     do_str("print(dir(type(type(1))))\n", MP_PARSE_FILE_INPUT);
 
+    // Test 12: Per-thread __main__ module isolation
+    // Each thread sets test_isolation to a DIFFERENT value (100 + thread_id),
+    // then a separate do_str reads it back. If threads shared one __main__,
+    // one thread would see the other's value.
+    printf("Test 12: __main__ module isolation\n");
+    {
+        int tid = MP_THREAD_IDX;
+        int val = 100 + tid;
+        // Build "test_isolation = 1XX" — last digit varies by thread
+        char set_src[] = "test_isolation = 100";
+        set_src[19] = '0' + (val % 10);  // patch units digit
+        set_src[18] = '0' + (val / 10) % 10;  // patch tens digit
+        set_src[17] = '0' + (val / 100);  // patch hundreds digit
+        do_str(set_src, MP_PARSE_FILE_INPUT);
+
+        // Build "assert test_isolation == 1XX\nprint(test_isolation)"
+        char chk_src[] = "assert test_isolation == 100\nprint(test_isolation)";
+        chk_src[27] = '0' + (val % 10);
+        chk_src[26] = '0' + (val / 10) % 10;
+        chk_src[25] = '0' + (val / 100);
+        do_str(chk_src, MP_PARSE_FILE_INPUT);
+    }
+
     printf("MicroPython tests finished.\n");
 }

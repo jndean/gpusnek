@@ -1,50 +1,51 @@
 /*
  * Bump allocator implementation.
+ *
+ * Each thread has its own bump_alloc_state_t, accessed via
+ * bump_alloc_states[MP_THREAD_IDX]. Functions cache the state
+ * pointer locally to avoid repeated thread-index lookups.
  */
 
 #include <stdio.h>
 #include <string.h>
 #include "py/bumpalloc.h"
+#include "py/mpstate.h" // for MP_THREAD_IDX
 
 // Alignment for all allocations (8 bytes for 64-bit alignment)
 #define BUMP_ALLOC_ALIGN 8
 
-// Globals
-MAYBE_CUDA static char *bump_heap_base = 0;
-MAYBE_CUDA static size_t bump_heap_offset = 0;
-MAYBE_CUDA static size_t bump_heap_size = 0;
+// Per-thread state array (set by launcher before init)
+MAYBE_CUDA bump_alloc_state_t *bump_alloc_states;
 
-// Init function
+// Init function — initializes current thread's allocator state
 MAYBE_CUDA void bump_alloc_init(char *heap_ptr, size_t heap_size) {
-    bump_heap_base = heap_ptr;
-    bump_heap_offset = 0;
-    bump_heap_size = heap_size;
+    bump_alloc_state_t *s = &bump_alloc_states[MP_THREAD_IDX];
+    s->base = heap_ptr;
+    s->offset = 0;
+    s->size = heap_size;
 }
 
 MAYBE_CUDA void *bump_malloc(size_t num_bytes) {
     if (num_bytes == 0) {
         return NULL;
     }
+
+    // Cache state pointer to avoid repeated MP_THREAD_IDX lookups
+    bump_alloc_state_t *s = &bump_alloc_states[MP_THREAD_IDX];
+
     // Align the size up
     size_t aligned = (num_bytes + BUMP_ALLOC_ALIGN - 1) & ~(BUMP_ALLOC_ALIGN - 1);
 
-    size_t old_offset;
-    #ifdef __CUDA_ARCH__
-    // Atomicly advance the offset on device
-    old_offset = atomicAdd((unsigned long long *)&bump_heap_offset, (unsigned long long)aligned);
-    #else
-    // Normal increment on host
-    old_offset = bump_heap_offset;
-    bump_heap_offset += aligned;
-    #endif
+    // Each thread has its own allocator — no atomics needed
+    size_t old_offset = s->offset;
+    s->offset += aligned;
 
-    if (old_offset + aligned > bump_heap_size) {
-        // Out of memory - return NULL
+    if (old_offset + aligned > s->size) {
         printf("OOM\n");
         return NULL;
     }
 
-    return (void *)(bump_heap_base + old_offset);
+    return (void *)(s->base + old_offset);
 }
 
 MAYBE_CUDA void *bump_realloc(void *ptr, size_t new_num_bytes) {
