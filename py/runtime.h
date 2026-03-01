@@ -98,7 +98,7 @@ typedef struct _nlr_jump_callback_node_call_function_1_t {
 MAYBE_CUDA extern const byte mp_unary_op_method_name[];
 MAYBE_CUDA extern const byte mp_binary_op_method_name[];
 
-MAYBE_CUDA void mp_init(void);
+MAYBE_CUDA void mp_init(mp_state_ctx_t *ctx, char *heap, size_t heap_size);
 MAYBE_CUDA void mp_deinit(void);
 
 MAYBE_CUDA void mp_sched_exception(mp_obj_t exc);
