@@ -13,9 +13,6 @@
 #include "py/mperrno.h"
 
 #include "ports/cuda/tests.h"
-#include "py/bumpalloc.h"
-
-#define BUMP_ALLOC_HEAP_SIZE (100 * 1024)
 
 #ifdef __CUDACC__
 extern "C" void run_cuda_test(void);
@@ -28,43 +25,21 @@ int main(int argc, char **argv) {
 
     printf("CUDA MicroPython POC starting...\n");
 
-    // Initialize bump allocator (must happen before mp_init)
     #ifdef __CUDACC__
-    // In CUDA build, main() constructs the heap and kernel initializes it.
-    // But here main() calls run_cuda_test(), which handles allocation.
-    // See run_cuda_test in cuda_kernel.cu
+    run_cuda_test();
     #else
-    // In Host simulation build: allocate state context and heap
+    // Host build: allocate state and heap, then call mp_init
     static mp_state_ctx_t host_state_ctx;
-    memset(&host_state_ctx, 0, sizeof(host_state_ctx));
-    mp_state_ctx_array = &host_state_ctx;
-
-    static bump_alloc_state_t host_bump_state;
-    bump_alloc_states = &host_bump_state;
-
-    static mp_obj_module_t host_module_main;
-    memset(&host_module_main, 0, sizeof(host_module_main));
-    mp_module___main___array = &host_module_main;
-
     char *heap_ptr = (char *)malloc(BUMP_ALLOC_HEAP_SIZE);
     if (!heap_ptr) {
         printf("FATAL: Failed to allocate heap\n");
         return 1;
     }
-    bump_alloc_init(heap_ptr, BUMP_ALLOC_HEAP_SIZE);
-    #endif
 
-    
-    #ifdef __CUDACC__
-    run_cuda_test();
-    #else
-    mp_init();
+    mp_init(&host_state_ctx, heap_ptr, BUMP_ALLOC_HEAP_SIZE);
     run_micropython_tests();
     mp_deinit();
-    #endif
 
-    
-    #ifndef __CUDACC__
     free(heap_ptr);
     #endif
 

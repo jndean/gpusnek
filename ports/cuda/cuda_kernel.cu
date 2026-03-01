@@ -13,9 +13,6 @@
 #include "py/mpstate.h"
 
 #include "tests.h"
-#include "py/bumpalloc.h"
-
-#define BUMP_ALLOC_HEAP_SIZE (60 * 1024)
 #define N_THREADS 2
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -31,26 +28,15 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 // Multi-thread MicroPython kernel
 __global__ void micropython_kernel(int *results,
                                     mp_state_ctx_t *state_array,
-                                    bump_alloc_state_t *bump_array,
-                                    mp_obj_module_t *module_main_array,
                                     char *heap_base) {
     int tid = threadIdx.x;
     printf("[%d] micropython_kernel started\n", tid);
 
-    // Point global arrays at the device-allocated arrays
-    mp_state_ctx_array = state_array;
-    bump_alloc_states = bump_array;
-    mp_module___main___array = module_main_array;
-
-    // Zero this thread's state context
-    memset(&MP_STATE_CTX, 0, sizeof(mp_state_ctx_t));
-
     // Each thread gets its own heap region
     char *my_heap = heap_base + tid * BUMP_ALLOC_HEAP_SIZE;
-    bump_alloc_init(my_heap, BUMP_ALLOC_HEAP_SIZE);
 
-    // Initialize and run MicroPython
-    mp_init();
+    // One call does everything: sets up state, allocator, and MicroPython
+    mp_init(&state_array[tid], my_heap, BUMP_ALLOC_HEAP_SIZE);
     run_micropython_tests();
     mp_deinit();
 
@@ -63,7 +49,7 @@ extern "C" void run_cuda_test(void) {
     printf("CUDA MicroPython multi-thread test starting (%d threads)...\n", N_THREADS);
 
     // Set GPU stack size (MicroPython needs deep stacks)
-    gpuErrchk(cudaDeviceSetLimit(cudaLimitStackSize, 64*1024));
+    gpuErrchk(cudaDeviceSetLimit(cudaLimitStackSize, 16*1024));
      
     // Allocate per-thread result array
     int *d_results;
@@ -73,20 +59,12 @@ extern "C" void run_cuda_test(void) {
     mp_state_ctx_t *d_states;
     gpuErrchk(cudaMalloc(&d_states, N_THREADS * sizeof(mp_state_ctx_t)));
 
-    // Allocate per-thread bump allocator states
-    bump_alloc_state_t *d_bumps;
-    gpuErrchk(cudaMalloc(&d_bumps, N_THREADS * sizeof(bump_alloc_state_t)));
-
-    // Allocate per-thread __main__ modules
-    mp_obj_module_t *d_modules_main;
-    gpuErrchk(cudaMalloc(&d_modules_main, N_THREADS * sizeof(mp_obj_module_t)));
-
     // Allocate per-thread heaps (contiguous block, each thread gets a slice)
     char *d_heap;
     gpuErrchk(cudaMalloc(&d_heap, N_THREADS * BUMP_ALLOC_HEAP_SIZE));
 
     // Launch kernel with N threads
-    micropython_kernel<<<1, N_THREADS>>>(d_results, d_states, d_bumps, d_modules_main, d_heap);
+    micropython_kernel<<<1, N_THREADS>>>(d_results, d_states, d_heap);
     gpuErrchk(cudaDeviceSynchronize());
      
     // Copy results back and print
@@ -99,7 +77,5 @@ extern "C" void run_cuda_test(void) {
     // Cleanup
     cudaFree(d_results);
     cudaFree(d_states);
-    cudaFree(d_bumps);
-    cudaFree(d_modules_main);
     cudaFree(d_heap);
 }

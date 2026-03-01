@@ -1,16 +1,15 @@
 /*
- * Bump allocator for CUDA device code.
+ * Bump allocator for MicroPython.
  *
  * This provides a simple bump allocator that replaces malloc/realloc/free
  * when running on the GPU. The allocator works by advancing a pointer
  * through a pre-allocated buffer. Free is a no-op.
  *
- * Each thread gets its own allocator state via bump_alloc_states array,
- * indexed by MP_THREAD_IDX.
+ * Each thread's state lives inside mp_state_ctx_t.bump and is
+ * automatically per-thread via MP_STATE_CTX.
  *
- * Usage:
- *   Set bump_alloc_states to point at an array of bump_alloc_state_t.
- *   Call bump_alloc_init(heap_ptr, heap_size) to initialize current thread's state.
+ * The caller allocates a heap buffer and passes it to mp_init(),
+ * which calls bump_alloc_init() internally.
  */
 
 #ifndef MICROPY_BUMPALLOC_H
@@ -27,10 +26,7 @@ typedef struct {
     size_t size;
 } bump_alloc_state_t;
 
-// Array of per-thread states, set by launcher before bump_alloc_init
-extern MAYBE_CUDA bump_alloc_state_t *bump_alloc_states;
-
-// API
+// API (called internally by mp_init, or by the allocator itself)
 MAYBE_CUDA void bump_alloc_init(char *heap_ptr, size_t heap_size);
 MAYBE_CUDA void *bump_malloc(size_t num_bytes);
 MAYBE_CUDA void *bump_realloc(void *ptr, size_t new_num_bytes);

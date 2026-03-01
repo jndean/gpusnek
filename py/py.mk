@@ -81,6 +81,7 @@ endif
 # py object files
 PY_CORE_O_BASENAME = $(addprefix py/,\
 	mpstate.o \
+	bumpalloc.o \
 	nlr.o \
 	nlrx86.o \
 	nlrx64.o \

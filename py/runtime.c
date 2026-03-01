@@ -59,13 +59,29 @@
 #define DEBUG_OP_printf(...) (void)0
 #endif
 
-// Per-thread __main__ module — each thread gets its own copy with its own .globals.
-// Allocated as an array (one element per thread)
-MAYBE_CUDA mp_obj_module_t *mp_module___main___array;
+// mp_module___main__ now lives inside mp_state_vm_t (see mpstate.h)
+// and is accessed via the macro in builtin.h: MP_STATE_VM(module_main)
 
 #define TYPE_HAS_ITERNEXT(type) (type->flags & (MP_TYPE_FLAG_ITER_IS_ITERNEXT | MP_TYPE_FLAG_ITER_IS_CUSTOM | MP_TYPE_FLAG_ITER_IS_STREAM))
 
-MAYBE_CUDA void mp_init(void) {
+MAYBE_CUDA void mp_init(mp_state_ctx_t *ctx, char *heap, size_t heap_size) {
+    // Set up per-thread state and allocator
+    mp_state_ctx_array = ctx;
+    memset(&MP_STATE_CTX, 0, sizeof(mp_state_ctx_t));
+    bump_alloc_init(heap, heap_size);
+
+    #ifdef __CUDA_ARCH__
+    // Break circular dependency for mp_type_type on device
+    ((mp_obj_type_t *)&mp_type_type)->base.type = &mp_type_type;
+    // Break circular dependency for dict_locals_dict on device
+    extern MAYBE_CUDA mp_obj_dict_t dict_locals_dict;
+    dict_locals_dict.base.type = &mp_type_dict;
+    #endif
+
+    // Initialize this thread's __main__ module
+    mp_module___main__.base.type = &mp_type_module;
+    mp_module___main__.globals = (mp_obj_dict_t *)&MP_STATE_VM(dict_main);
+
     qstr_init();
 
     // no pending exceptions to start with
@@ -96,17 +112,6 @@ MAYBE_CUDA void mp_init(void) {
     MP_STATE_VM(mp_kbd_exception).args = (mp_obj_tuple_t *)&mp_const_empty_tuple_obj;
     #endif
 
-    #ifdef __CUDA_ARCH__
-    // Break circular dependency for mp_type_type on device
-    ((mp_obj_type_t *)&mp_type_type)->base.type = &mp_type_type;
-    // Break circular dependency for dict_locals_dict on device
-    extern MAYBE_CUDA mp_obj_dict_t dict_locals_dict;
-    dict_locals_dict.base.type = &mp_type_dict;
-    #endif
-
-    // Initialize this thread's __main__ module
-    mp_module___main__.base.type = &mp_type_module;
-    mp_module___main__.globals = (mp_obj_dict_t *)&MP_STATE_VM(dict_main);
 
     #if MICROPY_ENABLE_COMPILER
     // optimization disabled by default

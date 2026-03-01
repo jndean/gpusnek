@@ -34,6 +34,7 @@
 #include "py/nlr.h"
 #include "py/obj.h"
 #include "py/objlist.h"
+#include "py/bumpalloc.h"
 #include "py/objexcept.h"
 
 // This file contains structures defining the state of the MicroPython
@@ -196,6 +197,9 @@ typedef struct _mp_state_vm_t {
     // dictionary for the __main__ module
     mp_obj_dict_t dict_main;
 
+    // the __main__ module object itself (per-thread, .globals points to dict_main)
+    mp_obj_module_t module_main;
+
     // dictionary for overridden builtins
     #if MICROPY_CAN_OVERRIDE_BUILTINS
     mp_obj_dict_t *mp_module_builtins_override_dict;
@@ -324,6 +328,7 @@ typedef struct _mp_state_ctx_t {
     mp_state_thread_t thread;
     mp_state_vm_t vm;
     mp_state_mem_t mem;
+    bump_alloc_state_t bump;  // per-thread bump allocator state
 } mp_state_ctx_t;
 
 // Per-thread state: array of contexts, indexed by thread ID
