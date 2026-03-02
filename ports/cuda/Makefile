@@ -54,6 +54,7 @@ LDFLAGS +=
 SRC_C = \
 	main.c \
 	mphal.c \
+	gcollect.c \
 
 # Object files
 OBJ = $(PY_CORE_O)

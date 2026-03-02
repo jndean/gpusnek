@@ -68,7 +68,14 @@ MAYBE_CUDA void mp_init(mp_state_ctx_t *ctx, char *heap, size_t heap_size) {
     // Set up per-thread state and allocator
     mp_state_ctx_array = ctx;
     memset(&MP_STATE_CTX, 0, sizeof(mp_state_ctx_t));
+
+    #if MICROPY_ENABLE_GC
+    // Store stack top for GC root scanning (address of local = top of stack at init)
+    MP_STATE_THREAD(stack_top) = (char *)&ctx;  // Does this capture the whole of the current frame?
+    gc_init(heap, heap + heap_size);
+    #else
     bump_alloc_init(heap, heap_size);
+    #endif
 
     #ifdef __CUDA_ARCH__
     // Break circular dependency for mp_type_type on device

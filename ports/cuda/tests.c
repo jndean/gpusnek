@@ -110,5 +110,14 @@ MAYBE_CUDA void run_micropython_tests(void) {
         do_str(chk_src, MP_PARSE_FILE_INPUT);
     }
 
+    printf("Test 13: GC\n");
+    do_str(
+        "x = 1\n"
+        "for y in range(1000):\n"
+        "    x += 1\n"
+        "print(x)\n",
+        MP_PARSE_FILE_INPUT
+    );
+
     printf("MicroPython tests finished.\n");
 }

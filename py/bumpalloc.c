@@ -6,6 +6,10 @@
  * avoid repeated index lookups.
  */
 
+#include "py/mpconfig.h"
+
+#if !MICROPY_ENABLE_GC
+
 #include <stdio.h>
 #include <string.h>
 #include "py/bumpalloc.h"
@@ -64,3 +68,5 @@ MAYBE_CUDA void *bump_realloc(void *ptr, size_t new_num_bytes) {
 MAYBE_CUDA void bump_free(void *ptr) {
     (void)ptr;
 }
+
+#endif // !MICROPY_ENABLE_GC

@@ -164,7 +164,7 @@ static MAYBE_CUDA void gc_setup_area(mp_state_mem_area_t *area, void *start, voi
 
     size_t gc_pool_block_len = area->gc_alloc_table_byte_len * BLOCKS_PER_ATB;
     area->gc_pool_start = (byte *)end - gc_pool_block_len * BYTES_PER_BLOCK;
-    area->gc_pool_end = end;
+    area->gc_pool_end = (byte *)end;
 
     #if MICROPY_ENABLE_FINALISER
     assert(area->gc_pool_start >= area->gc_finaliser_table_start + gc_finaliser_table_byte_len);
@@ -201,7 +201,7 @@ static MAYBE_CUDA void gc_setup_area(mp_state_mem_area_t *area, void *start, voi
         gc_pool_block_len * BYTES_PER_BLOCK, gc_pool_block_len);
 }
 
-void gc_init(void *start, void *end) {
+MAYBE_CUDA void gc_init(void *start, void *end) {
     // align end pointer on block boundary
     end = (void *)((uintptr_t)end & (~(BYTES_PER_BLOCK - 1)));
     DEBUG_printf("Initializing GC heap: %p..%p = " UINT_FMT " bytes\n", start, end, (byte *)end - (byte *)start);
@@ -342,7 +342,7 @@ static MAYBE_CUDA bool gc_try_add_heap(size_t failed_alloc) {
 
 #endif
 
-void gc_lock(void) {
+MAYBE_CUDA void gc_lock(void) {
     // This does not need to be atomic or have the GC mutex because:
     // - each thread has its own gc_lock_depth so there are no races between threads;
     // - a hard interrupt will only change gc_lock_depth during its execution, and
@@ -350,12 +350,12 @@ void gc_lock(void) {
     MP_STATE_THREAD(gc_lock_depth) += (1 << GC_LOCK_DEPTH_SHIFT);
 }
 
-void gc_unlock(void) {
+MAYBE_CUDA void gc_unlock(void) {
     // This does not need to be atomic, See comment above in gc_lock.
     MP_STATE_THREAD(gc_lock_depth) -= (1 << GC_LOCK_DEPTH_SHIFT);
 }
 
-bool gc_is_locked(void) {
+MAYBE_CUDA bool gc_is_locked(void) {
     return MP_STATE_THREAD(gc_lock_depth) != 0;
 }
 
@@ -391,7 +391,7 @@ static MAYBE_CUDA inline mp_state_mem_area_t *gc_get_ptr_area(const void *ptr) {
 #endif
 #endif
 
-void gc_collect_start(void) {
+MAYBE_CUDA void gc_collect_start(void) {
     gc_collect_start_common();
     #if MICROPY_GC_ALLOC_THRESHOLD
     MP_STATE_MEM(gc_alloc_amount) = 0;
@@ -400,7 +400,7 @@ void gc_collect_start(void) {
     // Trace root pointers.  This relies on the root pointers being organised
     // correctly in the mp_state_ctx structure.  We scan nlr_top, dict_locals,
     // dict_globals, then the root pointer section of mp_state_vm.
-    void **ptrs = (void **)(void *)&mp_state_ctx;
+    void **ptrs = (void **)(void *)&MP_STATE_CTX;
     size_t root_start = offsetof(mp_state_ctx_t, thread.dict_locals);
     size_t root_end = offsetof(mp_state_ctx_t, vm.qstr_last_chunk);
     gc_collect_root(ptrs + root_start / sizeof(void *), (root_end - root_start) / sizeof(void *));
@@ -419,7 +419,7 @@ static MAYBE_CUDA void gc_collect_start_common(void) {
     MP_STATE_MEM(gc_stack_overflow) = 0;
 }
 
-void gc_collect_root(void **ptrs, size_t len) {
+MAYBE_CUDA void gc_collect_root(void **ptrs, size_t len) {
     #if !MICROPY_GC_SPLIT_HEAP
     mp_state_mem_area_t *area = &MP_STATE_MEM(area);
     #endif
@@ -527,12 +527,12 @@ static MAYBE_CUDA void gc_mark_subtree(size_t block)
     }
 }
 
-void gc_sweep_all(void) {
+MAYBE_CUDA void gc_sweep_all(void) {
     gc_collect_start_common();
     gc_collect_end();
 }
 
-void gc_collect_end(void) {
+MAYBE_CUDA void gc_collect_end(void) {
     gc_deal_with_stack_overflow();
     gc_sweep_run_finalisers();
     gc_sweep_free_blocks();
@@ -684,7 +684,7 @@ static MAYBE_CUDA void *gc_get_ptr(void **ptrs, int i) {
     return ptrs[i];
 }
 
-void gc_info(gc_info_t *info) {
+MAYBE_CUDA void gc_info(gc_info_t *info) {
     GC_ENTER();
     info->total = 0;
     info->used = 0;
@@ -757,7 +757,7 @@ void gc_info(gc_info_t *info) {
     GC_EXIT();
 }
 
-void *gc_alloc(size_t n_bytes, unsigned int alloc_flags) {
+MAYBE_CUDA void *gc_alloc(size_t n_bytes, unsigned int alloc_flags) {
     bool has_finaliser = alloc_flags & GC_ALLOC_FLAG_HAS_FINALISER;
     size_t n_blocks = ((n_bytes + BYTES_PER_BLOCK - 1) & (~(BYTES_PER_BLOCK - 1))) / BYTES_PER_BLOCK;
     DEBUG_printf("gc_alloc(" UINT_FMT " bytes -> " UINT_FMT " blocks)\n", n_bytes, n_blocks);
@@ -916,7 +916,7 @@ found:
 
 // force the freeing of a piece of memory
 // TODO: freeing here does not call finaliser
-void gc_free(void *ptr) {
+MAYBE_CUDA void gc_free(void *ptr) {
     // Cannot free while the GC is locked, unless we're only doing a gc sweep.
     // However free is an optimisation to reclaim the memory immediately, this
     // means it will now be left until the next collection.
@@ -988,7 +988,7 @@ void gc_free(void *ptr) {
     #endif
 }
 
-size_t gc_nbytes(const void *ptr) {
+MAYBE_CUDA size_t gc_nbytes(const void *ptr) {
     GC_ENTER();
 
     mp_state_mem_area_t *area;
@@ -1020,7 +1020,7 @@ size_t gc_nbytes(const void *ptr) {
     return 0;
 }
 
-void *gc_realloc(void *ptr_in, size_t n_bytes, bool allow_move) {
+MAYBE_CUDA void *gc_realloc(void *ptr_in, size_t n_bytes, bool allow_move) {
     // check for pure allocation
     if (ptr_in == NULL) {
         return gc_alloc(n_bytes, false);
@@ -1170,7 +1170,7 @@ void *gc_realloc(void *ptr_in, size_t n_bytes, bool allow_move) {
     return ptr_out;
 }
 
-void gc_dump_info(const mp_print_t *print) {
+MAYBE_CUDA void gc_dump_info(const mp_print_t *print) {
     gc_info_t info;
     gc_info(&info);
     mp_printf(print, "GC: total: %u, used: %u, free: %u",
@@ -1182,7 +1182,7 @@ void gc_dump_info(const mp_print_t *print) {
         (uint)info.num_1block, (uint)info.num_2block, (uint)info.max_block, (uint)info.max_free);
 }
 
-void gc_dump_alloc_table(const mp_print_t *print) {
+MAYBE_CUDA void gc_dump_alloc_table(const mp_print_t *print) {
     GC_ENTER();
     static const size_t DUMP_BYTES_PER_LINE = 64;
     for (mp_state_mem_area_t *area = &MP_STATE_MEM(area); area != NULL; area = NEXT_AREA(area)) {

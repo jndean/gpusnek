@@ -26,10 +26,12 @@ typedef struct {
     size_t size;
 } bump_alloc_state_t;
 
+#if !MICROPY_ENABLE_GC
 // API (called internally by mp_init, or by the allocator itself)
 MAYBE_CUDA void bump_alloc_init(char *heap_ptr, size_t heap_size);
 MAYBE_CUDA void *bump_malloc(size_t num_bytes);
 MAYBE_CUDA void *bump_realloc(void *ptr, size_t new_num_bytes);
 MAYBE_CUDA void bump_free(void *ptr);
+#endif // !MICROPY_ENABLE_GC
 
 #endif // MICROPY_BUMPALLOC_H
