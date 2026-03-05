@@ -25,13 +25,15 @@
  */
 
 #include "py/mpstate.h"
+#include "py/obj.h"
+#include "py/runtime.h"
 
 #if MICROPY_NLR_SETJMP
 
 MAYBE_CUDA void nlr_jump(void *val) {
 #ifdef __CUDA_ARCH__
-    // Device code cannot use longjmp. Trap or print error.
-    printf("nlr_jump called on device\n");
+    // Device code cannot use longjmp. Print the exception then trap.
+    mp_obj_print_exception(&mp_plat_print, MP_OBJ_FROM_PTR(val));
     asm("trap;");
 #else
     MP_NLR_JUMP_HEAD(val, top);

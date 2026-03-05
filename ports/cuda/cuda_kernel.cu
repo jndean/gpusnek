@@ -35,8 +35,7 @@ __global__ void micropython_kernel(int *results,
     // Each thread gets its own heap region
     char *my_heap = heap_base + tid * BUMP_ALLOC_HEAP_SIZE;
 
-    // One call does everything: sets up state, allocator, and MicroPython
-    mp_init(&state_array[tid], my_heap, BUMP_ALLOC_HEAP_SIZE);
+    mp_init(state_array, my_heap, BUMP_ALLOC_HEAP_SIZE);
     run_micropython_tests();
     mp_deinit();
 

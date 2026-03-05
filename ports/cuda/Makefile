@@ -28,6 +28,7 @@ INC += -I$(TOP)
 INC += -I$(BUILD)
 
 CUDACFLAGS = $(INC) -x cu -dc -Xcompiler -fpermissive -D"restrict="
+#-G -lineinfo -fdevice-sanitize=memcheck
 
 ifeq ($(TARGET),cuda)
 # CUDA Build Settings

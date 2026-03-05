@@ -50,31 +50,27 @@ int main(int argc, char **argv) {
 // Required stubs for MicroPython
 
 // Lexer from file - not supported
-mp_lexer_t *mp_lexer_new_from_file(qstr filename) {
+MAYBE_CUDA mp_lexer_t *mp_lexer_new_from_file(qstr filename) {
     mp_raise_OSError(MP_ENOENT);
 }
 
 // Import stat - nothing exists
-mp_import_stat_t mp_import_stat(const char *path) {
+MAYBE_CUDA mp_import_stat_t mp_import_stat(const char *path) {
     return MP_IMPORT_STAT_NO_EXIST;
 }
 
 // NLR jump fail - called when an exception has no handler
 // This is required by nlrsetjmp.c
-void nlr_jump_fail(void *val) {
-    printf("FATAL: Uncaught NLR jump (exception with no handler)\n");
+MAYBE_CUDA void nlr_jump_fail(void *val) {
+    printf("FATAL: Uncaught exception:\n");
+    mp_obj_print_exception(&mp_plat_print, MP_OBJ_FROM_PTR(val));
+    asm("trap;");
     while (1) { }
 }
 
 // Fatal error handler
-void __fatal_error(const char *msg) {
+MAYBE_CUDA void __fatal_error(const char *msg) {
     printf("FATAL ERROR: %s\n", msg);
     while (1) { }
 }
 
-#ifndef NDEBUG
-void __assert_func(const char *file, int line, const char *func, const char *expr) {
-    printf("Assertion '%s' failed, at file %s:%d\n", expr, file, line);
-    __fatal_error("Assertion failed");
-}
-#endif

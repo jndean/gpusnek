@@ -119,5 +119,12 @@ MAYBE_CUDA void run_micropython_tests(void) {
         MP_PARSE_FILE_INPUT
     );
 
+    printf("Test 14: Exception\n");
+    do_str(
+        "x = [1,2,3]\n"
+        "print(x[10])\n",
+        MP_PARSE_FILE_INPUT
+    );
+
     printf("MicroPython tests finished.\n");
 }
