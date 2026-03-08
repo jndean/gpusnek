@@ -474,6 +474,10 @@ MAYBE_CUDA void mp_emit_bc_import(emit_t *emit, qstr qst, int kind) {
     }
 }
 
+MAYBE_CUDA void mp_emit_bc_syncthreads(emit_t *emit) {
+    emit_write_bytecode_byte(emit, 0, MP_BC_SYNCTHREADS);
+}
+
 MAYBE_CUDA void mp_emit_bc_load_const_tok(emit_t *emit, mp_token_kind_t tok) {
     MP_STATIC_ASSERT(MP_BC_LOAD_CONST_FALSE + (MP_TOKEN_KW_NONE - MP_TOKEN_KW_FALSE) == MP_BC_LOAD_CONST_NONE);
     MP_STATIC_ASSERT(MP_BC_LOAD_CONST_FALSE + (MP_TOKEN_KW_TRUE - MP_TOKEN_KW_FALSE) == MP_BC_LOAD_CONST_TRUE);

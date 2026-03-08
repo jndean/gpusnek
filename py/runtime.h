@@ -101,6 +101,8 @@ MAYBE_CUDA extern const byte mp_binary_op_method_name[];
 MAYBE_CUDA void mp_init(mp_state_ctx_t *ctx, void *stack, size_t stack_size, void *heap, size_t heap_size);
 MAYBE_CUDA void mp_deinit(void);
 
+MAYBE_CUDA void mp_syncthreads(void);
+
 MAYBE_CUDA void mp_sched_exception(mp_obj_t exc);
 MAYBE_CUDA void mp_sched_keyboard_interrupt(void);
 #if MICROPY_ENABLE_VM_ABORT

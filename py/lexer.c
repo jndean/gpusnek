@@ -286,6 +286,7 @@ static MAYBE_CUDA const char *const tok_kw[] = {
     "pass",
     "raise",
     "return",
+    "syncthreads",
     "try",
     "while",
     "with",

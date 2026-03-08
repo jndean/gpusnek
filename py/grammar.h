@@ -104,7 +104,7 @@ DEF_RULE(simple_stmt_2, c(generic_all_nodes), list_with_end, rule(small_stmt), t
 // augassign: '+=' | '-=' | '*=' | '@=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '**=' | '//='
 // # For normal and annotated assignments, additional restrictions enforced by the interpreter
 
-DEF_RULE_NC(small_stmt, RULE_or(8), rule(del_stmt), rule(pass_stmt), rule(flow_stmt), rule(import_stmt), rule(global_stmt), rule(nonlocal_stmt), rule(assert_stmt), rule(expr_stmt))
+DEF_RULE_NC(small_stmt, RULE_or(9), rule(del_stmt), rule(pass_stmt), rule(flow_stmt), rule(import_stmt), rule(global_stmt), rule(nonlocal_stmt), rule(assert_stmt), rule(syncthreads_stmt), rule(expr_stmt))
 DEF_RULE(expr_stmt, c(expr_stmt), RULE_and(2), rule(testlist_star_expr), opt_rule(expr_stmt_2))
 DEF_RULE_NC(expr_stmt_2, RULE_or(3), rule(annassign), rule(expr_stmt_augassign), rule(expr_stmt_assign_list))
 DEF_RULE_NC(expr_stmt_augassign, and_ident(2), rule(augassign), rule(expr_stmt_6))
@@ -127,6 +127,7 @@ DEF_RULE_NC(augassign, RULE_or(13), tok(DEL_PLUS_EQUAL), tok(DEL_MINUS_EQUAL), t
 
 DEF_RULE(del_stmt, c(del_stmt), RULE_and(2), tok(KW_DEL), rule(exprlist))
 DEF_RULE(pass_stmt, c(generic_all_nodes), RULE_and(1), tok(KW_PASS))
+DEF_RULE(syncthreads_stmt, c(syncthreads_stmt), RULE_and(1), tok(KW_SYNCTHREADS))
 DEF_RULE_NC(flow_stmt, RULE_or(5), rule(break_stmt), rule(continue_stmt), rule(return_stmt), rule(raise_stmt), rule(yield_stmt))
 DEF_RULE(break_stmt, c(break_cont_stmt), RULE_and(1), tok(KW_BREAK))
 DEF_RULE(continue_stmt, c(break_cont_stmt), RULE_and(1), tok(KW_CONTINUE))

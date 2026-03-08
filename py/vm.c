@@ -1278,6 +1278,10 @@ yield:
                     mp_import_all(POP());
                     DISPATCH();
 
+                ENTRY(MP_BC_SYNCTHREADS):
+                    mp_syncthreads();
+                    DISPATCH();
+
                 #if MICROPY_OPT_COMPUTED_GOTO
                 ENTRY(MP_BC_LOAD_CONST_SMALL_INT_MULTI):
                     PUSH(MP_OBJ_NEW_SMALL_INT((mp_int_t)ip[-1] - MP_BC_LOAD_CONST_SMALL_INT_MULTI - MP_BC_LOAD_CONST_SMALL_INT_MULTI_EXCESS));

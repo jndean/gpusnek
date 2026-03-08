@@ -518,6 +518,10 @@ const byte *mp_bytecode_print_str(const mp_print_t *print, const byte *ip_start,
             mp_printf(print, "IMPORT_STAR");
             break;
 
+        case MP_BC_SYNCTHREADS:
+            mp_printf(print, "SYNCTHREADS");
+            break;
+
         default:
             if (ip[-1] < MP_BC_LOAD_CONST_SMALL_INT_MULTI + 64) {
                 mp_printf(print, "LOAD_CONST_SMALL_INT " INT_FMT, (mp_int_t)ip[-1] - MP_BC_LOAD_CONST_SMALL_INT_MULTI - 16);

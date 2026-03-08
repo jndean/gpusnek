@@ -228,6 +228,14 @@ MAYBE_CUDA void mp_deinit(void) {
     #endif
 }
 
+MAYBE_CUDA void mp_syncthreads(void) {
+    #ifdef __NVCC__
+    __syncthreads();
+    #else
+    // Host build: no thread synchronisation supported
+    #endif
+}
+
 MAYBE_CUDA void mp_globals_locals_set_from_nlr_jump_callback(void *ctx_in) {
     nlr_jump_callback_node_globals_locals_t *ctx = (nlr_jump_callback_node_globals_locals_t *)ctx_in;
     mp_globals_set(ctx->globals);

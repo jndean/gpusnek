@@ -248,6 +248,7 @@ MAYBE_CUDA void mp_emit_bc_delete_global(emit_t *emit, qstr qst, int kind);
 
 MAYBE_CUDA void mp_emit_bc_label_assign(emit_t *emit, mp_uint_t l);
 MAYBE_CUDA void mp_emit_bc_import(emit_t *emit, qstr qst, int kind);
+MAYBE_CUDA void mp_emit_bc_syncthreads(emit_t *emit);
 MAYBE_CUDA void mp_emit_bc_load_const_tok(emit_t *emit, mp_token_kind_t tok);
 MAYBE_CUDA void mp_emit_bc_load_const_small_int(emit_t *emit, mp_int_t arg);
 MAYBE_CUDA void mp_emit_bc_load_const_str(emit_t *emit, qstr qst);

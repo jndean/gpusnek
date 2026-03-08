@@ -94,6 +94,7 @@ typedef enum _mp_token_kind_t {
     MP_TOKEN_KW_PASS,
     MP_TOKEN_KW_RAISE,
     MP_TOKEN_KW_RETURN,
+    MP_TOKEN_KW_SYNCTHREADS,
     MP_TOKEN_KW_TRY,
     MP_TOKEN_KW_WHILE,
     MP_TOKEN_KW_WITH,

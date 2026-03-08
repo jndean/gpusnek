@@ -1020,6 +1020,11 @@ static MAYBE_CUDA void compile_del_stmt(compiler_t *comp, mp_parse_node_struct_t
     apply_to_single_or_list(comp, pns->nodes[0], PN_exprlist, c_del_stmt);
 }
 
+static MAYBE_CUDA void compile_syncthreads_stmt(compiler_t *comp, mp_parse_node_struct_t *pns) {
+    (void)pns;
+    EMIT(syncthreads);
+}
+
 static MAYBE_CUDA void compile_break_cont_stmt(compiler_t *comp, mp_parse_node_struct_t *pns) {
     uint16_t label;
     if (MP_PARSE_NODE_STRUCT_KIND(pns) == PN_break_stmt) {

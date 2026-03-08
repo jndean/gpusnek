@@ -150,5 +150,12 @@ MAYBE_CUDA void run_micropython_tests(void) {
     printf("[C] shared_buf[0]=%d shared_buf[7]=%d\n",
            (int)shared_buf[0], (int)shared_buf[7]);
 
+    // Test 16: syncthreads keyword
+    printf("Test 16: syncthreads keyword\n");
+    do_str(
+        "syncthreads\n",
+        MP_PARSE_FILE_INPUT
+    );
+
     printf("MicroPython tests finished.\n");
 }
