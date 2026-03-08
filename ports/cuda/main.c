@@ -39,6 +39,14 @@ int main(int argc, char **argv) {
     }
 
     mp_init(&host_state_ctx, memory_ptr, PYSTACK_SIZE, memory_ptr + PYSTACK_SIZE, BUMP_ALLOC_HEAP_SIZE);
+
+    #if MICROPY_ENABLE_GC
+    // Set the C stack top for conservative GC root scanning. This must be
+    // done manually here because mp_init clears the state context.
+    int stack_dummy;
+    MP_STATE_THREAD(stack_top) = (char *)&stack_dummy;
+    #endif
+
     run_micropython_tests();
     mp_deinit();
 

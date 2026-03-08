@@ -37,56 +37,17 @@
 #include "py/gc.h"
 #include "py/mpstate.h"
 
-/*
- * gc_collect() has separate host and device implementations because
- * the device side uses PTX inline asm to read the hardware stack pointer.
- * We use __CUDA_ARCH__ (defined only during device compilation) to select
- * the right path, not __CUDACC__ (defined for both host and device passes).
- */
 
-#ifdef __CUDA_ARCH__
-
-// Device implementation: read stack pointer via PTX %SP inline asm.
-__device__ __noinline__ void gc_collect(void) {
-    // Read the current stack pointer.  PTX %SP is the per-thread stack pointer
-    // register, which always points to the current top of the call stack.
+MAYBE_CUDA __attribute__((noinline)) void gc_collect(void) {
     void *sp;
-    asm("mov.u64 %0, %%SP;" : "=l"(sp));
-
-    char *stack_top = MP_STATE_THREAD(stack_top);
-    if (stack_top == NULL) {
-        // stack_top not yet set (called before mp_init completed)
-        return;
-    }
-
-    // Delete these diagnostics later
-    // On CUDA the stack grows downward: sp < stack_top.
-    ptrdiff_t range = (char *)stack_top - (char *)sp;
-    // Print diagnostic: this will appear in CUDA printf buffer even if kernel later crashes.
-    printf("[GC] sp=%p top=%p range=%d\n", sp, stack_top, (int)range);
-    if (range <= 0 || range > 512 * 1024) {
-        // Sanity guard: don't scan a nonsensical range.
-        printf("[GC] bad range %d, stack_top=%p sp=%p\n",
-               (int)range, stack_top, sp);
-        return;
-    }
-
+    // We try really hard to convince nvcc to generate a stack frame for this
+    // function, otherwise the top stack pointer will will be garbage.
+    volatile int dummy = 0;
+    sp = (void*)&dummy;
     gc_collect_start();
-    gc_collect_root((void **)sp, (size_t)range / sizeof(void *));
+    gc_collect_root((void **)sp,
+        ((mp_uint_t)MP_STATE_THREAD(stack_top) - (mp_uint_t)sp) / sizeof(void *));
     gc_collect_end();
 }
-
-#else
-
-// Host implementation: use &dummy as SP proxy (same approach as ports/minimal)
-__attribute__((noinline)) void gc_collect(void) {
-    void *dummy;
-    gc_collect_start();
-    gc_collect_root(&dummy,
-                    ((mp_uint_t)MP_STATE_THREAD(stack_top) - (mp_uint_t)&dummy) / sizeof(void *));
-    gc_collect_end();
-}
-
-#endif // __CUDA_ARCH__
 
 #endif // MICROPY_ENABLE_GC
