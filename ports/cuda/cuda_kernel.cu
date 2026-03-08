@@ -32,10 +32,24 @@ __global__ void micropython_kernel(int *results,
     int tid = threadIdx.x;
     printf("[%d] micropython_kernel started\n", tid);
 
+    // Capture the stack pointer at kernel entry before ANY function calls.
+    // Stack grows DOWN on CUDA: this is the highest (most-base) SP we'll ever
+    // have.  After mp_init's memset clears the state, we restore it so that
+    // gc_collect sees a valid range [current_sp, entry_sp).
+    void *kernel_entry_sp;
+    asm("mov.u64 %0, %%SP;" : "=l"(kernel_entry_sp));
+
     // Each thread gets its own heap region
     char *my_heap = heap_base + tid * BUMP_ALLOC_HEAP_SIZE;
 
     mp_init(state_array, my_heap, BUMP_ALLOC_HEAP_SIZE);
+
+    // Restore stack_top to the kernel-entry SP, overriding what mp_init
+    // recorded (mp_init's SP is lower = deeper in the stack).
+    #if MICROPY_ENABLE_GC
+    MP_STATE_THREAD(stack_top) = (char *)kernel_entry_sp;
+    #endif
+
     run_micropython_tests();
     mp_deinit();
 

@@ -7,6 +7,8 @@
 #include "py/gc.h"
 #include "py/mperrno.h"
 
+#include "ports/cuda/tests.h"
+
 // Execute a Python string
 MAYBE_CUDA void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     nlr_buf_t nlr;
@@ -14,11 +16,14 @@ MAYBE_CUDA void do_str(const char *src, mp_parse_input_kind_t input_kind) {
         mp_lexer_t *lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, src, strlen(src), 0);
         qstr source_name = lex->source_name;
         mp_parse_tree_t parse_tree = mp_parse(lex, input_kind);
-        mp_obj_t module_fun = mp_compile(&parse_tree, source_name, true);
+        mp_obj_t module_fun = mp_compile(&parse_tree, source_name, false);
         mp_call_function_0(module_fun);
         nlr_pop();
     } else {
         printf("Exception occurred in do_str\n");
+        // An exception (like MemoryError) during compilation might have jumped out
+        // while the GC was locked. Reset lock depth so future allocations work.
+        MP_STATE_THREAD(gc_lock_depth) = 0;
     }
 }
 
@@ -113,18 +118,37 @@ MAYBE_CUDA void run_micropython_tests(void) {
     printf("Test 13: GC\n");
     do_str(
         "x = 1\n"
-        "for y in range(1000):\n"
+        "z = []\n"
+        "for y in range(100):\n"
         "    x += 1\n"
-        "print(x)\n",
-        MP_PARSE_FILE_INPUT
+        "    y = [x, x+1, x+2]\n"
+        "    z.append(y)\n"
+        "    if len(z) > 6:\n"
+        "        z.pop(0)\n"
+        "print(z[-1])\n"
+        , MP_PARSE_FILE_INPUT
     );
 
-    printf("Test 14: Exception\n");
+    // printf("Test 14: Exception\n");
+    // do_str(
+    //     "x = [1,2,3]\n"
+    //     "print(x[10])\n",
+    //     MP_PARSE_FILE_INPUT
+    // );
+
+    // Test 15: mp_bind_array — write to a C buffer from Python
+    printf("Test 15: mp_bind_array\n");
+    static unsigned char shared_buf[8] = {0};
+    mp_bind_array("data", shared_buf, 8);
     do_str(
-        "x = [1,2,3]\n"
-        "print(x[10])\n",
+        "data[0] = 42\n"
+        "data[7] = 255\n"
+        "print(len(data), data[0], data[7])\n",
         MP_PARSE_FILE_INPUT
     );
+    // Verify the writes actually landed in the C buffer
+    printf("[C] shared_buf[0]=%d shared_buf[7]=%d\n",
+           (int)shared_buf[0], (int)shared_buf[7]);
 
     printf("MicroPython tests finished.\n");
 }

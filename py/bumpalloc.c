@@ -4,6 +4,7 @@
  * Each thread's state lives inside mp_state_ctx_t.bump, accessed via
  * MP_STATE_CTX.bump. Functions cache the state pointer locally to
  * avoid repeated index lookups.
+ * Useful for when we want to disable the gc_allocator during debugging.
  */
 
 #include "py/mpconfig.h"

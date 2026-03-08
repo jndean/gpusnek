@@ -779,7 +779,7 @@ MAYBE_CUDA const mp_obj_dict_t mp_module_builtins_globals = {
     },
 };
 
-MAYBE_CUDA const mp_obj_module_t mp_module_builtins = {
+extern MAYBE_CUDA const mp_obj_module_t mp_module_builtins = {
     .base = { &mp_type_module },
     .globals = (mp_obj_dict_t *)&mp_module_builtins_globals,
 };

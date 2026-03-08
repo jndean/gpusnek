@@ -8,6 +8,12 @@
  * the likelihood that callers must spill live registers to the stack before
  * calling into this file.
  *
+ * Stack scanning strategy:
+ * We read the hardware stack pointer directly via PTX inline asm (%SP).
+ * This is the most accurate bottom-of-stack value.  MP_STATE_THREAD(stack_top)
+ * is set at mp_init time (the highest stack address this thread will use),
+ * giving us the range [%SP, stack_top) to scan conservatively for GC roots.
+ *
  * KNOWN LIMITATION (callee-saved registers on CUDA):
  * On CPU ports, gc_collect() calls setjmp() which dumps all callee-saved
  * registers onto the stack before scanning.  CUDA has no setjmp, so we
@@ -40,34 +46,33 @@
 
 #ifdef __CUDA_ARCH__
 
-// Device implementation: use both &dummy and PTX %SP, assert they agree
+// Device implementation: read stack pointer via PTX %SP inline asm.
 __device__ __noinline__ void gc_collect(void) {
-    void *dummy;
+    // Read the current stack pointer.  PTX %SP is the per-thread stack pointer
+    // register, which always points to the current top of the call stack.
+    void *sp;
+    asm("mov.u64 %0, %%SP;" : "=l"(sp));
 
-    // Method 1: address of local variable (portable proxy for SP)
-    void *sp_local = (void *)&dummy;
-
-    // Method 2: read stack pointer via PTX inline asm
-    void *sp_asm;
-    asm("mov.u64 %0, %%SP;" : "=l"(sp_asm));
-
-    // Verify both methods agree (sanity check)
-    // They may differ by a small offset due to the local variable itself
-    // but should be within one stack frame (~256 bytes)
-    ptrdiff_t diff = (char *)sp_local - (char *)sp_asm;
-    if (diff < 0) diff = -diff;
-    if (diff > 256) {
-        printf("FATAL: SP mismatch: local=%p asm=%p diff=%td\n",
-               sp_local, sp_asm, diff);
+    char *stack_top = MP_STATE_THREAD(stack_top);
+    if (stack_top == NULL) {
+        // stack_top not yet set (called before mp_init completed)
         return;
     }
 
-    // Use the lower of the two (scans more of the stack = safer)
-    void *sp = (sp_local < sp_asm) ? sp_local : sp_asm;
+    // Delete these diagnostics later
+    // On CUDA the stack grows downward: sp < stack_top.
+    ptrdiff_t range = (char *)stack_top - (char *)sp;
+    // Print diagnostic: this will appear in CUDA printf buffer even if kernel later crashes.
+    printf("[GC] sp=%p top=%p range=%d\n", sp, stack_top, (int)range);
+    if (range <= 0 || range > 512 * 1024) {
+        // Sanity guard: don't scan a nonsensical range.
+        printf("[GC] bad range %d, stack_top=%p sp=%p\n",
+               (int)range, stack_top, sp);
+        return;
+    }
 
     gc_collect_start();
-    gc_collect_root((void **)sp,
-                    ((mp_uint_t)MP_STATE_THREAD(stack_top) - (mp_uint_t)sp) / sizeof(void *));
+    gc_collect_root((void **)sp, (size_t)range / sizeof(void *));
     gc_collect_end();
 }
 

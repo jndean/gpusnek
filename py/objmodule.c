@@ -167,11 +167,18 @@ MAYBE_CUDA const mp_map_t mp_builtin_module_map = {
 };
 
 #if MICROPY_HAVE_REGISTERED_EXTENSIBLE_MODULES
-static MAYBE_CUDA const mp_rom_map_elem_t mp_builtin_extensible_module_table[] = {
+static MAYBE_CUDA const mp_map_elem_t mp_builtin_extensible_module_table[] = {
     // built-in modules declared with MP_REGISTER_EXTENSIBLE_MODULE()
     MICROPY_REGISTERED_EXTENSIBLE_MODULES
 };
-MP_DEFINE_CONST_MAP(mp_builtin_extensible_module_map, mp_builtin_extensible_module_table);
+MAYBE_CUDA const mp_map_t mp_builtin_extensible_module_map = { \
+    .all_keys_are_qstrs = 1, \
+    .is_fixed = 1, \
+    .is_ordered = 1, \
+    .used = MP_ARRAY_SIZE(mp_builtin_extensible_module_table), \
+    .alloc = MP_ARRAY_SIZE(mp_builtin_extensible_module_table), \
+    .table = (mp_map_elem_t *)mp_builtin_extensible_module_table, \
+};
 #endif
 
 #if MICROPY_MODULE_ATTR_DELEGATION && defined(MICROPY_MODULE_DELEGATIONS)

@@ -27,14 +27,34 @@
 #include "py/mpstate.h"
 #include "py/obj.h"
 #include "py/runtime.h"
+#if MICROPY_ENABLE_GC
+#include "py/gc.h"
+#endif
 
 #if MICROPY_NLR_SETJMP
 
 MAYBE_CUDA void nlr_jump(void *val) {
 #ifdef __CUDA_ARCH__
-    // Device code cannot use longjmp. Print the exception then trap.
+    // Device code cannot use longjmp.
+    // Guard against recursive entry (e.g., if mp_obj_print_exception itself OOMs).
+    static __device__ bool in_nlr_jump = false;
+    if (in_nlr_jump) {
+        printf("FATAL: recursive exception in nlr_jump\n");
+        // Still reset gc_lock_depth so allocations can continue.
+        #if MICROPY_ENABLE_GC
+        MP_STATE_THREAD(gc_lock_depth) = 0;
+        #endif
+        return;
+    }
+    in_nlr_jump = true;
     mp_obj_print_exception(&mp_plat_print, MP_OBJ_FROM_PTR(val));
-    asm("trap;");
+    in_nlr_jump = false;
+    // Release any GC locks held when the exception was thrown.
+    // Without this, an OOM during compilation (when gc_lock_depth > 0) would
+    // permanently prevent future allocations.
+    #if MICROPY_ENABLE_GC
+    MP_STATE_THREAD(gc_lock_depth) = 0;
+    #endif
 #else
     MP_NLR_JUMP_HEAD(val, top);
     longjmp(top->jmpbuf, 1);

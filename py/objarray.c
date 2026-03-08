@@ -72,10 +72,10 @@ static MAYBE_CUDA mp_int_t array_get_buffer(mp_obj_t o_in, mp_buffer_info_t *buf
 #if MICROPY_PY_BUILTINS_BYTEARRAY || MICROPY_PY_ARRAY
 static MAYBE_CUDA void array_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     (void)kind;
-    mp_obj_array_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_array_t *o = (mp_obj_array_t*)MP_OBJ_TO_PTR(o_in);
     if (o->typecode == BYTEARRAY_TYPECODE) {
         mp_print_str(print, "bytearray(b");
-        mp_str_print_quoted(print, o->items, o->len, true);
+        mp_str_print_quoted(print, (byte*)o->items, o->len, true);
     } else {
         mp_printf(print, "array('%c'", o->typecode);
         if (o->len > 0) {
@@ -227,14 +227,14 @@ static MAYBE_CUDA mp_obj_t memoryview_make_new(const mp_obj_type_t *type_in, siz
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(args[0], &bufinfo, MP_BUFFER_READ);
 
-    mp_obj_array_t *self = MP_OBJ_TO_PTR(mp_obj_new_memoryview(bufinfo.typecode,
+    mp_obj_array_t *self = (mp_obj_array_t*)MP_OBJ_TO_PTR(mp_obj_new_memoryview(bufinfo.typecode,
         bufinfo.len / mp_binary_get_size('@', bufinfo.typecode, NULL),
         bufinfo.buf));
 
     // If the input object is a memoryview then need to point the items of the
     // new memoryview to the start of the buffer so the GC can trace it.
     if (mp_obj_get_type(args[0]) == &mp_type_memoryview) {
-        mp_obj_array_t *other = MP_OBJ_TO_PTR(args[0]);
+        mp_obj_array_t *other = (mp_obj_array_t*)MP_OBJ_TO_PTR(args[0]);
         self->memview_offset = other->memview_offset;
         self->items = other->items;
     }
@@ -253,7 +253,7 @@ static MAYBE_CUDA void memoryview_attr(mp_obj_t self_in, qstr attr, mp_obj_t *de
         return;
     }
     if (attr == MP_QSTR_itemsize) {
-        mp_obj_array_t *self = MP_OBJ_TO_PTR(self_in);
+        mp_obj_array_t *self = (mp_obj_array_t*)MP_OBJ_TO_PTR(self_in);
         dest[0] = MP_OBJ_NEW_SMALL_INT(mp_binary_get_size('@', self->typecode & TYPECODE_MASK, NULL));
     }
     #if MICROPY_PY_BUILTINS_BYTES_HEX
@@ -268,7 +268,7 @@ static MAYBE_CUDA void memoryview_attr(mp_obj_t self_in, qstr attr, mp_obj_t *de
 #endif
 
 static MAYBE_CUDA mp_obj_t array_unary_op(mp_unary_op_t op, mp_obj_t o_in) {
-    mp_obj_array_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_array_t *o = (mp_obj_array_t*)MP_OBJ_TO_PTR(o_in);
     switch (op) {
         case MP_UNARY_OP_BOOL:
             return mp_obj_new_bool(o->len != 0);
@@ -291,7 +291,7 @@ static MAYBE_CUDA int typecode_for_comparison(int typecode, bool *is_unsigned) {
 }
 
 static MAYBE_CUDA mp_obj_t array_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
-    mp_obj_array_t *lhs = MP_OBJ_TO_PTR(lhs_in);
+    mp_obj_array_t *lhs = (mp_obj_array_t*)MP_OBJ_TO_PTR(lhs_in);
     switch (op) {
         case MP_BINARY_OP_ADD: {
             #if MICROPY_PY_BUILTINS_MEMORYVIEW
@@ -372,7 +372,7 @@ static MAYBE_CUDA mp_obj_t array_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, m
             const int lhs_code = typecode_for_comparison(lhs_bufinfo.typecode, &is_unsigned);
             const int rhs_code = typecode_for_comparison(rhs_bufinfo.typecode, &is_unsigned);
             if (lhs_code == rhs_code && lhs_code != 'f' && lhs_code != 'd' && (op == MP_BINARY_OP_EQUAL || is_unsigned)) {
-                return mp_obj_new_bool(mp_seq_cmp_bytes(op, lhs_bufinfo.buf, lhs_bufinfo.len, rhs_bufinfo.buf, rhs_bufinfo.len));
+                return mp_obj_new_bool(mp_seq_cmp_bytes(op, (byte*)lhs_bufinfo.buf, lhs_bufinfo.len, (byte*)rhs_bufinfo.buf, rhs_bufinfo.len));
             }
             // mp_obj_equal_not_equal treats returning MP_OBJ_NULL as 'fall back to pointer comparison'
             // for MP_BINARY_OP_EQUAL but that is incompatible with CPython.
@@ -389,7 +389,7 @@ static MAYBE_CUDA mp_obj_t array_append(mp_obj_t self_in, mp_obj_t arg) {
     // self is not a memoryview, so we don't need to use (& TYPECODE_MASK)
     assert((MICROPY_PY_BUILTINS_BYTEARRAY && mp_obj_is_type(self_in, &mp_type_bytearray))
         || (MICROPY_PY_ARRAY && mp_obj_is_type(self_in, &mp_type_array)));
-    mp_obj_array_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_array_t *self = (mp_obj_array_t*)MP_OBJ_TO_PTR(self_in);
 
     if (self->free == 0) {
         size_t item_sz = mp_binary_get_size('@', self->typecode, NULL);
@@ -411,7 +411,7 @@ static MAYBE_CUDA mp_obj_t array_extend(mp_obj_t self_in, mp_obj_t arg_in) {
     // self is not a memoryview, so we don't need to use (& TYPECODE_MASK)
     assert((MICROPY_PY_BUILTINS_BYTEARRAY && mp_obj_is_type(self_in, &mp_type_bytearray))
         || (MICROPY_PY_ARRAY && mp_obj_is_type(self_in, &mp_type_array)));
-    mp_obj_array_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_array_t *self = (mp_obj_array_t*)MP_OBJ_TO_PTR(self_in);
 
     // allow to extend by anything that has the buffer protocol (extension to CPython)
     mp_buffer_info_t arg_bufinfo;
@@ -458,7 +458,7 @@ static MAYBE_CUDA mp_obj_t array_subscr(mp_obj_t self_in, mp_obj_t index_in, mp_
         // slice deletion
         return MP_OBJ_NULL; // op not supported
     } else {
-        mp_obj_array_t *o = MP_OBJ_TO_PTR(self_in);
+        mp_obj_array_t *o = (mp_obj_array_t*)MP_OBJ_TO_PTR(self_in);
         #if MICROPY_PY_BUILTINS_SLICE
         if (mp_obj_is_type(index_in, &mp_type_slice)) {
             mp_bound_slice_t slice;
@@ -587,7 +587,7 @@ static MAYBE_CUDA mp_obj_t array_subscr(mp_obj_t self_in, mp_obj_t index_in, mp_
 }
 
 static MAYBE_CUDA mp_int_t array_get_buffer(mp_obj_t o_in, mp_buffer_info_t *bufinfo, mp_uint_t flags) {
-    mp_obj_array_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_array_t *o = (mp_obj_array_t*)MP_OBJ_TO_PTR(o_in);
     size_t sz = mp_binary_get_size('@', o->typecode & TYPECODE_MASK, NULL);
     bufinfo->buf = o->items;
     bufinfo->len = o->len * sz;
@@ -613,10 +613,10 @@ MP_DEFINE_CONST_OBJ_TYPE(
     MP_TYPE_FLAG_ITER_IS_GETITER,
     make_new, array_make_new,
     print, array_print,
-    iter, array_iterator_new,
     unary_op, array_unary_op,
     binary_op, array_binary_op,
     subscr, array_subscr,
+    iter, array_iterator_new,
     buffer, array_get_buffer,
     locals_dict, &mp_obj_array_locals_dict
     );
@@ -629,10 +629,10 @@ MP_DEFINE_CONST_OBJ_TYPE(
     MP_TYPE_FLAG_EQ_CHECKS_OTHER_TYPE | MP_TYPE_FLAG_ITER_IS_GETITER | MP_TYPE_FLAG_SUBSCR_ALLOWS_STACK_SLICE,
     make_new, bytearray_make_new,
     print, array_print,
-    iter, array_iterator_new,
     unary_op, array_unary_op,
     binary_op, array_binary_op,
     subscr, array_subscr,
+    iter, array_iterator_new,
     buffer, array_get_buffer,
     locals_dict, &mp_obj_bytearray_locals_dict
     );
@@ -656,13 +656,13 @@ MP_DEFINE_CONST_OBJ_TYPE(
     MP_QSTR_memoryview,
     MP_TYPE_FLAG_EQ_CHECKS_OTHER_TYPE | MP_TYPE_FLAG_ITER_IS_GETITER | MP_TYPE_FLAG_SUBSCR_ALLOWS_STACK_SLICE,
     make_new, memoryview_make_new,
-    iter, array_iterator_new,
     unary_op, array_unary_op,
     binary_op, array_binary_op,
-    MEMORYVIEW_TYPE_LOCALS_DICT
     MEMORYVIEW_TYPE_ATTR
     subscr, array_subscr,
+    iter, array_iterator_new,
     buffer, array_get_buffer
+    MEMORYVIEW_TYPE_LOCALS_DICT
     );
 #endif // MICROPY_PY_BUILTINS_MEMORYVIEW
 
@@ -701,7 +701,7 @@ typedef struct _mp_obj_array_it_t {
 } mp_obj_array_it_t;
 
 static MAYBE_CUDA mp_obj_t array_it_iternext(mp_obj_t self_in) {
-    mp_obj_array_it_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_array_it_t *self = (mp_obj_array_it_t*)MP_OBJ_TO_PTR(self_in);
     if (self->cur < self->array->len) {
         return mp_binary_get_val_array(self->array->typecode & TYPECODE_MASK, self->array->items, self->offset + self->cur++);
     } else {
@@ -718,7 +718,7 @@ static MAYBE_CUDA MP_DEFINE_CONST_OBJ_TYPE(
 
 static MAYBE_CUDA mp_obj_t array_iterator_new(mp_obj_t array_in, mp_obj_iter_buf_t *iter_buf) {
     assert(sizeof(mp_obj_array_t) <= sizeof(mp_obj_iter_buf_t));
-    mp_obj_array_t *array = MP_OBJ_TO_PTR(array_in);
+    mp_obj_array_t *array = (mp_obj_array_t*)MP_OBJ_TO_PTR(array_in);
     mp_obj_array_it_t *o = (mp_obj_array_it_t *)iter_buf;
     o->base.type = &mp_type_array_it;
     o->array = array;

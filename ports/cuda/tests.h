@@ -8,5 +8,6 @@
 
 MAYBE_CUDA void do_str(const char *src, mp_parse_input_kind_t input_kind);
 MAYBE_CUDA void run_micropython_tests(void);
+MAYBE_CUDA void mp_bind_array(const char *name, void *start, int len);
 
 #endif // MICROPY_INCLUDED_PORTS_CUDA_TESTS_H

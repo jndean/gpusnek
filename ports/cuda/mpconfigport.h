@@ -39,6 +39,10 @@
 // Disable all optional builtins
 #define MICROPY_PY_BUILTINS_HELP        (0)
 #define MICROPY_PY_BUILTINS_INPUT       (0)
+// Enable memoryview + array — required for mp_bind_array to wrap external buffers.
+// memoryview depends on array_new() which is gated on MICROPY_PY_ARRAY.
+#define MICROPY_PY_BUILTINS_MEMORYVIEW  (1)
+#define MICROPY_PY_ARRAY                (1)
 
 // Memory settings - small allocations for POC
 #define MICROPY_ALLOC_PATH_MAX          (64)

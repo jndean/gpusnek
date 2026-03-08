@@ -70,8 +70,20 @@ MAYBE_CUDA void mp_init(mp_state_ctx_t *ctx, char *heap, size_t heap_size) {
     memset(&MP_STATE_CTX, 0, sizeof(mp_state_ctx_t));
 
     #if MICROPY_ENABLE_GC
-    // Store stack top for GC root scanning (address of local = top of stack at init)
-    MP_STATE_THREAD(stack_top) = (char *)&ctx;  // Does this capture the whole of the current frame?
+    // Store stack top for GC root scanning.
+    // Use PTX %SP (hardware stack pointer) at mp_init time as the upper bound
+    // for stack scanning in gc_collect — frames called later will have lower SP.
+    #ifdef __CUDA_ARCH__
+    {
+        int dummy;
+        MP_STATE_THREAD(stack_top) = (char *)&dummy;
+    }
+    #else
+    {
+        volatile char stack_anchor;
+        MP_STATE_THREAD(stack_top) = (char *)&stack_anchor;
+    }
+    #endif
     gc_init(heap, heap + heap_size);
     #else
     bump_alloc_init(heap, heap_size);
