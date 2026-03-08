@@ -1,6 +1,4 @@
 # Makefile for CUDA port of MicroPython
-# POC version - compiles with nvcc
-
 # Default target
 TARGET ?= cuda
 
@@ -27,8 +25,7 @@ INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
 
-CUDACFLAGS = $(INC) -x cu -dc -Xcompiler -fpermissive -D"restrict="
-#-G -lineinfo -fdevice-sanitize=memcheck
+CUDACFLAGS = $(INC) -x cu -dc -Xcompiler -fPIC -Xcompiler -fpermissive -D"restrict="
 
 ifeq ($(TARGET),cuda)
 # CUDA Build Settings
@@ -39,12 +36,12 @@ COPT = -O1
 CFLAGS = $(CUDACFLAGS)
 CFLAGS += -O1 -DNDEBUG
 # Overrides for nvcc (it doesn't support -Os)
-$(PY_BUILD)/nlr%.o: CFLAGS = $(INC) -x cu -dc -Xcompiler -fpermissive -D"restrict=" -O1 -DNDEBUG
+$(PY_BUILD)/nlr%.o: CFLAGS = $(CUDACFLAGS) -O1 -DNDEBUG
 else
 # Host Build Settings (G++)
 CC = g++
 LD = g++
-CFLAGS = $(INC) -Wall -Werror -x c++ -fpermissive
+CFLAGS = $(INC) -Wall -Werror -x c++ -fPIC -fpermissive
 CFLAGS += -O1 -DNDEBUG
 endif
 
@@ -53,34 +50,32 @@ LDFLAGS +=
 
 # Port source files
 SRC_C = \
-	main.c \
 	mphal.c \
 	gcollect.c \
+	api.c \
+	port_stubs.c
 
 # Object files
 OBJ = $(PY_CORE_O)
 OBJ += $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
-OBJ += $(BUILD)/tests.o
-
-ifeq ($(TARGET),cuda)
-OBJ += $(BUILD)/cuda_kernel.o
-endif
 
 # Rule for .cu files
 $(BUILD)/%.o: %.cu
 	$(NVCC) $(CUDACFLAGS) -c $< -o $@
 
 # Build target
-all: $(BUILD)/micropython
+LIB_OUT = $(BUILD)/libgpusnek.a
+all: $(LIB_OUT)
 
-$(BUILD)/micropython: $(OBJ)
-	$(ECHO) "LINK $@"
-	$(Q)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+$(LIB_OUT): $(OBJ)
+ifeq ($(TARGET),cuda)
+	$(ECHO) "NVCC-LIB $@"
+	$(Q)$(NVCC) -lib -o $@ $^
+else
+	$(ECHO) "AR $@"
+	$(Q)ar rcs $@ $^
+endif
 	$(Q)size $@
-
-# Run target
-run: $(BUILD)/micropython
-	$(BUILD)/micropython
 
 # Clean up generated headers on clean
 clean: clean-genhdr

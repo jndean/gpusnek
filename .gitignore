@@ -10,6 +10,7 @@
 build/
 build-*/
 docs/genrst/
+*.o
 
 # Test failure outputs and intermediate artefacts
 tests/results/*

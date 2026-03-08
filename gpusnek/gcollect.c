@@ -8,12 +8,6 @@
  * the likelihood that callers must spill live registers to the stack before
  * calling into this file.
  *
- * Stack scanning strategy:
- * We read the hardware stack pointer directly via PTX inline asm (%SP).
- * This is the most accurate bottom-of-stack value.  MP_STATE_THREAD(stack_top)
- * is set at mp_init time (the highest stack address this thread will use),
- * giving us the range [%SP, stack_top) to scan conservatively for GC roots.
- *
  * KNOWN LIMITATION (callee-saved registers on CUDA):
  * On CPU ports, gc_collect() calls setjmp() which dumps all callee-saved
  * registers onto the stack before scanning.  CUDA has no setjmp, so we
