@@ -148,7 +148,7 @@ struct _nlr_jump_callback_node_t {
 // Helper macros to save/restore the pystack state
 #if MICROPY_ENABLE_PYSTACK
 #define MP_NLR_SAVE_PYSTACK(nlr_buf) (nlr_buf)->pystack = MP_STATE_THREAD(pystack_cur)
-#define MP_NLR_RESTORE_PYSTACK(nlr_buf) MP_STATE_THREAD(pystack_cur) = (nlr_buf)->pystack
+#define MP_NLR_RESTORE_PYSTACK(nlr_buf) MP_STATE_THREAD(pystack_cur) = (uint8_t *)(nlr_buf)->pystack
 #else
 #define MP_NLR_SAVE_PYSTACK(nlr_buf) (void)nlr_buf
 #define MP_NLR_RESTORE_PYSTACK(nlr_buf) (void)nlr_buf

@@ -230,7 +230,7 @@ mp_code_state_t *mp_obj_fun_bc_prepare_codestate(mp_obj_t self_in, size_t n_args
 
     mp_code_state_t *code_state;
     #if MICROPY_ENABLE_PYSTACK
-    code_state = mp_pystack_alloc(sizeof(mp_code_state_t) + state_size);
+    code_state = (mp_code_state_t *)mp_pystack_alloc(sizeof(mp_code_state_t) + state_size);
     #else
     // If we use m_new_obj_var(), then on no memory, MemoryError will be
     // raised. But this is not correct exception for a function call,
@@ -269,7 +269,7 @@ static MAYBE_CUDA mp_obj_t fun_bc_call(mp_obj_t self_in, size_t n_args, size_t n
     // allocate state for locals and stack
     mp_code_state_t *code_state = NULL;
     #if MICROPY_ENABLE_PYSTACK
-    code_state = mp_pystack_alloc(offsetof(mp_code_state_t, state) + state_size);
+    code_state = (mp_code_state_t *)mp_pystack_alloc(offsetof(mp_code_state_t, state) + state_size);
     #else
     if (state_size > VM_MAX_STATE_ON_STACK) {
         code_state = m_new_obj_var_maybe(mp_code_state_t, state, byte, state_size);

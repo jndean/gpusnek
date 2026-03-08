@@ -5,6 +5,7 @@
 
 // Per-thread heap size for the bump allocator
 #define BUMP_ALLOC_HEAP_SIZE (10 * 1024)
+#define PYSTACK_SIZE (1 * 1024)
 
 MAYBE_CUDA void do_str(const char *src, mp_parse_input_kind_t input_kind);
 MAYBE_CUDA void run_micropython_tests(void);

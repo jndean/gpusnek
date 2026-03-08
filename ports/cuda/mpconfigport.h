@@ -16,6 +16,7 @@
 #define MICROPY_NLR_SETJMP              (1)  // We provide custom implementation
 #endif
 #define MICROPY_ENABLE_GC               (1)  // Enable garbage collector
+#define MICROPY_ENABLE_PYSTACK          (1)  // Enable explicit python stack to trace GC roots natively
 #define MICROPY_STACK_CHECK             (0)  // No stack checking
 #define MICROPY_OPT_COMPUTED_GOTO       (0)  // Use switch statement
 #define MICROPY_NO_ALLOCA               (1)  // Don't use alloca

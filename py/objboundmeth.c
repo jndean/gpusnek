@@ -52,7 +52,7 @@ MAYBE_CUDA mp_obj_t mp_call_method_self_n_kw(mp_obj_t meth, mp_obj_t self, size_
     size_t n_total = n_args + 2 * n_kw;
     mp_obj_t *args2 = NULL;
     #if MICROPY_ENABLE_PYSTACK
-    args2 = mp_pystack_alloc(sizeof(mp_obj_t) * (1 + n_total));
+    args2 = (mp_obj_t *)mp_pystack_alloc(sizeof(mp_obj_t) * (1 + n_total));
     #else
     mp_obj_t *free_args2 = NULL;
     if (n_total > 4) {

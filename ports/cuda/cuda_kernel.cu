@@ -28,7 +28,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 // Multi-thread MicroPython kernel
 __global__ void micropython_kernel(int *results,
                                     mp_state_ctx_t *state_array,
-                                    char *heap_base) {
+                                    char *memory_base) {
     int tid = threadIdx.x;
     printf("[%d] micropython_kernel started\n", tid);
 
@@ -39,10 +39,10 @@ __global__ void micropython_kernel(int *results,
     void *kernel_entry_sp;
     asm("mov.u64 %0, %%SP;" : "=l"(kernel_entry_sp));
 
-    // Each thread gets its own heap region
-    char *my_heap = heap_base + tid * BUMP_ALLOC_HEAP_SIZE;
+    // Each thread gets its own memory region (stack + heap)
+    char *my_memory = memory_base + tid * (PYSTACK_SIZE + BUMP_ALLOC_HEAP_SIZE);
 
-    mp_init(state_array, my_heap, BUMP_ALLOC_HEAP_SIZE);
+    mp_init(state_array, my_memory, PYSTACK_SIZE, my_memory + PYSTACK_SIZE, BUMP_ALLOC_HEAP_SIZE);
 
     // Restore stack_top to the kernel-entry SP, overriding what mp_init
     // recorded (mp_init's SP is lower = deeper in the stack).
@@ -72,12 +72,12 @@ extern "C" void run_cuda_test(void) {
     mp_state_ctx_t *d_states;
     gpuErrchk(cudaMalloc(&d_states, N_THREADS * sizeof(mp_state_ctx_t)));
 
-    // Allocate per-thread heaps (contiguous block, each thread gets a slice)
-    char *d_heap;
-    gpuErrchk(cudaMalloc(&d_heap, N_THREADS * BUMP_ALLOC_HEAP_SIZE));
+    // Allocate per-thread memory (contiguous block, each thread gets a slice for stack+heap)
+    char *d_memory;
+    gpuErrchk(cudaMalloc(&d_memory, N_THREADS * (PYSTACK_SIZE + BUMP_ALLOC_HEAP_SIZE)));
 
     // Launch kernel with N threads
-    micropython_kernel<<<1, N_THREADS>>>(d_results, d_states, d_heap);
+    micropython_kernel<<<1, N_THREADS>>>(d_results, d_states, d_memory);
     gpuErrchk(cudaDeviceSynchronize());
      
     // Copy results back and print
@@ -90,5 +90,5 @@ extern "C" void run_cuda_test(void) {
     // Cleanup
     cudaFree(d_results);
     cudaFree(d_states);
-    cudaFree(d_heap);
+    cudaFree(d_memory);
 }

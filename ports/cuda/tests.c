@@ -119,7 +119,7 @@ MAYBE_CUDA void run_micropython_tests(void) {
     do_str(
         "x = 1\n"
         "z = []\n"
-        "for y in range(100):\n"
+        "for y in range(10000):\n"
         "    x += 1\n"
         "    y = [x, x+1, x+2]\n"
         "    z.append(y)\n"

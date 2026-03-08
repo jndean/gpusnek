@@ -31,12 +31,12 @@
 #if MICROPY_ENABLE_PYSTACK
 
 MAYBE_CUDA void mp_pystack_init(void *start, void *end) {
-    MP_STATE_THREAD(pystack_start) = start;
-    MP_STATE_THREAD(pystack_end) = end;
-    MP_STATE_THREAD(pystack_cur) = start;
+    MP_STATE_THREAD(pystack_start) = (uint8_t *)start;
+    MP_STATE_THREAD(pystack_end) = (uint8_t *)end;
+    MP_STATE_THREAD(pystack_cur) = (uint8_t *)start;
 }
 
-void *mp_pystack_alloc(size_t n_bytes) {
+MAYBE_CUDA void *mp_pystack_alloc(size_t n_bytes) {
     n_bytes = (n_bytes + (MICROPY_PYSTACK_ALIGN - 1)) & ~(MICROPY_PYSTACK_ALIGN - 1);
     #if MP_PYSTACK_DEBUG
     n_bytes += MICROPY_PYSTACK_ALIGN;

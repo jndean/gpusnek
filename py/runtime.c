@@ -64,27 +64,17 @@
 
 #define TYPE_HAS_ITERNEXT(type) (type->flags & (MP_TYPE_FLAG_ITER_IS_ITERNEXT | MP_TYPE_FLAG_ITER_IS_CUSTOM | MP_TYPE_FLAG_ITER_IS_STREAM))
 
-MAYBE_CUDA void mp_init(mp_state_ctx_t *ctx, char *heap, size_t heap_size) {
+MAYBE_CUDA void mp_init(mp_state_ctx_t *ctx, void *stack, size_t stack_size, void *heap, size_t heap_size) {
     // Set up per-thread state and allocator
     mp_state_ctx_array = ctx;
     memset(&MP_STATE_CTX, 0, sizeof(mp_state_ctx_t));
+    
+    #if MICROPY_ENABLE_PYSTACK
+    mp_pystack_init(stack, (uint8_t *)stack + stack_size);
+    #endif
 
     #if MICROPY_ENABLE_GC
-    // Store stack top for GC root scanning.
-    // Use PTX %SP (hardware stack pointer) at mp_init time as the upper bound
-    // for stack scanning in gc_collect — frames called later will have lower SP.
-    #ifdef __CUDA_ARCH__
-    {
-        int dummy;
-        MP_STATE_THREAD(stack_top) = (char *)&dummy;
-    }
-    #else
-    {
-        volatile char stack_anchor;
-        MP_STATE_THREAD(stack_top) = (char *)&stack_anchor;
-    }
-    #endif
-    gc_init(heap, heap + heap_size);
+    gc_init(heap, (char *)heap + heap_size);
     #else
     bump_alloc_init(heap, heap_size);
     #endif

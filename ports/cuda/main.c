@@ -32,17 +32,17 @@ int main(int argc, char **argv) {
     #else
     // Host build: allocate state and heap, then call mp_init
     static mp_state_ctx_t host_state_ctx;
-    char *heap_ptr = (char *)malloc(BUMP_ALLOC_HEAP_SIZE);
-    if (!heap_ptr) {
-        printf("FATAL: Failed to allocate heap\n");
+    char *memory_ptr = (char *)malloc(PYSTACK_SIZE + BUMP_ALLOC_HEAP_SIZE);
+    if (!memory_ptr) {
+        printf("FATAL: Failed to allocate memory\n");
         return 1;
     }
 
-    mp_init(&host_state_ctx, heap_ptr, BUMP_ALLOC_HEAP_SIZE);
+    mp_init(&host_state_ctx, memory_ptr, PYSTACK_SIZE, memory_ptr + PYSTACK_SIZE, BUMP_ALLOC_HEAP_SIZE);
     run_micropython_tests();
     mp_deinit();
 
-    free(heap_ptr);
+    free(memory_ptr);
     #endif
 
     printf("CUDA MicroPython POC finished.\n");
