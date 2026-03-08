@@ -7,7 +7,7 @@
 #include "py/gc.h"
 #include "py/mperrno.h"
 
-#include "ports/cuda/tests.h"
+#include "tests.h"
 
 // Execute a Python string
 MAYBE_CUDA void do_str(const char *src, mp_parse_input_kind_t input_kind) {

@@ -5,7 +5,7 @@
 TARGET ?= cuda
 
 # Include common MicroPython build environment
-include ../../py/mkenv.mk
+include micropython/py/mkenv.mk
 
 # CUDA compiler location
 NVCC = /usr/local/cuda/bin/nvcc

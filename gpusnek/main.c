@@ -14,7 +14,7 @@
 #include "py/objarray.h"
 #include "py/obj.h"
 
-#include "ports/cuda/tests.h"
+#include "tests.h"
 
 #ifdef __CUDACC__
 extern "C" void run_cuda_test(void);
