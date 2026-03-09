@@ -64,33 +64,7 @@
 
 #define TYPE_HAS_ITERNEXT(type) (type->flags & (MP_TYPE_FLAG_ITER_IS_ITERNEXT | MP_TYPE_FLAG_ITER_IS_CUSTOM | MP_TYPE_FLAG_ITER_IS_STREAM))
 
-MAYBE_CUDA void mp_init(mp_state_ctx_t *ctx, void *stack, size_t stack_size, void *heap, size_t heap_size) {
-    // Set up per-thread state and allocator
-    mp_state_ctx_array = ctx;
-    memset(&MP_STATE_CTX, 0, sizeof(mp_state_ctx_t));
-    
-    #if MICROPY_ENABLE_PYSTACK
-    mp_pystack_init(stack, (uint8_t *)stack + stack_size);
-    #endif
-
-    #if MICROPY_ENABLE_GC
-    gc_init(heap, (char *)heap + heap_size);
-    #else
-    bump_alloc_init(heap, heap_size);
-    #endif
-
-    #ifdef __CUDA_ARCH__
-    // Break circular dependency for mp_type_type on device
-    ((mp_obj_type_t *)&mp_type_type)->base.type = &mp_type_type;
-    // Break circular dependency for dict_locals_dict on device
-    extern MAYBE_CUDA mp_obj_dict_t dict_locals_dict;
-    dict_locals_dict.base.type = &mp_type_dict;
-    #endif
-
-    // Initialize this thread's __main__ module
-    mp_module___main__.base.type = &mp_type_module;
-    mp_module___main__.globals = (mp_obj_dict_t *)&MP_STATE_VM(dict_main);
-
+MAYBE_CUDA void mp_init(void) {
     qstr_init();
 
     // no pending exceptions to start with

@@ -34,7 +34,8 @@ ifndef EXAMPLE
 all: $(EXAMPLES)
 
 # Always ensure the library is built first
-$(LIB_FILE):
+.PHONY: FORCE_LIB
+$(LIB_FILE): FORCE_LIB
 	$(MAKE) -C $(LIB_DIR) TARGET=$(TARGET) -j
 
 $(EXAMPLES): $(LIB_FILE)
@@ -45,8 +46,8 @@ clean:
 	@for dir in $(EXAMPLES); do \
 		rm -f $$dir/*.o $$dir/$$(basename $$dir); \
 	done
-	$(MAKE) -C $(LIB_DIR) TARGET=$(TARGET) clean
-	rm -f micropython_example
+	$(MAKE) -C $(LIB_DIR) TARGET=cuda clean
+	$(MAKE) -C $(LIB_DIR) TARGET=host clean
 
 else
 

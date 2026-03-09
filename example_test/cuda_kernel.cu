@@ -30,12 +30,12 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 __global__ void micropython_kernel(int *results,
                                     mp_state_ctx_t *state_array,
                                     char *memory_base) {
-    int tid = threadIdx.x;
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
     printf("[%d] micropython_kernel started\n", tid);
 
     // Capture the stack pointer at kernel entry before ANY function calls.
     // Stack grows DOWN on CUDA: this is the highest (most-base) SP we'll ever
-    // have.  After mp_init's memset clears the state, we restore it so that
+    // have.  After gpusnek_init's memset clears the state, we restore it so that
     // gc_collect sees a valid range [current_sp, entry_sp).
     void *kernel_entry_sp;
     asm("mov.u64 %0, %%SP;" : "=l"(kernel_entry_sp));
@@ -43,23 +43,23 @@ __global__ void micropython_kernel(int *results,
     // Each thread gets its own memory region (stack + heap)
     char *my_memory = memory_base + tid * (PYSTACK_SIZE + HEAP_SIZE);
 
-    mp_init(state_array, my_memory, PYSTACK_SIZE, my_memory + PYSTACK_SIZE, HEAP_SIZE);
+    gpusnek_init(state_array, my_memory, PYSTACK_SIZE, my_memory + PYSTACK_SIZE, HEAP_SIZE);
 
-    // Restore stack_top to the kernel-entry SP, overriding what mp_init
-    // recorded (mp_init's SP is lower = deeper in the stack).
+    // Restore stack_top to the kernel-entry SP, overriding what gpusnek_init
+    // recorded (gpusnek_init's SP is lower = deeper in the stack).
     #if MICROPY_ENABLE_GC
     MP_STATE_THREAD(stack_top) = (char *)kernel_entry_sp;
     #endif
 
     run_micropython_tests();
-    mp_deinit();
+    gpusnek_deinit();
 
     printf("[%d] micropython_kernel finished\n", tid);
     results[tid] = 42;
 }
  
 // Host function to launch the multi-thread test
-extern "C" void run_cuda_test(void) {
+void run_cuda_test(void) {
     printf("CUDA MicroPython multi-thread test starting (%d threads)...\n", N_THREADS);
 
     // Set GPU stack size (MicroPython needs deep stacks)

@@ -9,7 +9,7 @@
 #include "tests.h"
 
 #ifdef __CUDACC__
-extern "C" void run_cuda_test(void);
+void run_cuda_test(void);
 #endif
 
 // Main function - can be called from CUDA kernel or host
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    mp_init(&host_state_ctx, memory_ptr, PYSTACK_SIZE, memory_ptr + PYSTACK_SIZE, HEAP_SIZE);
+    gpusnek_init(&host_state_ctx, memory_ptr, PYSTACK_SIZE, memory_ptr + PYSTACK_SIZE, HEAP_SIZE);
 
     #if MICROPY_ENABLE_GC
     // Set the C stack top for conservative GC root scanning. This must be
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     #endif
 
     run_micropython_tests();
-    mp_deinit();
+    gpusnek_deinit();
 
     free(memory_ptr);
     #endif

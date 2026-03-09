@@ -52,7 +52,7 @@ LDFLAGS +=
 SRC_C = \
 	mphal.c \
 	gcollect.c \
-	api.c \
+	gpusnek.c \
 	port_stubs.c
 
 # Object files
@@ -77,12 +77,7 @@ else
 endif
 	$(Q)size $@
 
-# Clean up generated headers on clean
-clean: clean-genhdr
-	$(RM) -rf build-cuda build-host
 
-clean-genhdr:
-	$(RM) -rf build-cuda/genhdr build-host/genhdr
 
 # Include standard rules
 include $(TOP)/py/mkrules.mk

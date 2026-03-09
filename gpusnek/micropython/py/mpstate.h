@@ -334,9 +334,9 @@ typedef struct _mp_state_ctx_t {
 // Per-thread state: array of contexts, indexed by thread ID
 extern MAYBE_CUDA mp_state_ctx_t *mp_state_ctx_array;
 
-// Thread index: GPU uses threadIdx.x, host hardcoded to 0 for POC
+// Thread index: GPU uses block and thread index, host hardcoded to 0 for POC
 #ifdef __CUDA_ARCH__
-#define MP_THREAD_IDX  ((int)threadIdx.x)
+#define MP_THREAD_IDX  ((int)(blockIdx.x * blockDim.x + threadIdx.x))
 #else
 #define MP_THREAD_IDX  (0)
 #endif

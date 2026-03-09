@@ -1,7 +1,7 @@
 #ifndef MICROPY_INCLUDED_PORTS_CUDA_TESTS_H
 #define MICROPY_INCLUDED_PORTS_CUDA_TESTS_H
 
-#include "gpusnek/gpusnek_api.h"
+#include "gpusnek/gpusnek.h"
 
 // MicroPython memory configuration: per-thread allocation sizes
 #define HEAP_SIZE (10 * 1024)
