@@ -85,7 +85,7 @@
 #include "flashbdev.h"
 #endif
 
-void do_str(const char *src, mp_parse_input_kind_t input_kind) {
+void gpusnek_do_str(const char *src, mp_parse_input_kind_t input_kind) {
     mp_lexer_t *lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, src, strlen(src), 0);
     if (lex == NULL) {
         printf("MemoryError: lexer could not allocate memory\n");

@@ -24,13 +24,13 @@ int main(int argc, char **argv) {
     #else
     // Host build: allocate state and heap, then call mp_init
     static mp_state_ctx_t host_state_ctx;
-    char *memory_ptr = (char *)malloc(PYSTACK_SIZE + BUMP_ALLOC_HEAP_SIZE);
+    char *memory_ptr = (char *)malloc(PYSTACK_SIZE + HEAP_SIZE);
     if (!memory_ptr) {
         printf("FATAL: Failed to allocate memory\n");
         return 1;
     }
 
-    mp_init(&host_state_ctx, memory_ptr, PYSTACK_SIZE, memory_ptr + PYSTACK_SIZE, BUMP_ALLOC_HEAP_SIZE);
+    mp_init(&host_state_ctx, memory_ptr, PYSTACK_SIZE, memory_ptr + PYSTACK_SIZE, HEAP_SIZE);
 
     #if MICROPY_ENABLE_GC
     // Set the C stack top for conservative GC root scanning. This must be

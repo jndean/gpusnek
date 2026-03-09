@@ -6,12 +6,11 @@
 #include "py/runtime.h"
 
 
-// Per-thread heap size for the bump allocator
-#define BUMP_ALLOC_HEAP_SIZE (10 * 1024)
-#define PYSTACK_SIZE (1 * 1024)
-
-MAYBE_CUDA void do_str(const char *src, mp_parse_input_kind_t input_kind);
-MAYBE_CUDA void mp_bind_array(const char *name, void *start, int len);
+MAYBE_CUDA void gpusnek_do_str(const char *src, mp_parse_input_kind_t input_kind);
+// Supported typecodes:
+// b, B, h, H, i, I, l, L, q, Q, f, d (see python's array module)
+MAYBE_CUDA void gpusnek_bind_memory(const char *name, void *start, int len, char typecode);
+MAYBE_CUDA void gpusnek_new_int(const char *name, int val);
 
 
 #endif // MICROPY_INCLUDED_PORTS_CUDA_GPUSNEK_API_H

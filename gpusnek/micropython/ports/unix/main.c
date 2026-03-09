@@ -269,7 +269,7 @@ static int do_file(const char *file) {
     return convert_pyexec_result(pyexec_file(file));
 }
 
-static int do_str(const char *str) {
+static int gpusnek_do_str(const char *str) {
     vstr_t vstr;
     vstr.buf = (char *)str;
     vstr.len = strlen(str);
@@ -598,7 +598,7 @@ MP_NOINLINE int main_(int argc, char **argv) {
                 }
                 set_sys_argv(argv, a + 1, a); // The -c becomes first item of sys.argv, as in CPython
                 set_sys_argv(argv, argc, a + 2); // Then what comes after the command
-                ret = do_str(argv[a + 1]);
+                ret = gpusnek_do_str(argv[a + 1]);
                 break;
             } else if (strcmp(argv[a], "-m") == 0) {
                 if (a + 1 >= argc) {

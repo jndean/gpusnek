@@ -41,9 +41,9 @@ __global__ void micropython_kernel(int *results,
     asm("mov.u64 %0, %%SP;" : "=l"(kernel_entry_sp));
 
     // Each thread gets its own memory region (stack + heap)
-    char *my_memory = memory_base + tid * (PYSTACK_SIZE + BUMP_ALLOC_HEAP_SIZE);
+    char *my_memory = memory_base + tid * (PYSTACK_SIZE + HEAP_SIZE);
 
-    mp_init(state_array, my_memory, PYSTACK_SIZE, my_memory + PYSTACK_SIZE, BUMP_ALLOC_HEAP_SIZE);
+    mp_init(state_array, my_memory, PYSTACK_SIZE, my_memory + PYSTACK_SIZE, HEAP_SIZE);
 
     // Restore stack_top to the kernel-entry SP, overriding what mp_init
     // recorded (mp_init's SP is lower = deeper in the stack).
@@ -75,7 +75,7 @@ extern "C" void run_cuda_test(void) {
 
     // Allocate per-thread memory (contiguous block, each thread gets a slice for stack+heap)
     char *d_memory;
-    gpuErrchk(cudaMalloc(&d_memory, N_THREADS * (PYSTACK_SIZE + BUMP_ALLOC_HEAP_SIZE)));
+    gpuErrchk(cudaMalloc(&d_memory, N_THREADS * (PYSTACK_SIZE + HEAP_SIZE)));
 
     // Launch kernel with N threads
     micropython_kernel<<<1, N_THREADS>>>(d_results, d_states, d_memory);

@@ -39,7 +39,7 @@ static const char *demo_file_input =
     "for i in range(10):\n"
     "    print('iter {:08}'.format(i))";
 
-static void do_str(const char *src, mp_parse_input_kind_t input_kind) {
+static void gpusnek_do_str(const char *src, mp_parse_input_kind_t input_kind) {
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {
         // Compile, parse and execute the given string.
@@ -58,8 +58,8 @@ static void do_str(const char *src, mp_parse_input_kind_t input_kind) {
 // Main entry point: initialise the runtime and execute demo strings.
 void bare_main(void) {
     mp_init();
-    do_str(demo_single_input, MP_PARSE_SINGLE_INPUT);
-    do_str(demo_file_input, MP_PARSE_FILE_INPUT);
+    gpusnek_do_str(demo_single_input, MP_PARSE_SINGLE_INPUT);
+    gpusnek_do_str(demo_file_input, MP_PARSE_FILE_INPUT);
     mp_deinit();
 }
 
