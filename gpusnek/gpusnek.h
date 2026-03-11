@@ -8,7 +8,7 @@
 
 
 // Initialize the GPU Snek environment
-MAYBE_CUDA void gpusnek_init(mp_state_ctx_t *ctx, void *stack, size_t stack_size, void *heap, size_t heap_size);
+MAYBE_CUDA void gpusnek_init(mp_state_ctx_t *ctx, void *memory, size_t stack_size, size_t heap_size);
 MAYBE_CUDA void gpusnek_deinit(void);
 
 // Bind device values / memory to be available in the python interpreter

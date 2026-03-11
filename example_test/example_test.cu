@@ -1,13 +1,61 @@
+// Main entry point for CUDA MicroPython port
+// This is a minimal implementation for POC
+
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "py/builtin.h"
-#include "py/compile.h"
-#include "py/runtime.h"
-#include "py/gc.h"
-#include "py/mperrno.h"
+#include "gpusnek/gpusnek.h"
 
-#include "tests.h"
+// MicroPython memory configuration: per-thread allocation sizes
+#define HEAP_SIZE (10 * 1024)
+#define PYSTACK_SIZE (1 * 1024)
+
+#define N_THREADS 2
+
+MAYBE_CUDA void run_micropython_tests(void);
+
+#ifdef __CUDACC__
+void run_cuda_test(void);
+#endif
+
+// Main function - can be called from CUDA kernel or host
+int main(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
+
+    printf("CUDA MicroPython POC starting...\n");
+
+    #ifdef __CUDACC__
+    run_cuda_test();
+    #else
+    // Host build: allocate state and heap, then call mp_init
+    static mp_state_ctx_t host_state_ctx;
+    char *memory_ptr = (char *)malloc(PYSTACK_SIZE + HEAP_SIZE);
+    if (!memory_ptr) {
+        printf("FATAL: Failed to allocate memory\n");
+        return 1;
+    }
+
+    gpusnek_init(&host_state_ctx, memory_ptr, PYSTACK_SIZE, HEAP_SIZE);
+
+    #if MICROPY_ENABLE_GC
+    // Set the C stack top for conservative GC root scanning. This must be
+    // done manually here because mp_init clears the state context.
+    int stack_dummy;
+    MP_STATE_THREAD(stack_top) = (char *)&stack_dummy;
+    #endif
+
+    run_micropython_tests();
+    gpusnek_deinit();
+
+    free(memory_ptr);
+    #endif
+
+    printf("CUDA MicroPython POC finished.\n");
+    return 0;
+}
 
 
 
@@ -152,3 +200,85 @@ MAYBE_CUDA void run_micropython_tests(void) {
 
     printf("MicroPython tests finished.\n");
 }
+
+#ifdef __CUDACC__
+
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+
+// Multi-thread MicroPython kernel
+__global__ void micropython_kernel(int *results,
+                                    mp_state_ctx_t *state_array,
+                                    char *memory_base) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    printf("[%d] micropython_kernel started\n", tid);
+
+    // Capture the stack pointer at kernel entry before ANY function calls.
+    // Stack grows DOWN on CUDA: this is the highest (most-base) SP we'll ever
+    // have.  After gpusnek_init's memset clears the state, we restore it so that
+    // gc_collect sees a valid range [current_sp, entry_sp).
+    void *kernel_entry_sp;
+    asm("mov.u64 %0, %%SP;" : "=l"(kernel_entry_sp));
+
+    // Each thread gets its own memory region (stack + heap)
+    char *my_memory = memory_base + tid * (PYSTACK_SIZE + HEAP_SIZE);
+
+    gpusnek_init(state_array, my_memory, PYSTACK_SIZE, HEAP_SIZE);
+
+    // Restore stack_top to the kernel-entry SP, overriding what gpusnek_init
+    // recorded (gpusnek_init's SP is lower = deeper in the stack).
+    #if MICROPY_ENABLE_GC
+    MP_STATE_THREAD(stack_top) = (char *)kernel_entry_sp;
+    #endif
+
+    run_micropython_tests();
+    gpusnek_deinit();
+
+    printf("[%d] micropython_kernel finished\n", tid);
+    results[tid] = 42;
+}
+
+// Host function to launch the multi-thread test
+void run_cuda_test(void) {
+    printf("CUDA MicroPython multi-thread test starting (%d threads)...\n", N_THREADS);
+
+    // Set GPU stack size (MicroPython needs deep stacks)
+    gpuErrchk(cudaDeviceSetLimit(cudaLimitStackSize, 16*1024));
+     
+    // Allocate per-thread result array
+    int *d_results;
+    gpuErrchk(cudaMalloc(&d_results, N_THREADS * sizeof(int)));
+
+    // Allocate per-thread state contexts
+    mp_state_ctx_t *d_states;
+    gpuErrchk(cudaMalloc(&d_states, N_THREADS * sizeof(mp_state_ctx_t)));
+
+    // Allocate per-thread memory (contiguous block, each thread gets a slice for stack+heap)
+    char *d_memory;
+    gpuErrchk(cudaMalloc(&d_memory, N_THREADS * (PYSTACK_SIZE + HEAP_SIZE)));
+
+    // Launch kernel with N threads
+    micropython_kernel<<<1, N_THREADS>>>(d_results, d_states, d_memory);
+    gpuErrchk(cudaDeviceSynchronize());
+     
+    // Copy results back and print
+    int h_results[N_THREADS];
+    cudaMemcpy(h_results, d_results, N_THREADS * sizeof(int), cudaMemcpyDeviceToHost);
+    for (int i = 0; i < N_THREADS; i++) {
+        printf("Thread %d returned: %d\n", i, h_results[i]);
+    }
+
+    // Cleanup
+    cudaFree(d_results);
+    cudaFree(d_states);
+    cudaFree(d_memory);
+}
+
+#endif // __CUDACC__

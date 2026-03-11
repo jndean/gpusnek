@@ -16,7 +16,10 @@
 
 // Initialize Port environment (allocators, state pointers, per-thread __main__)
 // Needs to be called before running MicroPython.
-MAYBE_CUDA void gpusnek_init(mp_state_ctx_t *ctx, void *stack, size_t stack_size, void *heap, size_t heap_size) {
+MAYBE_CUDA void gpusnek_init(mp_state_ctx_t *ctx, void *memory, size_t stack_size, size_t heap_size) {
+    void *stack = memory;
+    void *heap = (char *)memory + stack_size;
+
     // Set up per-thread state and allocator
     mp_state_ctx_array = ctx;
     memset(&MP_STATE_CTX, 0, sizeof(mp_state_ctx_t));

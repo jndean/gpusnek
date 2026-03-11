@@ -53,20 +53,17 @@ else
 
 # --- Sub-Make Build for a Specific Example ---
 SRC_C = $(wildcard $(EXAMPLE)/*.c)
-OBJ = $(SRC_C:.c=.o)
-
-ifeq ($(TARGET),cuda)
 SRC_CU = $(wildcard $(EXAMPLE)/*.cu)
-OBJ += $(SRC_CU:.cu=.o)
-endif
+OBJ = $(SRC_C:.c=-$(TARGET).o)
+OBJ += $(SRC_CU:.cu=-$(TARGET).o)
 
 $(EXAMPLE)/$(EXAMPLE): $(OBJ) $(LIB_FILE)
 	$(CC) -o $@ $(OBJ) $(LIB_FILE) $(LDFLAGS)
 
-%.o: %.c
+%-$(TARGET).o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-%.o: %.cu
+%-$(TARGET).o: %.cu
 	$(CC) $(CFLAGS) -c $< -o $@
 
 endif
