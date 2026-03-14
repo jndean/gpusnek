@@ -54,12 +54,12 @@ MAYBE_CUDA void gpusnek_deinit(void) {
 }
 
 // Execute a Python string
-MAYBE_CUDA void gpusnek_do_str(const char *src, mp_parse_input_kind_t input_kind) {
+MAYBE_CUDA void gpusnek_do_str(const char *src) {
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {
         mp_lexer_t *lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, src, strlen(src), 0);
         qstr source_name = lex->source_name;
-        mp_parse_tree_t parse_tree = mp_parse(lex, input_kind);
+        mp_parse_tree_t parse_tree = mp_parse(lex, MP_PARSE_FILE_INPUT);
         mp_obj_t module_fun = mp_compile(&parse_tree, source_name, false);
         mp_call_function_0(module_fun);
         nlr_pop();
@@ -95,3 +95,42 @@ MAYBE_CUDA void gpusnek_new_int(const char *name, int val) {
     mp_obj_dict_store(mp_module___main__.globals, key, int_obj);
 }
 
+
+// Configure per-thread stdin buffer.
+// Passing NULL disables buffered stdin (fallback: return -1).
+// Re-calling resets the read head and NUL-terminates the buffer.
+MAYBE_CUDA void gpusnek_set_stdin(char *address, int size) {
+    gpusnek_io_t *io = &MP_STATE_CTX.io;
+    io->stdin_buf  = address;
+    io->stdin_size = size;
+    io->stdin_pos  = 0;
+    if (address != NULL && size > 0) {
+        address[0] = '\0';
+    }
+}
+
+// Configure per-thread stdout buffer.
+// Passing NULL disables buffered stdout (fallback: printf).
+// Re-calling resets the write head and NUL-terminates the buffer.
+MAYBE_CUDA void gpusnek_set_stdout(char *address, int size) {
+    gpusnek_io_t *io = &MP_STATE_CTX.io;
+    io->stdout_buf  = address;
+    io->stdout_size = size;
+    io->stdout_pos  = 0;
+    if (address != NULL && size > 0) {
+        address[0] = '\0';
+    }
+}
+
+// Reset both read/write heads to 0 and NUL-terminate both buffers.
+MAYBE_CUDA void gpusnek_reset_stdio_heads(void) {
+    gpusnek_io_t *io = &MP_STATE_CTX.io;
+    io->stdin_pos = 0;
+    if (io->stdin_buf != NULL && io->stdin_size > 0) {
+        io->stdin_buf[0] = '\0';
+    }
+    io->stdout_pos = 0;
+    if (io->stdout_buf != NULL && io->stdout_size > 0) {
+        io->stdout_buf[0] = '\0';
+    }
+}

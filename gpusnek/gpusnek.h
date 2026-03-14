@@ -18,7 +18,15 @@ MAYBE_CUDA void gpusnek_bind_memory(const char *name, void *start, int len, char
 MAYBE_CUDA void gpusnek_new_int(const char *name, int val);
 
 // Execute a Python string
-MAYBE_CUDA void gpusnek_do_str(const char *src, mp_parse_input_kind_t input_kind);
+MAYBE_CUDA void gpusnek_do_str(const char *src);
+
+// Configure per-thread stdin/stdout buffers.
+// Passing NULL disables buffered I/O for that stream and falls back to printf / -1.
+// Re-calling resets the read/write head to 0 and NULL-terminates the buffer.
+MAYBE_CUDA void gpusnek_set_stdin(char *address, int size);
+MAYBE_CUDA void gpusnek_set_stdout(char *address, int size);
+// Reset both read/write heads to 0 and NULL-terminate both buffers.
+MAYBE_CUDA void gpusnek_reset_stdio_heads(void);
 
 
 #endif // MICROPY_INCLUDED_PORTS_CUDA_GPUSNEK_API_H

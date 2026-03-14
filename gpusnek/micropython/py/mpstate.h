@@ -322,13 +322,24 @@ typedef struct _mp_state_thread_t {
     #endif
 } mp_state_thread_t;
 
+// Per-thread gpusnek I/O configuration
+typedef struct _gpusnek_io_t {
+    char *stdin_buf;
+    int   stdin_size;
+    int   stdin_pos;
+    char *stdout_buf;
+    int   stdout_size;
+    int   stdout_pos;
+} gpusnek_io_t;
+
 // This structure combines the above 3 structures.
 // The order of the entries are important for root pointer scanning in the GC to work.
 typedef struct _mp_state_ctx_t {
     mp_state_thread_t thread;
     mp_state_vm_t vm;
     mp_state_mem_t mem;
-    bump_alloc_state_t bump;  // per-thread bump allocator state
+    bump_alloc_state_t bump;  // per-thread bump allocator state  // Do we still need this? remove if not.
+    gpusnek_io_t io;          // per-thread stdin/stdout buffer configuration
 } mp_state_ctx_t;
 
 // Per-thread state: array of contexts, indexed by thread ID

@@ -28,8 +28,7 @@ __global__ void allreduce_kernel(int *d_data, mp_state_ctx_t *states, char *memo
         "    for w in range(tid, work_size, 128):\n"
         "        idx = w * (stride * 2)\n"
         "        shared_arr[idx] = shared_arr[idx] + shared_arr[idx + stride]\n"
-        "    syncthreads\n",
-        MP_PARSE_FILE_INPUT
+        "    syncthreads\n"
     );
 }
 
