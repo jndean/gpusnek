@@ -28,13 +28,6 @@
 
 #include "py/obj.h"
 
-typedef enum {
-    PYEXEC_MODE_FRIENDLY_REPL,
-    PYEXEC_MODE_RAW_REPL,
-} pyexec_mode_kind_t;
-
-extern pyexec_mode_kind_t pyexec_mode_kind;
-
 #define PYEXEC_FORCED_EXIT (0x100)
 
 #if MICROPY_PYEXEC_ENABLE_EXIT_CODE_HANDLING
@@ -48,15 +41,15 @@ extern pyexec_mode_kind_t pyexec_mode_kind;
 #define PYEXEC_ABORT PYEXEC_FORCED_EXIT
 #endif
 
-int pyexec_raw_repl(void);
-int pyexec_friendly_repl(void);
-int pyexec_file(const char *filename);
-int pyexec_file_if_exists(const char *filename);
-int pyexec_frozen_module(const char *name, bool allow_keyboard_interrupt);
-int pyexec_vstr(vstr_t *str, bool allow_keyboard_interrupt);
-void pyexec_event_repl_init(void);
-int pyexec_event_repl_process_char(int c);
-extern uint8_t pyexec_repl_active;
+MAYBE_CUDA int pyexec_raw_repl(void);
+MAYBE_CUDA int pyexec_friendly_repl(void);
+MAYBE_CUDA int pyexec_file(const char *filename);
+MAYBE_CUDA int pyexec_file_if_exists(const char *filename);
+MAYBE_CUDA int pyexec_frozen_module(const char *name, bool allow_keyboard_interrupt);
+MAYBE_CUDA int pyexec_vstr(vstr_t *str, bool allow_keyboard_interrupt);
+MAYBE_CUDA void pyexec_event_repl_init(void);
+MAYBE_CUDA int pyexec_event_repl_process_char(int c);
+extern MAYBE_CUDA uint8_t pyexec_repl_active;
 
 #if MICROPY_REPL_INFO
 mp_obj_t pyb_set_repl_info(mp_obj_t o_value);

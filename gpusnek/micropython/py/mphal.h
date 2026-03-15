@@ -49,7 +49,11 @@ uintptr_t mp_hal_stdio_poll(uintptr_t poll_flags);
 #endif
 
 #ifndef mp_hal_stdin_rx_chr
-int mp_hal_stdin_rx_chr(void);
+MAYBE_CUDA int mp_hal_stdin_rx_chr(void);
+#endif
+
+#ifndef mp_hal_set_interrupt_char
+MAYBE_CUDA void mp_hal_set_interrupt_char(int c);
 #endif
 
 #ifndef mp_hal_stdout_tx_str

@@ -186,6 +186,13 @@ MAYBE_CUDA void run_micropython_tests(void) {
         );
     );
 
+    // Test 14: fstrings
+    TEST("Test 14: fstrings",
+        gpusnek_do_str(
+            "print(f'help{\"me\"}')\n"
+        );
+    );
+
     // Test 15: gpusnek_bind_memory — write to a C buffer from Python
     TEST("Test 15: gpusnek_bind_memory",
         static unsigned char shared_buf[8] = {0};

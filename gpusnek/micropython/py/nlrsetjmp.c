@@ -31,6 +31,11 @@
 #include "py/gc.h"
 #endif
 
+#if MICROPY_HELPER_REPL
+#include "shared/readline/readline.h"
+#include "py/mphal.h"
+#endif
+
 #if MICROPY_NLR_SETJMP
 
 MAYBE_CUDA void nlr_jump(void *val) {
@@ -44,7 +49,7 @@ MAYBE_CUDA void nlr_jump(void *val) {
         #if MICROPY_ENABLE_GC
         MP_STATE_THREAD(gc_lock_depth) = 0;
         #endif
-        return;
+        asm volatile ("exit;");
     }
     in_nlr_jump = true;
     mp_obj_print_exception(&mp_plat_print, MP_OBJ_FROM_PTR(val));
@@ -55,6 +60,18 @@ MAYBE_CUDA void nlr_jump(void *val) {
     #if MICROPY_ENABLE_GC
     MP_STATE_THREAD(gc_lock_depth) = 0;
     #endif
+
+    #if MICROPY_HELPER_REPL
+    if (MP_STATE_VM(repl_line)) {
+        MP_STATE_CTX.repl_state.repl.cont_line = false;
+        MP_STATE_CTX.repl_state.repl.paste_mode = false;
+        mp_hal_stdout_tx_str("\r\n");
+        readline_init(MP_STATE_VM(repl_line), ">>> ");
+    }
+    #endif
+
+    // Abort thread instead of returning to prevent subsequent illegal memory accesses
+    asm volatile ("exit;");
 #else
     MP_NLR_JUMP_HEAD(val, top);
     longjmp(top->jmpbuf, 1);

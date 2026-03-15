@@ -27,9 +27,9 @@
 // Compiler required for parsing Python code
 #define MICROPY_ENABLE_COMPILER         (1)
 
-// Disable REPL for POC
-#define MICROPY_HELPER_REPL             (0)
-#define MICROPY_REPL_EVENT_DRIVEN       (0)
+// Enable event-driven REPL
+#define MICROPY_HELPER_REPL             (1)
+#define MICROPY_REPL_EVENT_DRIVEN       (1)
 
 // Minimal sys module
 #define MICROPY_PY_SYS_MODULES          (0)

@@ -332,14 +332,57 @@ typedef struct _gpusnek_io_t {
     int   stdout_pos;
 } gpusnek_io_t;
 
+// Per-thread REPL state (readline, pyexec friendly-REPL, and mode).
+// Defined here to avoid circular includes between mpstate.h, readline.h, pyexec.h.
+#if MICROPY_HELPER_REPL
+typedef struct _readline_t {
+    vstr_t *line;
+    size_t orig_line_len;
+    int escape_seq;
+    int hist_cur;
+    size_t cursor_pos;
+    char escape_seq_buf[1];
+    #if MICROPY_REPL_AUTO_INDENT
+    uint8_t auto_indent_state;
+    #endif
+    const char *prompt;
+} readline_t;
+#endif
+
+#if MICROPY_REPL_EVENT_DRIVEN
+typedef struct _repl_t {
+    bool cont_line;
+    bool paste_mode;
+} repl_t;
+
+// REPL execution mode (kept here so it's per-thread alongside the other REPL state)
+typedef enum {
+    PYEXEC_MODE_FRIENDLY_REPL,
+    PYEXEC_MODE_RAW_REPL,
+} pyexec_mode_kind_t;
+#endif
+
+#if MICROPY_HELPER_REPL
+typedef struct _gpusnek_repl_t {
+    readline_t rl;                         // interactive line-editing state
+    #if MICROPY_REPL_EVENT_DRIVEN
+    repl_t repl;                           // cont_line / paste_mode
+    pyexec_mode_kind_t mode_kind;          // friendly vs raw REPL
+    #endif
+} gpusnek_repl_t;
+#endif
+
 // This structure combines the above 3 structures.
 // The order of the entries are important for root pointer scanning in the GC to work.
 typedef struct _mp_state_ctx_t {
     mp_state_thread_t thread;
     mp_state_vm_t vm;
     mp_state_mem_t mem;
-    bump_alloc_state_t bump;  // per-thread bump allocator state  // Do we still need this? remove if not.
+    bump_alloc_state_t bump;  // per-thread bump allocator state
     gpusnek_io_t io;          // per-thread stdin/stdout buffer configuration
+    #if MICROPY_HELPER_REPL
+    gpusnek_repl_t repl_state; // per-thread REPL state (readline + pyexec)
+    #endif
 } mp_state_ctx_t;
 
 // Per-thread state: array of contexts, indexed by thread ID

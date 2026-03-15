@@ -40,7 +40,6 @@
 #include "extmod/modplatform.h"
 #include "genhdr/mpversion.h"
 
-pyexec_mode_kind_t pyexec_mode_kind = PYEXEC_MODE_FRIENDLY_REPL;
 
 #if MICROPY_REPL_INFO
 static bool repl_display_debugging_info = 0;
@@ -60,7 +59,7 @@ static bool repl_display_debugging_info = 0;
 // EXEC_FLAG_PRINT_EOF prints 2 EOF chars: 1 after normal output, 1 after exception output
 // EXEC_FLAG_ALLOW_DEBUGGING allows debugging info to be printed after executing the code
 // EXEC_FLAG_IS_REPL is used for REPL inputs (flag passed on to mp_compile)
-static int parse_compile_execute(const void *source, mp_parse_input_kind_t input_kind, mp_uint_t exec_flags) {
+MAYBE_CUDA static int parse_compile_execute(const void *source, mp_parse_input_kind_t input_kind, mp_uint_t exec_flags) {
     int ret = 0;
     #if MICROPY_REPL_INFO
     uint32_t start = 0;
@@ -92,12 +91,12 @@ static int parse_compile_execute(const void *source, mp_parse_input_kind_t input
             #if MICROPY_ENABLE_COMPILER
             mp_lexer_t *lex;
             if (exec_flags & EXEC_FLAG_SOURCE_IS_VSTR) {
-                const vstr_t *vstr = source;
+                const vstr_t *vstr = (const vstr_t *)source;
                 lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, vstr->buf, vstr->len, 0);
             } else if (exec_flags & EXEC_FLAG_SOURCE_IS_READER) {
                 lex = mp_lexer_new(MP_QSTR__lt_stdin_gt_, *(mp_reader_t *)source);
             } else if (exec_flags & EXEC_FLAG_SOURCE_IS_FILENAME) {
-                lex = mp_lexer_new_from_file(qstr_from_str(source));
+                lex = mp_lexer_new_from_file(qstr_from_str((const char *)source));
             } else {
                 lex = (mp_lexer_t *)source;
             }
@@ -149,7 +148,7 @@ static int parse_compile_execute(const void *source, mp_parse_input_kind_t input
         mp_handle_pending(false); // clear any pending exceptions (and run any callbacks)
 
         if (exec_flags & EXEC_FLAG_SOURCE_IS_READER) {
-            const mp_reader_t *reader = source;
+            const mp_reader_t *reader = (const mp_reader_t *)source;
             reader->close(reader->data);
         }
 
@@ -245,7 +244,7 @@ typedef struct _mp_reader_stdin_t {
     uint16_t window_remain;
 } mp_reader_stdin_t;
 
-static mp_uint_t mp_reader_stdin_readbyte(void *data) {
+MAYBE_CUDA static mp_uint_t mp_reader_stdin_readbyte(void *data) {
     mp_reader_stdin_t *reader = (mp_reader_stdin_t *)data;
 
     if (reader->eof) {
@@ -277,7 +276,7 @@ static mp_uint_t mp_reader_stdin_readbyte(void *data) {
     return c;
 }
 
-static void mp_reader_stdin_close(void *data) {
+MAYBE_CUDA static void mp_reader_stdin_close(void *data) {
     mp_reader_stdin_t *reader = (mp_reader_stdin_t *)data;
     if (!reader->eof) {
         reader->eof = true;
@@ -291,12 +290,12 @@ static void mp_reader_stdin_close(void *data) {
     }
 }
 
-static void mp_reader_new_stdin(mp_reader_t *reader, mp_reader_stdin_t *reader_stdin, uint16_t buf_max) {
+MAYBE_CUDA static void mp_reader_new_stdin(mp_reader_t *reader, mp_reader_stdin_t *reader_stdin, uint16_t buf_max) {
     // Make flow-control window half the buffer size, and indicate to the host that 2x windows are
     // free (sending the window size implicitly indicates that a window is free, and then the 0x01
     // indicates that another window is free).
     size_t window = buf_max / 2;
-    char reply[3] = { window & 0xff, window >> 8, 0x01 };
+    char reply[3] = { (char)(window & 0xff), (char)(window >> 8), 0x01 };
     mp_hal_stdout_tx_strn(reply, sizeof(reply));
 
     reader_stdin->eof = false;
@@ -307,7 +306,7 @@ static void mp_reader_new_stdin(mp_reader_t *reader, mp_reader_stdin_t *reader_s
     reader->close = mp_reader_stdin_close;
 }
 
-static int do_reader_stdin(int c) {
+MAYBE_CUDA static int do_reader_stdin(int c) {
     if (c != 'A') {
         // Unsupported command.
         mp_hal_stdout_tx_strn("R\x00", 2);
@@ -326,39 +325,31 @@ static int do_reader_stdin(int c) {
 
 #if MICROPY_REPL_EVENT_DRIVEN
 
-typedef struct _repl_t {
-    // This structure originally also held current REPL line,
-    // but it was moved to MP_STATE_VM(repl_line) as containing
-    // root pointer. Still keep structure in case more state
-    // will be added later.
-    // vstr_t line;
-    bool cont_line;
-    bool paste_mode;
-} repl_t;
 
-repl_t repl;
 
-static int pyexec_raw_repl_process_char(int c);
-static int pyexec_friendly_repl_process_char(int c);
+MAYBE_CUDA static int pyexec_raw_repl_process_char(int c);
+MAYBE_CUDA static int pyexec_friendly_repl_process_char(int c);
 
-void pyexec_event_repl_init(void) {
+MAYBE_CUDA void pyexec_event_repl_init(void) {
     MP_STATE_VM(repl_line) = vstr_new(32);
-    repl.cont_line = false;
-    repl.paste_mode = false;
+    MP_STATE_CTX.repl_state.repl.cont_line = false;
+    MP_STATE_CTX.repl_state.repl.paste_mode = false;
+    MP_STATE_CTX.repl_state.mode_kind = PYEXEC_MODE_FRIENDLY_REPL;
     // no prompt before printing friendly REPL banner or entering raw REPL
     readline_init(MP_STATE_VM(repl_line), "");
-    if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
+    if (MP_STATE_CTX.repl_state.mode_kind == PYEXEC_MODE_RAW_REPL) {
         pyexec_raw_repl_process_char(CHAR_CTRL_A);
     } else {
         pyexec_friendly_repl_process_char(CHAR_CTRL_B);
     }
 }
 
-static int pyexec_raw_repl_process_char(int c) {
+MAYBE_CUDA static int pyexec_raw_repl_process_char(int c) {
+    int ret;  // hoisted for C++ goto compatibility
     if (c == CHAR_CTRL_A) {
         // reset raw REPL
         if (vstr_len(MP_STATE_VM(repl_line)) == 2 && vstr_str(MP_STATE_VM(repl_line))[0] == CHAR_CTRL_E) {
-            int ret = do_reader_stdin(vstr_str(MP_STATE_VM(repl_line))[1]);
+            ret = do_reader_stdin(vstr_str(MP_STATE_VM(repl_line))[1]);
             if (ret & PYEXEC_FORCED_EXIT) {
                 return ret;
             }
@@ -368,10 +359,10 @@ static int pyexec_raw_repl_process_char(int c) {
         goto reset;
     } else if (c == CHAR_CTRL_B) {
         // change to friendly REPL
-        pyexec_mode_kind = PYEXEC_MODE_FRIENDLY_REPL;
+        MP_STATE_CTX.repl_state.mode_kind = PYEXEC_MODE_FRIENDLY_REPL;
         vstr_reset(MP_STATE_VM(repl_line));
-        repl.cont_line = false;
-        repl.paste_mode = false;
+        MP_STATE_CTX.repl_state.repl.cont_line = false;
+        MP_STATE_CTX.repl_state.repl.paste_mode = false;
         pyexec_friendly_repl_process_char(CHAR_CTRL_B);
         return 0;
     } else if (c == CHAR_CTRL_C) {
@@ -396,7 +387,7 @@ static int pyexec_raw_repl_process_char(int c) {
         return PYEXEC_FORCED_EXIT;
     }
 
-    int ret = parse_compile_execute(MP_STATE_VM(repl_line), MP_PARSE_FILE_INPUT, EXEC_FLAG_PRINT_EOF | EXEC_FLAG_SOURCE_IS_VSTR);
+    ret = parse_compile_execute(MP_STATE_VM(repl_line), MP_PARSE_FILE_INPUT, EXEC_FLAG_PRINT_EOF | EXEC_FLAG_SOURCE_IS_VSTR);
     if (ret & PYEXEC_FORCED_EXIT) {
         return ret;
     }
@@ -408,8 +399,9 @@ reset:
     return 0;
 }
 
-static int pyexec_friendly_repl_process_char(int c) {
-    if (repl.paste_mode) {
+MAYBE_CUDA static int pyexec_friendly_repl_process_char(int c) {
+    int ret;  // hoisted for C++ goto compatibility
+    if (MP_STATE_CTX.repl_state.repl.paste_mode) {
         if (c == CHAR_CTRL_C) {
             // cancel everything
             mp_hal_stdout_tx_str("\r\n");
@@ -417,7 +409,7 @@ static int pyexec_friendly_repl_process_char(int c) {
         } else if (c == CHAR_CTRL_D) {
             // end of input
             mp_hal_stdout_tx_str("\r\n");
-            int ret = parse_compile_execute(MP_STATE_VM(repl_line), MP_PARSE_FILE_INPUT, EXEC_FLAG_ALLOW_DEBUGGING | EXEC_FLAG_IS_REPL | EXEC_FLAG_SOURCE_IS_VSTR);
+            ret = parse_compile_execute(MP_STATE_VM(repl_line), MP_PARSE_FILE_INPUT, EXEC_FLAG_ALLOW_DEBUGGING | EXEC_FLAG_IS_REPL | EXEC_FLAG_SOURCE_IS_VSTR);
             if (ret & PYEXEC_FORCED_EXIT) {
                 return ret;
             }
@@ -428,20 +420,20 @@ static int pyexec_friendly_repl_process_char(int c) {
             if (c == '\r') {
                 mp_hal_stdout_tx_str("\r\n=== ");
             } else {
-                char buf[1] = {c};
+                char buf[1] = {(char)c};
                 mp_hal_stdout_tx_strn(buf, 1);
             }
             return 0;
         }
     }
 
-    int ret = readline_process_char(c);
+    ret = readline_process_char(c);
 
-    if (!repl.cont_line) {
+    if (!MP_STATE_CTX.repl_state.repl.cont_line) {
 
         if (ret == CHAR_CTRL_A) {
             // change to raw REPL
-            pyexec_mode_kind = PYEXEC_MODE_RAW_REPL;
+            MP_STATE_CTX.repl_state.mode_kind = PYEXEC_MODE_RAW_REPL;
             mp_hal_stdout_tx_str("\r\n");
             pyexec_raw_repl_process_char(CHAR_CTRL_A);
             return 0;
@@ -468,7 +460,7 @@ static int pyexec_friendly_repl_process_char(int c) {
             // paste mode
             mp_hal_stdout_tx_str("\r\npaste mode; Ctrl-C to cancel, Ctrl-D to finish\r\n=== ");
             vstr_reset(MP_STATE_VM(repl_line));
-            repl.paste_mode = true;
+            MP_STATE_CTX.repl_state.repl.paste_mode = true;
             return 0;
         }
 
@@ -481,7 +473,7 @@ static int pyexec_friendly_repl_process_char(int c) {
         }
 
         vstr_add_byte(MP_STATE_VM(repl_line), '\n');
-        repl.cont_line = true;
+        MP_STATE_CTX.repl_state.repl.cont_line = true;
         readline_note_newline(mp_repl_get_ps2());
         return 0;
 
@@ -490,7 +482,7 @@ static int pyexec_friendly_repl_process_char(int c) {
         if (ret == CHAR_CTRL_C) {
             // cancel everything
             mp_hal_stdout_tx_str("\r\n");
-            repl.cont_line = false;
+            MP_STATE_CTX.repl_state.repl.cont_line = false;
             goto input_restart;
         } else if (ret == CHAR_CTRL_D) {
             // stop entering compound statement
@@ -508,25 +500,25 @@ static int pyexec_friendly_repl_process_char(int c) {
         }
 
     exec:;
-        int ret = parse_compile_execute(MP_STATE_VM(repl_line), MP_PARSE_SINGLE_INPUT, EXEC_FLAG_ALLOW_DEBUGGING | EXEC_FLAG_IS_REPL | EXEC_FLAG_SOURCE_IS_VSTR);
+        ret = parse_compile_execute(MP_STATE_VM(repl_line), MP_PARSE_SINGLE_INPUT, EXEC_FLAG_ALLOW_DEBUGGING | EXEC_FLAG_IS_REPL | EXEC_FLAG_SOURCE_IS_VSTR);
         if (ret & PYEXEC_FORCED_EXIT) {
             return ret;
         }
 
     input_restart:
         vstr_reset(MP_STATE_VM(repl_line));
-        repl.cont_line = false;
-        repl.paste_mode = false;
+        MP_STATE_CTX.repl_state.repl.cont_line = false;
+        MP_STATE_CTX.repl_state.repl.paste_mode = false;
         readline_init(MP_STATE_VM(repl_line), mp_repl_get_ps1());
         return 0;
     }
 }
 
-uint8_t pyexec_repl_active;
-int pyexec_event_repl_process_char(int c) {
+MAYBE_CUDA uint8_t pyexec_repl_active;
+MAYBE_CUDA int pyexec_event_repl_process_char(int c) {
     pyexec_repl_active = 1;
     int res;
-    if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
+    if (MP_STATE_CTX.repl_state.mode_kind == PYEXEC_MODE_RAW_REPL) {
         res = pyexec_raw_repl_process_char(c);
     } else {
         res = pyexec_friendly_repl_process_char(c);
@@ -547,7 +539,7 @@ static inline void mp_hal_stdio_mode_orig(void) {
 }
 #endif
 
-int pyexec_raw_repl(void) {
+MAYBE_CUDA int pyexec_raw_repl(void) {
     vstr_t line;
     vstr_init(&line, 32);
 
@@ -578,7 +570,7 @@ raw_repl_reset:
                 // change to friendly REPL
                 mp_hal_stdout_tx_str("\r\n");
                 vstr_clear(&line);
-                pyexec_mode_kind = PYEXEC_MODE_FRIENDLY_REPL;
+                MP_STATE_CTX.repl_state.mode_kind = PYEXEC_MODE_FRIENDLY_REPL;
                 mp_hal_stdio_mode_orig();
                 return 0;
             } else if (c == CHAR_CTRL_C) {
@@ -614,7 +606,7 @@ raw_repl_reset:
     }
 }
 
-int pyexec_friendly_repl(void) {
+MAYBE_CUDA int pyexec_friendly_repl(void) {
     vstr_t line;
     vstr_init(&line, 32);
 
@@ -660,7 +652,7 @@ friendly_repl_reset:
             // change to raw REPL
             mp_hal_stdout_tx_str("\r\n");
             vstr_clear(&line);
-            pyexec_mode_kind = PYEXEC_MODE_RAW_REPL;
+            MP_STATE_CTX.repl_state.mode_kind = PYEXEC_MODE_RAW_REPL;
             mp_hal_stdio_mode_orig();
             return 0;
         } else if (ret == CHAR_CTRL_B) {
@@ -733,12 +725,12 @@ friendly_repl_reset:
 #endif // MICROPY_REPL_EVENT_DRIVEN
 #endif // MICROPY_ENABLE_COMPILER
 
-int pyexec_file(const char *filename) {
+MAYBE_CUDA int pyexec_file(const char *filename) {
     return parse_compile_execute(filename, MP_PARSE_FILE_INPUT, EXEC_FLAG_SOURCE_IS_FILENAME);
 }
 
 
-int pyexec_file_if_exists(const char *filename) {
+MAYBE_CUDA int pyexec_file_if_exists(const char *filename) {
     #if MICROPY_MODULE_FROZEN
     if (mp_find_frozen_module(filename, NULL, NULL) == MP_IMPORT_STAT_FILE) {
         return pyexec_frozen_module(filename, true);
@@ -751,7 +743,7 @@ int pyexec_file_if_exists(const char *filename) {
 }
 
 #if MICROPY_MODULE_FROZEN
-int pyexec_frozen_module(const char *name, bool allow_keyboard_interrupt) {
+MAYBE_CUDA int pyexec_frozen_module(const char *name, bool allow_keyboard_interrupt) {
     void *frozen_data;
     int frozen_type;
     mp_find_frozen_module(name, &frozen_type, &frozen_data);
@@ -776,7 +768,7 @@ int pyexec_frozen_module(const char *name, bool allow_keyboard_interrupt) {
 }
 #endif
 
-int pyexec_vstr(vstr_t *str, bool allow_keyboard_interrupt) {
+MAYBE_CUDA int pyexec_vstr(vstr_t *str, bool allow_keyboard_interrupt) {
     mp_uint_t exec_flags = allow_keyboard_interrupt ? 0 : EXEC_FLAG_NO_INTERRUPT;
     return parse_compile_execute(str, MP_PARSE_FILE_INPUT, exec_flags | EXEC_FLAG_SOURCE_IS_VSTR);
 }

@@ -56,7 +56,7 @@ static inline MAYBE_CUDA mp_obj_t mp_builtin_open(size_t n_args, const mp_obj_t 
 #else
 
 // A port can provide implementations of these functions.
-mp_import_stat_t mp_import_stat(const char *path);
+MAYBE_CUDA mp_import_stat_t mp_import_stat(const char *path);
 MAYBE_CUDA mp_obj_t mp_builtin_open(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs);
 
 // A port can provide this object.

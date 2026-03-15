@@ -17,6 +17,11 @@ MICROPY_ROM_TEXT_COMPRESSION = 0
 # Define build directory based on target
 BUILD = build-$(TARGET)
 
+# Files in shared/ that contain qstrs/root-pointers and must be scanned
+# before py.mk processes SRC_QSTR
+SRC_QSTR += micropython/shared/runtime/pyexec.c \
+            micropython/shared/readline/readline.c
+
 # Include py core make definitions
 include $(TOP)/py/py.mk
 
@@ -25,7 +30,7 @@ INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
 
-CUDACFLAGS = $(INC) -x cu -dc -Xcompiler -fPIC -Xcompiler -fpermissive -D"restrict="
+CUDACFLAGS = $(INC) -x cu -dc -Xcompiler -fPIC -Xcompiler -fpermissive -D"restrict=" -G
 
 ifeq ($(TARGET),cuda)
 # CUDA Build Settings
@@ -53,7 +58,9 @@ SRC_C = \
 	mphal.c \
 	gcollect.c \
 	gpusnek.c \
-	port_stubs.c
+	port_stubs.c \
+	micropython/shared/runtime/pyexec.c \
+	micropython/shared/readline/readline.c
 
 # Object files
 OBJ = $(PY_CORE_O)

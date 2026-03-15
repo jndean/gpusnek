@@ -38,12 +38,12 @@
 #define CHAR_CTRL_U (21)
 #define CHAR_CTRL_W (23)
 
-void readline_init0(void);
-int readline(vstr_t *line, const char *prompt);
-void readline_push_history(const char *line);
+MAYBE_CUDA void readline_init0(void);
+MAYBE_CUDA int readline(vstr_t *line, const char *prompt);
+MAYBE_CUDA void readline_push_history(const char *line);
 
-void readline_init(vstr_t *line, const char *prompt);
-void readline_note_newline(const char *prompt);
-int readline_process_char(int c);
+MAYBE_CUDA void readline_init(vstr_t *line, const char *prompt);
+MAYBE_CUDA void readline_note_newline(const char *prompt);
+MAYBE_CUDA int readline_process_char(int c);
 
 #endif // MICROPY_INCLUDED_LIB_MP_READLINE_READLINE_H

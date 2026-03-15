@@ -51,11 +51,11 @@ enum { ESEQ_NONE, ESEQ_ESC, ESEQ_ESC_BRACKET, ESEQ_ESC_BRACKET_DIGIT, ESEQ_ESC_O
 #pragma warning(disable : 4090)
 #endif
 
-void readline_init0(void) {
+MAYBE_CUDA void readline_init0(void) {
     memset(MP_STATE_PORT(readline_hist), 0, MICROPY_READLINE_HISTORY_SIZE * sizeof(const char*));
 }
 
-static char *str_dup_maybe(const char *str) {
+MAYBE_CUDA static char *str_dup_maybe(const char *str) {
     uint32_t len = strlen(str);
     char *s2 = m_new_maybe(char, len + 1);
     if (s2 == NULL) {
@@ -72,47 +72,36 @@ static char *str_dup_maybe(const char *str) {
 
 // ...and provide the implementation using them
 #if MICROPY_HAL_HAS_VT100
-static void mp_hal_move_cursor_back(uint pos) {
+MAYBE_CUDA static void mp_hal_move_cursor_back(uint pos) {
     if (pos <= 4) {
         // fast path for most common case of 1 step back
         mp_hal_stdout_tx_strn("\b\b\b\b", pos);
     } else {
         char vt100_command[6];
-        // snprintf needs space for the terminating null character
-        int n = snprintf(&vt100_command[0], sizeof(vt100_command), "\x1b[%u", pos);
-        if (n > 0) {
-            assert((unsigned)n < sizeof(vt100_command));
-            vt100_command[n] = 'D'; // replace null char
-            mp_hal_stdout_tx_strn(vt100_command, n + 1);
-        }
+        // Manual int-to-string (snprintf unavailable in CUDA device code)
+        vt100_command[0] = '\x1b';
+        vt100_command[1] = '[';
+        int n = 2;
+        if (pos >= 100) { vt100_command[n++] = '0' + (pos / 100); }
+        if (pos >= 10) { vt100_command[n++] = '0' + ((pos / 10) % 10); }
+        vt100_command[n++] = '0' + (pos % 10);
+        vt100_command[n++] = 'D';
+        mp_hal_stdout_tx_strn(vt100_command, n);
     }
 }
 
-static void mp_hal_erase_line_from_cursor(uint n_chars_to_erase) {
+MAYBE_CUDA static void mp_hal_erase_line_from_cursor(uint n_chars_to_erase) {
     (void)n_chars_to_erase;
     mp_hal_stdout_tx_strn("\x1b[K", 3);
 }
 #endif
 
-typedef struct _readline_t {
-    vstr_t *line;
-    size_t orig_line_len;
-    int escape_seq;
-    int hist_cur;
-    size_t cursor_pos;
-    char escape_seq_buf[1];
-    #if MICROPY_REPL_AUTO_INDENT
-    uint8_t auto_indent_state;
-    #endif
-    const char *prompt;
-} readline_t;
 
-static readline_t rl;
 
 #if MICROPY_REPL_EMACS_WORDS_MOVE
 static size_t cursor_count_word(int forward) {
-    const char *line_buf = vstr_str(rl.line);
-    size_t pos = rl.cursor_pos;
+    const char *line_buf = vstr_str(MP_STATE_CTX.repl_state.rl.line);
+    size_t pos = MP_STATE_CTX.repl_state.rl.cursor_pos;
     bool in_word = false;
 
     for (;;) {
@@ -121,7 +110,7 @@ static size_t cursor_count_word(int forward) {
             break;
         }
         // or if moving forwards and we've reached to the end of line... break
-        else if (forward && pos == vstr_len(rl.line)) {
+        else if (forward && pos == vstr_len(MP_STATE_CTX.repl_state.rl.line)) {
             break;
         }
 
@@ -134,17 +123,17 @@ static size_t cursor_count_word(int forward) {
         pos += forward ? forward : -1;
     }
 
-    return forward ? pos - rl.cursor_pos : rl.cursor_pos - pos;
+    return forward ? pos - MP_STATE_CTX.repl_state.rl.cursor_pos : MP_STATE_CTX.repl_state.rl.cursor_pos - pos;
 }
 #endif
 
-int readline_process_char(int c) {
-    size_t last_line_len = rl.line->len;
+MAYBE_CUDA int readline_process_char(int c) {
+    size_t last_line_len = MP_STATE_CTX.repl_state.rl.line->len;
     int redraw_step_back = 0;
     bool redraw_from_cursor = false;
     int redraw_step_forward = 0;
-    if (rl.escape_seq == ESEQ_NONE) {
-        if (CHAR_CTRL_A <= c && c <= CHAR_CTRL_E && vstr_len(rl.line) == rl.orig_line_len) {
+    if (MP_STATE_CTX.repl_state.rl.escape_seq == ESEQ_NONE) {
+        if (CHAR_CTRL_A <= c && c <= CHAR_CTRL_E && vstr_len(MP_STATE_CTX.repl_state.rl.line) == MP_STATE_CTX.repl_state.rl.orig_line_len) {
             // control character with empty line
             return c;
         } else if (c == CHAR_CTRL_A) {
@@ -172,7 +161,7 @@ int readline_process_char(int c) {
             goto right_arrow_key;
         } else if (c == CHAR_CTRL_K) {
             // CTRL-K is kill from cursor to end-of-line, inclusive
-            vstr_cut_tail_bytes(rl.line, last_line_len - rl.cursor_pos);
+            vstr_cut_tail_bytes(MP_STATE_CTX.repl_state.rl.line, last_line_len - MP_STATE_CTX.repl_state.rl.cursor_pos);
             // set redraw parameters
             redraw_from_cursor = true;
         } else if (c == CHAR_CTRL_N) {
@@ -183,9 +172,9 @@ int readline_process_char(int c) {
             goto up_arrow_key;
         } else if (c == CHAR_CTRL_U) {
             // CTRL-U is kill from beginning-of-line up to cursor
-            vstr_cut_out_bytes(rl.line, rl.orig_line_len, rl.cursor_pos - rl.orig_line_len);
+            vstr_cut_out_bytes(MP_STATE_CTX.repl_state.rl.line, MP_STATE_CTX.repl_state.rl.orig_line_len, MP_STATE_CTX.repl_state.rl.cursor_pos - MP_STATE_CTX.repl_state.rl.orig_line_len);
             // set redraw parameters
-            redraw_step_back = rl.cursor_pos - rl.orig_line_len;
+            redraw_step_back = MP_STATE_CTX.repl_state.rl.cursor_pos - MP_STATE_CTX.repl_state.rl.orig_line_len;
             redraw_from_cursor = true;
         #endif
         #if MICROPY_REPL_EMACS_EXTRA_WORDS_MOVE
@@ -195,19 +184,19 @@ int readline_process_char(int c) {
         } else if (c == '\r') {
             // newline
             mp_hal_stdout_tx_str("\r\n");
-            readline_push_history(vstr_null_terminated_str(rl.line) + rl.orig_line_len);
+            readline_push_history(vstr_null_terminated_str(MP_STATE_CTX.repl_state.rl.line) + MP_STATE_CTX.repl_state.rl.orig_line_len);
             return 0;
         } else if (c == 27) {
             // escape sequence
-            rl.escape_seq = ESEQ_ESC;
+            MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_ESC;
         } else if (c == 8 || c == 127) {
             // backspace/delete
-            if (rl.cursor_pos > rl.orig_line_len) {
+            if (MP_STATE_CTX.repl_state.rl.cursor_pos > MP_STATE_CTX.repl_state.rl.orig_line_len) {
                 // work out how many chars to backspace
                 #if MICROPY_REPL_AUTO_INDENT
                 int nspace = 0;
-                for (size_t i = rl.orig_line_len; i < rl.cursor_pos; i++) {
-                    if (rl.line->buf[i] != ' ') {
+                for (size_t i = MP_STATE_CTX.repl_state.rl.orig_line_len; i < MP_STATE_CTX.repl_state.rl.cursor_pos; i++) {
+                    if (MP_STATE_CTX.repl_state.rl.line->buf[i] != ' ') {
                         nspace = 0;
                         break;
                     }
@@ -223,20 +212,20 @@ int readline_process_char(int c) {
                 #endif
 
                 // do the backspace
-                vstr_cut_out_bytes(rl.line, rl.cursor_pos - nspace, nspace);
+                vstr_cut_out_bytes(MP_STATE_CTX.repl_state.rl.line, MP_STATE_CTX.repl_state.rl.cursor_pos - nspace, nspace);
                 // set redraw parameters
                 redraw_step_back = nspace;
                 redraw_from_cursor = true;
             }
         #if MICROPY_REPL_AUTO_INDENT
-        } else if ((rl.auto_indent_state & AUTO_INDENT_JUST_ADDED) && (c == 9 || c == ' ')) {
+        } else if ((MP_STATE_CTX.repl_state.rl.auto_indent_state & AUTO_INDENT_JUST_ADDED) && (c == 9 || c == ' ')) {
             // tab/space after auto-indent: disable auto-indent
             //  - if it's a tab then leave existing indent
             //  - if it's a space then remove 3 spaces from existing indent
-            rl.auto_indent_state = 0;
+            MP_STATE_CTX.repl_state.rl.auto_indent_state = 0;
             if (c == ' ') {
                 redraw_step_back = 3;
-                vstr_cut_tail_bytes(rl.line, 3);
+                vstr_cut_tail_bytes(MP_STATE_CTX.repl_state.rl.line, 3);
             }
         #endif
         #if MICROPY_HELPER_REPL
@@ -244,7 +233,7 @@ int readline_process_char(int c) {
             // tab magic
             const char *compl_str;
             size_t compl_len;
-            if (vstr_len(rl.line) != 0 && unichar_isspace(vstr_str(rl.line)[rl.cursor_pos - 1])) {
+            if (vstr_len(MP_STATE_CTX.repl_state.rl.line) != 0 && unichar_isspace(vstr_str(MP_STATE_CTX.repl_state.rl.line)[MP_STATE_CTX.repl_state.rl.cursor_pos - 1])) {
                 // expand tab to 4 spaces if it follows whitespace:
                 //  - includes the case of additional indenting
                 //  - includes the case of indenting the start of a line that's not the first line,
@@ -255,21 +244,21 @@ int readline_process_char(int c) {
                 compl_len = 4;
             } else {
                 // try to auto-complete a word
-                const char *cur_line_buf = vstr_str(rl.line) + rl.orig_line_len;
-                size_t cur_line_len = rl.cursor_pos - rl.orig_line_len;
+                const char *cur_line_buf = vstr_str(MP_STATE_CTX.repl_state.rl.line) + MP_STATE_CTX.repl_state.rl.orig_line_len;
+                size_t cur_line_len = MP_STATE_CTX.repl_state.rl.cursor_pos - MP_STATE_CTX.repl_state.rl.orig_line_len;
                 compl_len = mp_repl_autocomplete(cur_line_buf, cur_line_len, &mp_plat_print, &compl_str);
             }
             if (compl_len == 0) {
                 // no match
             } else if (compl_len == (size_t)(-1)) {
                 // many matches
-                mp_hal_stdout_tx_str(rl.prompt);
-                mp_hal_stdout_tx_strn(rl.line->buf + rl.orig_line_len, rl.cursor_pos - rl.orig_line_len);
+                mp_hal_stdout_tx_str(MP_STATE_CTX.repl_state.rl.prompt);
+                mp_hal_stdout_tx_strn(MP_STATE_CTX.repl_state.rl.line->buf + MP_STATE_CTX.repl_state.rl.orig_line_len, MP_STATE_CTX.repl_state.rl.cursor_pos - MP_STATE_CTX.repl_state.rl.orig_line_len);
                 redraw_from_cursor = true;
             } else {
                 // one match
                 for (size_t i = 0; i < compl_len; ++i) {
-                    vstr_ins_byte(rl.line, rl.cursor_pos + i, *compl_str++);
+                    vstr_ins_byte(MP_STATE_CTX.repl_state.rl.line, MP_STATE_CTX.repl_state.rl.cursor_pos + i, *compl_str++);
                 }
                 // set redraw parameters
                 redraw_from_cursor = true;
@@ -278,18 +267,18 @@ int readline_process_char(int c) {
         #endif
         } else if (32 <= c && c <= 126) {
             // printable character
-            vstr_ins_char(rl.line, rl.cursor_pos, c);
+            vstr_ins_char(MP_STATE_CTX.repl_state.rl.line, MP_STATE_CTX.repl_state.rl.cursor_pos, c);
             // set redraw parameters
             redraw_from_cursor = true;
             redraw_step_forward = 1;
         }
-    } else if (rl.escape_seq == ESEQ_ESC) {
+    } else if (MP_STATE_CTX.repl_state.rl.escape_seq == ESEQ_ESC) {
         switch (c) {
             case '[':
-                rl.escape_seq = ESEQ_ESC_BRACKET;
+                MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_ESC_BRACKET;
                 break;
             case 'O':
-                rl.escape_seq = ESEQ_ESC_O;
+                MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_ESC_O;
                 break;
             #if MICROPY_REPL_EMACS_WORDS_MOVE
             case 'b':
@@ -297,81 +286,81 @@ int readline_process_char(int c) {
 backward_word:
 #endif
                 redraw_step_back = cursor_count_word(0);
-                rl.escape_seq = ESEQ_NONE;
+                MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_NONE;
                 break;
             case 'f':
 #if MICROPY_REPL_EMACS_EXTRA_WORDS_MOVE
 forward_word:
 #endif
                 redraw_step_forward = cursor_count_word(1);
-                rl.escape_seq = ESEQ_NONE;
+                MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_NONE;
                 break;
             case 'd':
-                vstr_cut_out_bytes(rl.line, rl.cursor_pos, cursor_count_word(1));
+                vstr_cut_out_bytes(MP_STATE_CTX.repl_state.rl.line, MP_STATE_CTX.repl_state.rl.cursor_pos, cursor_count_word(1));
                 redraw_from_cursor = true;
-                rl.escape_seq = ESEQ_NONE;
+                MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_NONE;
                 break;
             case 127:
 #if MICROPY_REPL_EMACS_EXTRA_WORDS_MOVE
 backward_kill_word:
 #endif
                 redraw_step_back = cursor_count_word(0);
-                vstr_cut_out_bytes(rl.line, rl.cursor_pos - redraw_step_back, redraw_step_back);
+                vstr_cut_out_bytes(MP_STATE_CTX.repl_state.rl.line, MP_STATE_CTX.repl_state.rl.cursor_pos - redraw_step_back, redraw_step_back);
                 redraw_from_cursor = true;
-                rl.escape_seq = ESEQ_NONE;
+                MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_NONE;
                 break;
             #endif
             default:
                 DEBUG_printf("(ESC %d)", c);
-                rl.escape_seq = ESEQ_NONE;
+                MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_NONE;
                 break;
         }
-    } else if (rl.escape_seq == ESEQ_ESC_BRACKET) {
+    } else if (MP_STATE_CTX.repl_state.rl.escape_seq == ESEQ_ESC_BRACKET) {
         if ('0' <= c && c <= '9') {
-            rl.escape_seq = ESEQ_ESC_BRACKET_DIGIT;
-            rl.escape_seq_buf[0] = c;
+            MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_ESC_BRACKET_DIGIT;
+            MP_STATE_CTX.repl_state.rl.escape_seq_buf[0] = c;
         } else {
-            rl.escape_seq = ESEQ_NONE;
+            MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_NONE;
             if (c == 'A') {
 #if MICROPY_REPL_EMACS_KEYS
 up_arrow_key:
 #endif
                 // up arrow
-                if (rl.hist_cur + 1 < MICROPY_READLINE_HISTORY_SIZE && MP_STATE_PORT(readline_hist)[rl.hist_cur + 1] != NULL) {
+                if (MP_STATE_CTX.repl_state.rl.hist_cur + 1 < MICROPY_READLINE_HISTORY_SIZE && MP_STATE_PORT(readline_hist)[MP_STATE_CTX.repl_state.rl.hist_cur + 1] != NULL) {
                     // increase hist num
-                    rl.hist_cur += 1;
+                    MP_STATE_CTX.repl_state.rl.hist_cur += 1;
                     // set line to history
-                    rl.line->len = rl.orig_line_len;
-                    vstr_add_str(rl.line, MP_STATE_PORT(readline_hist)[rl.hist_cur]);
+                    MP_STATE_CTX.repl_state.rl.line->len = MP_STATE_CTX.repl_state.rl.orig_line_len;
+                    vstr_add_str(MP_STATE_CTX.repl_state.rl.line, MP_STATE_PORT(readline_hist)[MP_STATE_CTX.repl_state.rl.hist_cur]);
                     // set redraw parameters
-                    redraw_step_back = rl.cursor_pos - rl.orig_line_len;
+                    redraw_step_back = MP_STATE_CTX.repl_state.rl.cursor_pos - MP_STATE_CTX.repl_state.rl.orig_line_len;
                     redraw_from_cursor = true;
-                    redraw_step_forward = rl.line->len - rl.orig_line_len;
+                    redraw_step_forward = MP_STATE_CTX.repl_state.rl.line->len - MP_STATE_CTX.repl_state.rl.orig_line_len;
                 }
             } else if (c == 'B') {
 #if MICROPY_REPL_EMACS_KEYS
 down_arrow_key:
 #endif
                 // down arrow
-                if (rl.hist_cur >= 0) {
+                if (MP_STATE_CTX.repl_state.rl.hist_cur >= 0) {
                     // decrease hist num
-                    rl.hist_cur -= 1;
+                    MP_STATE_CTX.repl_state.rl.hist_cur -= 1;
                     // set line to history
-                    vstr_cut_tail_bytes(rl.line, rl.line->len - rl.orig_line_len);
-                    if (rl.hist_cur >= 0) {
-                        vstr_add_str(rl.line, MP_STATE_PORT(readline_hist)[rl.hist_cur]);
+                    vstr_cut_tail_bytes(MP_STATE_CTX.repl_state.rl.line, MP_STATE_CTX.repl_state.rl.line->len - MP_STATE_CTX.repl_state.rl.orig_line_len);
+                    if (MP_STATE_CTX.repl_state.rl.hist_cur >= 0) {
+                        vstr_add_str(MP_STATE_CTX.repl_state.rl.line, MP_STATE_PORT(readline_hist)[MP_STATE_CTX.repl_state.rl.hist_cur]);
                     }
                     // set redraw parameters
-                    redraw_step_back = rl.cursor_pos - rl.orig_line_len;
+                    redraw_step_back = MP_STATE_CTX.repl_state.rl.cursor_pos - MP_STATE_CTX.repl_state.rl.orig_line_len;
                     redraw_from_cursor = true;
-                    redraw_step_forward = rl.line->len - rl.orig_line_len;
+                    redraw_step_forward = MP_STATE_CTX.repl_state.rl.line->len - MP_STATE_CTX.repl_state.rl.orig_line_len;
                 }
             } else if (c == 'C') {
 #if MICROPY_REPL_EMACS_KEYS
 right_arrow_key:
 #endif
                 // right arrow
-                if (rl.cursor_pos < rl.line->len) {
+                if (MP_STATE_CTX.repl_state.rl.cursor_pos < MP_STATE_CTX.repl_state.rl.line->len) {
                     redraw_step_forward = 1;
                 }
             } else if (c == 'D') {
@@ -379,7 +368,7 @@ right_arrow_key:
 left_arrow_key:
 #endif
                 // left arrow
-                if (rl.cursor_pos > rl.orig_line_len) {
+                if (MP_STATE_CTX.repl_state.rl.cursor_pos > MP_STATE_CTX.repl_state.rl.orig_line_len) {
                     redraw_step_back = 1;
                 }
             } else if (c == 'H') {
@@ -392,49 +381,49 @@ left_arrow_key:
                 DEBUG_printf("(ESC [ %d)", c);
             }
         }
-    } else if (rl.escape_seq == ESEQ_ESC_BRACKET_DIGIT) {
+    } else if (MP_STATE_CTX.repl_state.rl.escape_seq == ESEQ_ESC_BRACKET_DIGIT) {
         if (c == '~') {
-            if (rl.escape_seq_buf[0] == '1' || rl.escape_seq_buf[0] == '7') {
+            if (MP_STATE_CTX.repl_state.rl.escape_seq_buf[0] == '1' || MP_STATE_CTX.repl_state.rl.escape_seq_buf[0] == '7') {
 home_key:
-                redraw_step_back = rl.cursor_pos - rl.orig_line_len;
-            } else if (rl.escape_seq_buf[0] == '4' || rl.escape_seq_buf[0] == '8') {
+                redraw_step_back = MP_STATE_CTX.repl_state.rl.cursor_pos - MP_STATE_CTX.repl_state.rl.orig_line_len;
+            } else if (MP_STATE_CTX.repl_state.rl.escape_seq_buf[0] == '4' || MP_STATE_CTX.repl_state.rl.escape_seq_buf[0] == '8') {
 end_key:
-                redraw_step_forward = rl.line->len - rl.cursor_pos;
-            } else if (rl.escape_seq_buf[0] == '3') {
+                redraw_step_forward = MP_STATE_CTX.repl_state.rl.line->len - MP_STATE_CTX.repl_state.rl.cursor_pos;
+            } else if (MP_STATE_CTX.repl_state.rl.escape_seq_buf[0] == '3') {
                 // delete
 #if MICROPY_REPL_EMACS_KEYS
 delete_key:
 #endif
-                if (rl.cursor_pos < rl.line->len) {
-                    vstr_cut_out_bytes(rl.line, rl.cursor_pos, 1);
+                if (MP_STATE_CTX.repl_state.rl.cursor_pos < MP_STATE_CTX.repl_state.rl.line->len) {
+                    vstr_cut_out_bytes(MP_STATE_CTX.repl_state.rl.line, MP_STATE_CTX.repl_state.rl.cursor_pos, 1);
                     redraw_from_cursor = true;
                 }
             } else {
-                DEBUG_printf("(ESC [ %c %d)", rl.escape_seq_buf[0], c);
+                DEBUG_printf("(ESC [ %c %d)", MP_STATE_CTX.repl_state.rl.escape_seq_buf[0], c);
             }
         #if MICROPY_REPL_EMACS_EXTRA_WORDS_MOVE
-        } else if (c == ';' && rl.escape_seq_buf[0] == '1') {
+        } else if (c == ';' && MP_STATE_CTX.repl_state.rl.escape_seq_buf[0] == '1') {
             // ';' is used to separate parameters. so first parameter was '1',
             // that's used for sequences like ctrl+left, which we will try to parse.
             // escape_seq state is reset back to ESEQ_ESC_BRACKET, as if we've just received
             // the opening bracket, because more parameters are to come.
             // we don't track the parameters themselves to keep low on logic and code size. that
             // might be required in the future if more complex sequences are added.
-            rl.escape_seq = ESEQ_ESC_BRACKET;
-            // goto away from the state-machine, as rl.escape_seq will be overridden.
+            MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_ESC_BRACKET;
+            // goto away from the state-machine, as MP_STATE_CTX.repl_state.rl.escape_seq will be overridden.
             goto redraw;
-        } else if (rl.escape_seq_buf[0] == '5' && c == 'C') {
+        } else if (MP_STATE_CTX.repl_state.rl.escape_seq_buf[0] == '5' && c == 'C') {
             // ctrl+right
             goto forward_word;
-        } else if (rl.escape_seq_buf[0] == '5' && c == 'D') {
+        } else if (MP_STATE_CTX.repl_state.rl.escape_seq_buf[0] == '5' && c == 'D') {
             // ctrl+left
             goto backward_word;
         #endif
         } else {
-            DEBUG_printf("(ESC [ %c %d)", rl.escape_seq_buf[0], c);
+            DEBUG_printf("(ESC [ %c %d)", MP_STATE_CTX.repl_state.rl.escape_seq_buf[0], c);
         }
-        rl.escape_seq = ESEQ_NONE;
-    } else if (rl.escape_seq == ESEQ_ESC_O) {
+        MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_NONE;
+    } else if (MP_STATE_CTX.repl_state.rl.escape_seq == ESEQ_ESC_O) {
         switch (c) {
             case 'H':
                 goto home_key;
@@ -442,10 +431,10 @@ delete_key:
                 goto end_key;
             default:
                 DEBUG_printf("(ESC O %d)", c);
-                rl.escape_seq = ESEQ_NONE;
+                MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_NONE;
         }
     } else {
-        rl.escape_seq = ESEQ_NONE;
+        MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_NONE;
     }
 
 #if MICROPY_REPL_EMACS_EXTRA_WORDS_MOVE
@@ -455,37 +444,37 @@ redraw:
     // redraw command prompt, efficiently
     if (redraw_step_back > 0) {
         mp_hal_move_cursor_back(redraw_step_back);
-        rl.cursor_pos -= redraw_step_back;
+        MP_STATE_CTX.repl_state.rl.cursor_pos -= redraw_step_back;
     }
     if (redraw_from_cursor) {
-        if (rl.line->len < last_line_len) {
+        if (MP_STATE_CTX.repl_state.rl.line->len < last_line_len) {
             // erase old chars
-            mp_hal_erase_line_from_cursor(last_line_len - rl.cursor_pos);
+            mp_hal_erase_line_from_cursor(last_line_len - MP_STATE_CTX.repl_state.rl.cursor_pos);
         }
         // draw new chars
-        mp_hal_stdout_tx_strn(rl.line->buf + rl.cursor_pos, rl.line->len - rl.cursor_pos);
+        mp_hal_stdout_tx_strn(MP_STATE_CTX.repl_state.rl.line->buf + MP_STATE_CTX.repl_state.rl.cursor_pos, MP_STATE_CTX.repl_state.rl.line->len - MP_STATE_CTX.repl_state.rl.cursor_pos);
         // move cursor forward if needed (already moved forward by length of line, so move it back)
-        mp_hal_move_cursor_back(rl.line->len - (rl.cursor_pos + redraw_step_forward));
-        rl.cursor_pos += redraw_step_forward;
+        mp_hal_move_cursor_back(MP_STATE_CTX.repl_state.rl.line->len - (MP_STATE_CTX.repl_state.rl.cursor_pos + redraw_step_forward));
+        MP_STATE_CTX.repl_state.rl.cursor_pos += redraw_step_forward;
     } else if (redraw_step_forward > 0) {
         // draw over old chars to move cursor forwards
-        mp_hal_stdout_tx_strn(rl.line->buf + rl.cursor_pos, redraw_step_forward);
-        rl.cursor_pos += redraw_step_forward;
+        mp_hal_stdout_tx_strn(MP_STATE_CTX.repl_state.rl.line->buf + MP_STATE_CTX.repl_state.rl.cursor_pos, redraw_step_forward);
+        MP_STATE_CTX.repl_state.rl.cursor_pos += redraw_step_forward;
     }
 
     #if MICROPY_REPL_AUTO_INDENT
-    rl.auto_indent_state &= ~AUTO_INDENT_JUST_ADDED;
+    MP_STATE_CTX.repl_state.rl.auto_indent_state &= ~AUTO_INDENT_JUST_ADDED;
     #endif
 
     return -1;
 }
 
 #if MICROPY_REPL_AUTO_INDENT
-static void readline_auto_indent(void) {
-    if (!(rl.auto_indent_state & AUTO_INDENT_ENABLED)) {
+MAYBE_CUDA static void readline_auto_indent(void) {
+    if (!(MP_STATE_CTX.repl_state.rl.auto_indent_state & AUTO_INDENT_ENABLED)) {
         return;
     }
-    vstr_t *line = rl.line;
+    vstr_t *line = MP_STATE_CTX.repl_state.rl.line;
     if (line->len > 1 && line->buf[line->len - 1] == '\n') {
         int i;
         for (i = line->len - 1; i > 0; i--) {
@@ -519,42 +508,42 @@ static void readline_auto_indent(void) {
         while (n-- > 0) {
             vstr_add_strn(line, "    ", 4);
             mp_hal_stdout_tx_strn("    ", 4);
-            rl.cursor_pos += 4;
-            rl.auto_indent_state |= AUTO_INDENT_JUST_ADDED;
+            MP_STATE_CTX.repl_state.rl.cursor_pos += 4;
+            MP_STATE_CTX.repl_state.rl.auto_indent_state |= AUTO_INDENT_JUST_ADDED;
         }
     }
 }
 #endif
 
-void readline_note_newline(const char *prompt) {
-    rl.orig_line_len = rl.line->len;
-    rl.cursor_pos = rl.orig_line_len;
-    rl.prompt = prompt;
+MAYBE_CUDA void readline_note_newline(const char *prompt) {
+    MP_STATE_CTX.repl_state.rl.orig_line_len = MP_STATE_CTX.repl_state.rl.line->len;
+    MP_STATE_CTX.repl_state.rl.cursor_pos = MP_STATE_CTX.repl_state.rl.orig_line_len;
+    MP_STATE_CTX.repl_state.rl.prompt = prompt;
     mp_hal_stdout_tx_str(prompt);
     #if MICROPY_REPL_AUTO_INDENT
     readline_auto_indent();
     #endif
 }
 
-void readline_init(vstr_t *line, const char *prompt) {
-    rl.line = line;
-    rl.orig_line_len = line->len;
-    rl.escape_seq = ESEQ_NONE;
-    rl.escape_seq_buf[0] = 0;
-    rl.hist_cur = -1;
-    rl.cursor_pos = rl.orig_line_len;
-    rl.prompt = prompt;
+MAYBE_CUDA void readline_init(vstr_t *line, const char *prompt) {
+    MP_STATE_CTX.repl_state.rl.line = line;
+    MP_STATE_CTX.repl_state.rl.orig_line_len = line->len;
+    MP_STATE_CTX.repl_state.rl.escape_seq = ESEQ_NONE;
+    MP_STATE_CTX.repl_state.rl.escape_seq_buf[0] = 0;
+    MP_STATE_CTX.repl_state.rl.hist_cur = -1;
+    MP_STATE_CTX.repl_state.rl.cursor_pos = MP_STATE_CTX.repl_state.rl.orig_line_len;
+    MP_STATE_CTX.repl_state.rl.prompt = prompt;
     mp_hal_stdout_tx_str(prompt);
     #if MICROPY_REPL_AUTO_INDENT
     if (vstr_len(line) == 0) {
         // start with auto-indent enabled
-        rl.auto_indent_state = AUTO_INDENT_ENABLED;
+        MP_STATE_CTX.repl_state.rl.auto_indent_state = AUTO_INDENT_ENABLED;
     }
     readline_auto_indent();
     #endif
 }
 
-int readline(vstr_t *line, const char *prompt) {
+MAYBE_CUDA int readline(vstr_t *line, const char *prompt) {
     readline_init(line, prompt);
     for (;;) {
         int c = mp_hal_stdin_rx_chr();
@@ -565,7 +554,7 @@ int readline(vstr_t *line, const char *prompt) {
     }
 }
 
-void readline_push_history(const char *line) {
+MAYBE_CUDA void readline_push_history(const char *line) {
     if (line[0] != '\0'
         && (MP_STATE_PORT(readline_hist)[0] == NULL
             || strcmp(MP_STATE_PORT(readline_hist)[0], line) != 0)) {

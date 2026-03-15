@@ -10,14 +10,13 @@
 #define N_THREADS 128
 #define N_ELEMENTS 1024
 
-
+#ifdef __CUDACC__
 
 __global__ void allreduce_kernel(int *d_data, mp_state_ctx_t *states, char *memory) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     char *thread_mem = memory + tid * PER_THREAD_MEMORY;
     gpusnek_init(states, thread_mem, PYSTACK_SIZE, HEAP_SIZE);
-
 
     gpusnek_bind_memory("shared_arr", d_data, N_ELEMENTS, 'i');
     gpusnek_new_int("tid", tid);
@@ -32,7 +31,6 @@ __global__ void allreduce_kernel(int *d_data, mp_state_ctx_t *states, char *memo
     );
 }
 
-
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line) {
    if (code != cudaSuccess) {
@@ -41,20 +39,19 @@ inline void gpuAssert(cudaError_t code, const char *file, int line) {
    }
 }
 
-
 int main(void) {
     printf(
-        "Starting Parallel All-Reduce Example (%d elements / %d threads)\n", 
+        "Starting Parallel All-Reduce Example (%d elements / %d threads)\n",
         N_ELEMENTS, N_THREADS
     );
-    
+
     int *d_data;
     int *h_data = (int *)malloc(N_ELEMENTS * sizeof(int));
     for (int i = 0; i < N_ELEMENTS; i++) {
         h_data[i] = i;
     }
     int expected_sum = (N_ELEMENTS * (N_ELEMENTS - 1)) / 2;
-    
+
     mp_state_ctx_t *d_states;
     char *d_memory;
     gpuErrchk(cudaMalloc(&d_states, N_THREADS * sizeof(mp_state_ctx_t)));
@@ -75,10 +72,18 @@ int main(void) {
     if (h_data[0] == expected_sum) printf("SUCCESS!\n");
     else                           printf("FAILED!\n");
 
-
     cudaFree(d_states);
     cudaFree(d_memory);
     cudaFree(d_data);
     free(h_data);
     return 0;
 }
+
+#else // !__CUDACC__
+
+int main(void) {
+    printf("example_allreduce: CUDA-only example, not supported on host.\n");
+    return 0;
+}
+
+#endif // __CUDACC__
