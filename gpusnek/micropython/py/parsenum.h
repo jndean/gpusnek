@@ -35,7 +35,7 @@
 MAYBE_CUDA mp_obj_t mp_parse_num_integer(const char *restrict str, size_t len, int base, mp_lexer_t *lex);
 
 #if MICROPY_PY_BUILTINS_FLOAT
-mp_large_float_t mp_decimal_exp(mp_large_float_t num, int dec_exp);
+MAYBE_CUDA mp_large_float_t mp_decimal_exp(mp_large_float_t num, int dec_exp);
 MAYBE_CUDA const char *mp_parse_float_internal(const char *str, size_t len, mp_float_t *res);
 #endif
 

@@ -272,7 +272,7 @@ static MAYBE_CUDA int mp_format_mantissa(mp_large_float_uint_t mantissa, mp_larg
 // minimal value expected for buf_size, to avoid checking everywhere for overflow
 #define MIN_BUF_SIZE (MAX_MANTISSA_DIGITS + 10)
 
-int mp_format_float(mp_float_t f_entry, char *buf_entry, size_t buf_size, char fmt, int prec, char sign) {
+MAYBE_CUDA int mp_format_float(mp_float_t f_entry, char *buf_entry, size_t buf_size, char fmt, int prec, char sign) {
     assert(buf_size >= MIN_BUF_SIZE);
 
     // Handle sign

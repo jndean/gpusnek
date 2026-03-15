@@ -2203,7 +2203,7 @@ typedef time_t mp_timestamp_t;
 #if MICROPY_PREVIEW_VERSION_2
 #define MICROPY_BANNER_NAME_AND_VERSION "MicroPython (with v2.0 preview) " MICROPY_GIT_TAG " on " MICROPY_BUILD_DATE
 #else
-#define MICROPY_BANNER_NAME_AND_VERSION "MicroPython " MICROPY_GIT_TAG " on " MICROPY_BUILD_DATE
+#define MICROPY_BANNER_NAME_AND_VERSION "\x1b[1;36mgpusnek\x1b[0m REPL"
 #endif
 #endif
 

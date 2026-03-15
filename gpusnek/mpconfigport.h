@@ -11,10 +11,7 @@
 // Use minimal ROM level - disable most features
 #define MICROPY_CONFIG_ROM_LEVEL        (MICROPY_CONFIG_ROM_LEVEL_MINIMUM)
 
-// CUDA-incompatible features - DISABLE
-#ifndef MICROPY_NLR_SETJMP
 #define MICROPY_NLR_SETJMP              (1)  // We provide custom implementation
-#endif
 #define MICROPY_ENABLE_GC               (1)  // Enable garbage collector
 #define MICROPY_ENABLE_PYSTACK          (1)  // Enable explicit python stack to trace GC roots natively
 #define MICROPY_STACK_CHECK             (0)  // No stack checking
@@ -44,6 +41,7 @@
 // memoryview depends on array_new() which is gated on MICROPY_PY_ARRAY.
 #define MICROPY_PY_BUILTINS_MEMORYVIEW  (1)
 #define MICROPY_PY_ARRAY                (1)
+#define MICROPY_FLOAT_IMPL              (MICROPY_FLOAT_IMPL_FLOAT)
 
 // Memory settings - small allocations for POC
 #define MICROPY_ALLOC_PATH_MAX          (64)
@@ -56,8 +54,8 @@ typedef long mp_off_t;
 #define MP_STATE_PORT MP_STATE_VM
 
 // Board/MCU names
-#define MICROPY_HW_BOARD_NAME           "cuda"
-#define MICROPY_HW_MCU_NAME             "nvptx"
+#define MICROPY_HW_BOARD_NAME           "gpu"
+#define MICROPY_HW_MCU_NAME             "snek"
 
 // We don't need frozen modules for POC
 #define MICROPY_MODULE_FROZEN_MPY       (0)

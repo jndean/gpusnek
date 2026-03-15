@@ -224,7 +224,7 @@ typedef enum {
 #endif
 
 // Helper to compute `num * (10.0 ** dec_exp)`
-mp_large_float_t mp_decimal_exp(mp_large_float_t num, int dec_exp) {
+MAYBE_CUDA mp_large_float_t mp_decimal_exp(mp_large_float_t num, int dec_exp) {
     if (dec_exp == 0 || num == (mp_large_float_t)(0.0)) {
         return num;
     }

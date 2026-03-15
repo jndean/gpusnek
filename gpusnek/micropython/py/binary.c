@@ -352,13 +352,13 @@ MAYBE_CUDA mp_obj_t mp_binary_get_val(char struct_type, char val_type, byte *p_b
         union {
             uint32_t i;
             float f;
-        } fpu = {val};
+        } fpu = {(uint32_t)val};
         return mp_obj_new_float_from_f(fpu.f);
     } else if (val_type == 'd') {
         union {
             uint64_t i;
             double f;
-        } fpu = {val};
+        } fpu = {(uint64_t)val};
         return mp_obj_new_float_from_d(fpu.f);
     #endif
     } else if (is_signed(val_type)) {

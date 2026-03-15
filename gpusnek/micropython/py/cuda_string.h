@@ -12,6 +12,8 @@
 #define MICROPY_CUDA_STRING_H
 
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 MAYBE_CUDA size_t __mp_strlen(const char *s);
 MAYBE_CUDA int __mp_strcmp(const char *s1, const char *s2);

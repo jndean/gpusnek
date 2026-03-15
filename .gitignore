@@ -33,3 +33,8 @@ user.props
 # Created by ci.sh esp8266 targets
 /xtensa-lx106-elf-standalone.tar.gz
 /xtensa-lx106-elf/
+
+# gpusnek examples
+example_test
+example_allreduce
+example_repl

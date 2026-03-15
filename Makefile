@@ -23,47 +23,34 @@ CFLAGS = $(INC) -Wall -Werror -x c++ -fpermissive -O1 -DNDEBUG
 LDFLAGS =
 endif
 
-# Find all example directories
-EXAMPLES = $(wildcard example_*)
+# Find all example source files in root directory
+SRC_C = $(wildcard example_*.c)
+SRC_CU = $(wildcard example_*.cu)
 
-.PHONY: all clean $(EXAMPLES)
+# Generate names for the output executables
+EXECUTABLES = $(SRC_C:.c=) $(SRC_CU:.cu=)
 
-ifndef EXAMPLE
+.PHONY: all clean $(EXECUTABLES)
 
-# --- Top-Level Build ---
-all: $(EXAMPLES)
+all: $(EXECUTABLES)
 
 # Always ensure the library is built first
 .PHONY: FORCE_LIB
 $(LIB_FILE): FORCE_LIB
 	$(MAKE) -C $(LIB_DIR) TARGET=$(TARGET) -j
 
-$(EXAMPLES): $(LIB_FILE)
-	@echo "Building $@"
-	$(MAKE) EXAMPLE=$@ TARGET=$(TARGET)
+$(EXECUTABLES): %: %-$(TARGET).o $(LIB_FILE)
+	@echo "Linking $@"
+	$(CC) -o $@ $< $(LIB_FILE) $(LDFLAGS)
+
+%-$(TARGET).o: %.c $(LIB_FILE)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%-$(TARGET).o: %.cu $(LIB_FILE)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	@for dir in $(EXAMPLES); do \
-		rm -f $$dir/*.o $$dir/$$(basename $$dir); \
-	done
+	rm -f example_*-*.o
+	rm -f $(EXECUTABLES)
 	$(MAKE) -C $(LIB_DIR) TARGET=cuda clean
 	$(MAKE) -C $(LIB_DIR) TARGET=host clean
-
-else
-
-# --- Sub-Make Build for a Specific Example ---
-SRC_C = $(wildcard $(EXAMPLE)/*.c)
-SRC_CU = $(wildcard $(EXAMPLE)/*.cu)
-OBJ = $(SRC_C:.c=-$(TARGET).o)
-OBJ += $(SRC_CU:.cu=-$(TARGET).o)
-
-$(EXAMPLE)/$(EXAMPLE): $(OBJ) $(LIB_FILE)
-	$(CC) -o $@ $(OBJ) $(LIB_FILE) $(LDFLAGS)
-
-%-$(TARGET).o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-%-$(TARGET).o: %.cu
-	$(CC) $(CFLAGS) -c $< -o $@
-
-endif

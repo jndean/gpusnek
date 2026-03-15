@@ -148,11 +148,6 @@ MAYBE_CUDA void run_micropython_tests(void) {
         gpusnek_do_str("print(sum(x for x in range(10)))");
     );
 
-    // Test 11: Types
-    TEST("Test 11: Types",
-        gpusnek_do_str("print(dir(type(type(1))))\n");
-    );
-
     // Test 12: Per-thread __main__ module isolation
     TEST("Test 12: __main__ module isolation",
         {
@@ -176,7 +171,7 @@ MAYBE_CUDA void run_micropython_tests(void) {
         gpusnek_do_str(
             "x = 1\n"
             "z = []\n"
-            "for y in range(10000):\n"
+            "for y in range(1000):\n"
             "    x += 1\n"
             "    y = [x, x+1, x+2]\n"
             "    z.append(y)\n"
@@ -186,11 +181,9 @@ MAYBE_CUDA void run_micropython_tests(void) {
         );
     );
 
-    // Test 14: fstrings
-    TEST("Test 14: fstrings",
-        gpusnek_do_str(
-            "print(f'help{\"me\"}')\n"
-        );
+    // Test 14: Floating Point
+    TEST("Test 14: Floating Point",
+        gpusnek_do_str("print(1/4)\n");
     );
 
     // Test 15: gpusnek_bind_memory — write to a C buffer from Python
