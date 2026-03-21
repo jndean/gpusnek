@@ -203,26 +203,30 @@ static MAYBE_CUDA MP_DEFINE_CONST_OBJ_TYPE(
     );
 #endif // MICROPY_PY_IO_BUFFEREDWRITER
 
-static MAYBE_CUDA const mp_rom_map_elem_t mp_module_io_globals_table[] = {
+
+// Fix for CUDA dynamic initialization: cast const pointers to mp_obj_t
+#define MP_CUDA_ROM_PTR(p) ((mp_obj_t)(p))
+
+static MAYBE_CUDA const mp_map_elem_t mp_module_io_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_io) },
     // Note: mp_builtin_open_obj should be defined by port, it's not
     // part of the core.
-    { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
+    { MP_ROM_QSTR(MP_QSTR_open), MP_CUDA_ROM_PTR(&mp_builtin_open_obj) },
     #if MICROPY_PY_IO_IOBASE
-    { MP_ROM_QSTR(MP_QSTR_IOBase), MP_ROM_PTR(&mp_type_iobase) },
+    { MP_ROM_QSTR(MP_QSTR_IOBase), MP_CUDA_ROM_PTR(&mp_type_iobase) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_StringIO), MP_ROM_PTR(&mp_type_stringio) },
+    { MP_ROM_QSTR(MP_QSTR_StringIO), MP_CUDA_ROM_PTR(&mp_type_stringio) },
     #if MICROPY_PY_IO_BYTESIO
-    { MP_ROM_QSTR(MP_QSTR_BytesIO), MP_ROM_PTR(&mp_type_bytesio) },
+    { MP_ROM_QSTR(MP_QSTR_BytesIO), MP_CUDA_ROM_PTR(&mp_type_bytesio) },
     #endif
     #if MICROPY_PY_IO_BUFFEREDWRITER
-    { MP_ROM_QSTR(MP_QSTR_BufferedWriter), MP_ROM_PTR(&mp_type_bufwriter) },
+    { MP_ROM_QSTR(MP_QSTR_BufferedWriter), MP_CUDA_ROM_PTR(&mp_type_bufwriter) },
     #endif
 };
 
-static MAYBE_CUDA MP_DEFINE_CONST_DICT(mp_module_io_globals, mp_module_io_globals_table);
+static MAYBE_CUDA MP_DEFINE_CUDA_CONST_DICT(mp_module_io_globals, mp_module_io_globals_table);
 
-const mp_obj_module_t mp_module_io = {
+extern MAYBE_CUDA const mp_obj_module_t mp_module_io = {
     .base = { &mp_type_module },
     .globals = (mp_obj_dict_t *)&mp_module_io_globals,
 };

@@ -37,7 +37,7 @@ INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
 
-CUDACFLAGS = $(INC) -x cu -dc -Xcompiler -fPIC -Xcompiler -fpermissive -D"restrict=" -G
+CUDACFLAGS = $(INC) -x cu -dc -Xcompiler -fPIC -Xcompiler -fpermissive -D"restrict="
 
 ifeq ($(TARGET),cuda)
 # CUDA Build Settings

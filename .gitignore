@@ -34,7 +34,5 @@ user.props
 /xtensa-lx106-elf-standalone.tar.gz
 /xtensa-lx106-elf/
 
-# gpusnek examples
-example_test
-example_allreduce
-example_repl
+# gpusnek ex
+/example_*

@@ -47,13 +47,13 @@ static MAYBE_CUDA void check_stringio_is_open(const mp_obj_stringio_t *o) {
 
 static MAYBE_CUDA void stringio_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     (void)kind;
-    mp_obj_stringio_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_stringio_t *self = (mp_obj_stringio_t *)MP_OBJ_TO_PTR(self_in);
     mp_printf(print, self->base.type == &mp_type_stringio ? "<io.StringIO 0x%x>" : "<io.BytesIO 0x%x>", self);
 }
 
 static MAYBE_CUDA mp_uint_t stringio_read(mp_obj_t o_in, void *buf, mp_uint_t size, int *errcode) {
     (void)errcode;
-    mp_obj_stringio_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_stringio_t *o = (mp_obj_stringio_t *)MP_OBJ_TO_PTR(o_in);
     check_stringio_is_open(o);
     if (o->vstr->len <= o->pos) {  // read to EOF, or seeked to EOF or beyond
         return 0;
@@ -77,7 +77,7 @@ static MAYBE_CUDA void stringio_copy_on_write(mp_obj_stringio_t *o) {
 
 static MAYBE_CUDA mp_uint_t stringio_write(mp_obj_t o_in, const void *buf, mp_uint_t size, int *errcode) {
     (void)errcode;
-    mp_obj_stringio_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_stringio_t *o = (mp_obj_stringio_t *)MP_OBJ_TO_PTR(o_in);
     check_stringio_is_open(o);
 
     if (o->vstr->fixed_buf) {
@@ -111,7 +111,7 @@ static MAYBE_CUDA mp_uint_t stringio_write(mp_obj_t o_in, const void *buf, mp_ui
 
 static MAYBE_CUDA mp_uint_t stringio_ioctl(mp_obj_t o_in, mp_uint_t request, uintptr_t arg, int *errcode) {
     (void)errcode;
-    mp_obj_stringio_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_stringio_t *o = (mp_obj_stringio_t *)MP_OBJ_TO_PTR(o_in);
     switch (request) {
         case MP_STREAM_SEEK: {
             struct mp_stream_seek_t *s = (struct mp_stream_seek_t *)arg;
@@ -163,7 +163,7 @@ static MAYBE_CUDA mp_uint_t stringio_ioctl(mp_obj_t o_in, mp_uint_t request, uin
 #define STREAM_TO_CONTENT_TYPE(o) (((o)->base.type == &mp_type_stringio) ? &mp_type_str : &mp_type_bytes)
 
 static MAYBE_CUDA mp_obj_t stringio_getvalue(mp_obj_t self_in) {
-    mp_obj_stringio_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_stringio_t *self = (mp_obj_stringio_t *)MP_OBJ_TO_PTR(self_in);
     check_stringio_is_open(self);
     // TODO: Try to avoid copying string
     return mp_obj_new_str_of_type(STREAM_TO_CONTENT_TYPE(self), (byte *)self->vstr->buf, self->vstr->len);
@@ -194,7 +194,7 @@ static MAYBE_CUDA mp_obj_t stringio_make_new(const mp_obj_type_t *type_in, size_
 
             if (mp_obj_is_str_or_bytes(args[0])) {
                 o->vstr = m_new_obj(vstr_t);
-                vstr_init_fixed_buf(o->vstr, bufinfo.len, bufinfo.buf);
+                vstr_init_fixed_buf(o->vstr, bufinfo.len, (char *)bufinfo.buf);
                 o->vstr->len = bufinfo.len;
                 o->ref_obj = args[0];
                 return MP_OBJ_FROM_PTR(o);
@@ -215,21 +215,24 @@ static MAYBE_CUDA mp_obj_t stringio_make_new(const mp_obj_type_t *type_in, size_
     return MP_OBJ_FROM_PTR(o);
 }
 
-static MAYBE_CUDA const mp_rom_map_elem_t stringio_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
-    { MP_ROM_QSTR(MP_QSTR_readinto), MP_ROM_PTR(&mp_stream_readinto_obj) },
-    { MP_ROM_QSTR(MP_QSTR_readline), MP_ROM_PTR(&mp_stream_unbuffered_readline_obj) },
-    { MP_ROM_QSTR(MP_QSTR_write), MP_ROM_PTR(&mp_stream_write_obj) },
-    { MP_ROM_QSTR(MP_QSTR_seek), MP_ROM_PTR(&mp_stream_seek_obj) },
-    { MP_ROM_QSTR(MP_QSTR_tell), MP_ROM_PTR(&mp_stream_tell_obj) },
-    { MP_ROM_QSTR(MP_QSTR_flush), MP_ROM_PTR(&mp_stream_flush_obj) },
-    { MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&mp_stream_close_obj) },
-    { MP_ROM_QSTR(MP_QSTR_getvalue), MP_ROM_PTR(&stringio_getvalue_obj) },
-    { MP_ROM_QSTR(MP_QSTR___enter__), MP_ROM_PTR(&mp_identity_obj) },
-    { MP_ROM_QSTR(MP_QSTR___exit__), MP_ROM_PTR(&mp_stream___exit___obj) },
+// Fix for CUDA dynamic initialization: cast const pointers to mp_obj_t
+#define MP_CUDA_ROM_PTR(p) ((mp_obj_t)(p))
+
+static MAYBE_CUDA const mp_map_elem_t stringio_locals_dict_table[] = {
+    { MP_ROM_QSTR(MP_QSTR_read), MP_CUDA_ROM_PTR(&mp_stream_read_obj) },
+    { MP_ROM_QSTR(MP_QSTR_readinto), MP_CUDA_ROM_PTR(&mp_stream_readinto_obj) },
+    { MP_ROM_QSTR(MP_QSTR_readline), MP_CUDA_ROM_PTR(&mp_stream_unbuffered_readline_obj) },
+    { MP_ROM_QSTR(MP_QSTR_write), MP_CUDA_ROM_PTR(&mp_stream_write_obj) },
+    { MP_ROM_QSTR(MP_QSTR_seek), MP_CUDA_ROM_PTR(&mp_stream_seek_obj) },
+    { MP_ROM_QSTR(MP_QSTR_tell), MP_CUDA_ROM_PTR(&mp_stream_tell_obj) },
+    { MP_ROM_QSTR(MP_QSTR_flush), MP_CUDA_ROM_PTR(&mp_stream_flush_obj) },
+    { MP_ROM_QSTR(MP_QSTR_close), MP_CUDA_ROM_PTR(&mp_stream_close_obj) },
+    { MP_ROM_QSTR(MP_QSTR_getvalue), MP_CUDA_ROM_PTR(&stringio_getvalue_obj) },
+    { MP_ROM_QSTR(MP_QSTR___enter__), MP_CUDA_ROM_PTR(&mp_identity_obj) },
+    { MP_ROM_QSTR(MP_QSTR___exit__), MP_CUDA_ROM_PTR(&mp_stream___exit___obj) },
 };
 
-static MAYBE_CUDA MP_DEFINE_CONST_DICT(stringio_locals_dict, stringio_locals_dict_table);
+static MAYBE_CUDA MP_DEFINE_CUDA_CONST_DICT(stringio_locals_dict, stringio_locals_dict_table);
 
 static MAYBE_CUDA const mp_stream_p_t stringio_stream_p = {
     .read = stringio_read,

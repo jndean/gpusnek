@@ -58,6 +58,7 @@
 // compatible versions rather than the host-only declarations from <string.h>.
 #ifdef __CUDACC__
 #include "py/cuda_string.h"
+#define LFS2_NO_INTRINSICS 1
 #endif
 
 #ifndef LFS2_NO_MALLOC

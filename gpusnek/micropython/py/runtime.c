@@ -1296,6 +1296,8 @@ MAYBE_CUDA void mp_store_attr(mp_obj_t base, qstr attr, mp_obj_t value) {
     #endif
 }
 
+typedef mp_obj_t (*mp_obj_instance_getiter_fn_t)(mp_obj_t, mp_obj_iter_buf_t *);
+
 MAYBE_CUDA mp_obj_t mp_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
     assert(o_in);
     const mp_obj_type_t *type = mp_obj_get_type(o_in);
@@ -1308,7 +1310,7 @@ MAYBE_CUDA mp_obj_t mp_getiter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
 
     if (MP_OBJ_TYPE_HAS_SLOT(type, iter)) {
         // check for native getiter (corresponds to __iter__)
-        if (iter_buf == NULL && MP_OBJ_TYPE_GET_SLOT(type, iter) != mp_obj_instance_getiter) {
+        if (iter_buf == NULL && (mp_obj_instance_getiter_fn_t)MP_OBJ_TYPE_GET_SLOT(type, iter) != mp_obj_instance_getiter) {
             // if caller did not provide a buffer then allocate one on the heap
             // mp_obj_instance_getiter is special, it will allocate only if needed
             iter_buf = m_new_obj(mp_obj_iter_buf_t);

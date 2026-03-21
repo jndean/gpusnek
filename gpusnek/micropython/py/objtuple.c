@@ -103,12 +103,14 @@ static MAYBE_CUDA mp_obj_t mp_obj_tuple_make_new(const mp_obj_type_t *type_in, s
     }
 }
 
+typedef mp_obj_t (*mp_obj_tuple_getiter_fn_t)(mp_obj_t, mp_obj_iter_buf_t *);
+
 // Don't pass MP_BINARY_OP_NOT_EQUAL here
 static MAYBE_CUDA mp_obj_t tuple_cmp_helper(mp_uint_t op, mp_obj_t self_in, mp_obj_t another_in) {
     mp_check_self(mp_obj_is_tuple_compatible(self_in));
     const mp_obj_type_t *another_type = mp_obj_get_type(another_in);
     mp_obj_tuple_t *self = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(self_in);
-    if (MP_OBJ_TYPE_GET_SLOT_OR_NULL(another_type, iter) != mp_obj_tuple_getiter) {
+    if ((mp_obj_tuple_getiter_fn_t)MP_OBJ_TYPE_GET_SLOT_OR_NULL(another_type, iter) != mp_obj_tuple_getiter) {
         // Slow path for user subclasses
         another_in = mp_obj_cast_to_native_base(another_in, MP_OBJ_FROM_PTR(&mp_type_tuple));
         if (another_in == MP_OBJ_NULL) {
