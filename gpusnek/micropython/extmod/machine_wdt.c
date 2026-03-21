@@ -76,7 +76,7 @@ static mp_obj_t machine_wdt_timeout_ms(mp_obj_t self_in, mp_obj_t timeout_in) {
 static MP_DEFINE_CONST_FUN_OBJ_2(machine_wdt_timeout_ms_obj, machine_wdt_timeout_ms);
 #endif
 
-static const mp_rom_map_elem_t machine_wdt_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t machine_wdt_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_feed), MP_ROM_PTR(&machine_wdt_feed_obj) },
     #if MICROPY_PY_MACHINE_WDT_TIMEOUT_MS
     { MP_ROM_QSTR(MP_QSTR_timeout_ms), MP_ROM_PTR(&machine_wdt_timeout_ms_obj) },

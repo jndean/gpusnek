@@ -87,3 +87,30 @@ int main(void) {
 }
 
 #endif // __CUDACC__
+
+
+
+
+// __global__ void mean_var_kernel(float *data) {
+//     // Normal CUDA C++ loading data into L1 cache
+//     int threadId = threadIdx.x;
+//     __shared__ float sum_cache[1024];
+//     sum_cache[threadId] = data[threadId];
+//     __syncthreads();
+    
+//     // gpusnek for in-line python program processing the data
+//     gpusnek_bind_memory("sum_cache", sum_cache, 1024, 'f');
+//     gpusnek_new_int("threadId", threadId);
+//     gpusnek_do_str("
+
+// for iteration in range(10):
+//     top_thread = 512 >> iteration
+//     if threadId < top_thread:
+//         sum_cache[threadId] += sum_cache[threadId + top_thread]
+//     syncthreads
+
+// if threadId == 0:
+//     print(sum_cache[0])
+
+//     ");
+// }

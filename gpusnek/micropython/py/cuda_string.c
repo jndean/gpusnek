@@ -91,6 +91,47 @@ MAYBE_CUDA char *__mp_strchr(const char *s, int c) {
     return (char *)0;
 }
 
+MAYBE_CUDA char *__mp_strcpy(char *dst, const char *src) {
+    char *d = dst;
+    while ((*d++ = *src++) != '\0') {}
+    return dst;
+}
+
+MAYBE_CUDA size_t __mp_strcspn(const char *s, const char *reject) {
+    size_t n = 0;
+    while (s[n] != '\0') {
+        const char *r = reject;
+        while (*r != '\0') {
+            if (s[n] == *r) {
+                return n;
+            }
+            r++;
+        }
+        n++;
+    }
+    return n;
+}
+
+MAYBE_CUDA size_t __mp_strspn(const char *s, const char *accept) {
+    size_t n = 0;
+    while (s[n] != '\0') {
+        const char *a = accept;
+        int found = 0;
+        while (*a != '\0') {
+            if (s[n] == *a) {
+                found = 1;
+                break;
+            }
+            a++;
+        }
+        if (!found) {
+            return n;
+        }
+        n++;
+    }
+    return n;
+}
+
 MAYBE_CUDA unsigned long __mp_strtoul(const char *nptr, char **endptr, int base) {
     unsigned long result = 0;
     const char *s = nptr;

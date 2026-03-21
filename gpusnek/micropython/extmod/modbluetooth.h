@@ -498,18 +498,18 @@ typedef struct {
 
 typedef mp_map_t *mp_gatts_db_t;
 
-static inline void mp_bluetooth_gatts_db_create(mp_gatts_db_t *db) {
+MAYBE_CUDA static inline void mp_bluetooth_gatts_db_create(mp_gatts_db_t *db) {
     *db = m_new(mp_map_t, 1);
 }
 
-static inline void mp_bluetooth_gatts_db_reset(mp_gatts_db_t db) {
+MAYBE_CUDA static inline void mp_bluetooth_gatts_db_reset(mp_gatts_db_t db) {
     mp_map_init(db, 0);
 }
 
-void mp_bluetooth_gatts_db_create_entry(mp_gatts_db_t db, uint16_t handle, size_t len);
-mp_bluetooth_gatts_db_entry_t *mp_bluetooth_gatts_db_lookup(mp_gatts_db_t db, uint16_t handle);
-int mp_bluetooth_gatts_db_read(mp_gatts_db_t db, uint16_t handle, const uint8_t **value, size_t *value_len);
-int mp_bluetooth_gatts_db_write(mp_gatts_db_t db, uint16_t handle, const uint8_t *value, size_t value_len);
-int mp_bluetooth_gatts_db_resize(mp_gatts_db_t db, uint16_t handle, size_t len, bool append);
+MAYBE_CUDA void mp_bluetooth_gatts_db_create_entry(mp_gatts_db_t db, uint16_t handle, size_t len);
+MAYBE_CUDA mp_bluetooth_gatts_db_entry_t *mp_bluetooth_gatts_db_lookup(mp_gatts_db_t db, uint16_t handle);
+MAYBE_CUDA int mp_bluetooth_gatts_db_read(mp_gatts_db_t db, uint16_t handle, const uint8_t **value, size_t *value_len);
+MAYBE_CUDA int mp_bluetooth_gatts_db_write(mp_gatts_db_t db, uint16_t handle, const uint8_t *value, size_t value_len);
+MAYBE_CUDA int mp_bluetooth_gatts_db_resize(mp_gatts_db_t db, uint16_t handle, size_t len, bool append);
 
 #endif // MICROPY_INCLUDED_EXTMOD_MODBLUETOOTH_H

@@ -566,7 +566,7 @@ static MP_DEFINE_CONST_FUN_OBJ_KW(network_cyw43_config_obj, 1, network_cyw43_con
 /*******************************************************************************/
 // class bindings
 
-static const mp_rom_map_elem_t network_cyw43_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t network_cyw43_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_send_ethernet), MP_ROM_PTR(&network_cyw43_send_ethernet_obj) },
     { MP_ROM_QSTR(MP_QSTR_ioctl), MP_ROM_PTR(&network_cyw43_ioctl_obj) },
 

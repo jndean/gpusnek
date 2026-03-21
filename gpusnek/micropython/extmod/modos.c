@@ -73,7 +73,7 @@
 #if MICROPY_PY_OS_SYNC
 // sync()
 // Sync all filesystems.
-static mp_obj_t mp_os_sync(void) {
+static MAYBE_CUDA mp_obj_t mp_os_sync(void) {
     #if MICROPY_VFS_FAT
     for (mp_vfs_mount_t *vfs = MP_STATE_VM(vfs_mount_table); vfs != NULL; vfs = vfs->next) {
         if (mp_obj_is_type(vfs->obj, &mp_fat_vfs_type)) {
@@ -118,7 +118,7 @@ static MP_DEFINE_ATTRTUPLE(
     MP_ROM_PTR(&mp_os_uname_info_machine_obj)
     );
 
-static mp_obj_t mp_os_uname(void) {
+static MAYBE_CUDA mp_obj_t mp_os_uname(void) {
     #if MICROPY_PY_OS_UNAME_RELEASE_DYNAMIC
     const char *release = mp_os_uname_release();
     mp_os_uname_info_release_obj.len = strlen(release);
@@ -131,7 +131,7 @@ static MP_DEFINE_CONST_FUN_OBJ_0(mp_os_uname_obj, mp_os_uname);
 #endif
 
 #if MICROPY_PY_OS_DUPTERM_NOTIFY
-static mp_obj_t mp_os_dupterm_notify(mp_obj_t obj_in) {
+static MAYBE_CUDA mp_obj_t mp_os_dupterm_notify(mp_obj_t obj_in) {
     (void)obj_in;
     for (;;) {
         int c = mp_os_dupterm_rx_chr();
@@ -145,88 +145,92 @@ static mp_obj_t mp_os_dupterm_notify(mp_obj_t obj_in) {
 static MP_DEFINE_CONST_FUN_OBJ_1(mp_os_dupterm_notify_obj, mp_os_dupterm_notify);
 #endif
 
-static const mp_rom_map_elem_t os_module_globals_table[] = {
+// Fix for CUDA dynamic initialization: cast const pointers to mp_obj_t
+#define MP_CUDA_ROM_PTR(p) ((mp_obj_t)(p))
+
+static MAYBE_CUDA const mp_map_elem_t os_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_os) },
 
     #if MICROPY_PY_OS_GETENV_PUTENV_UNSETENV
-    { MP_ROM_QSTR(MP_QSTR_getenv), MP_ROM_PTR(&mp_os_getenv_obj) },
-    { MP_ROM_QSTR(MP_QSTR_putenv), MP_ROM_PTR(&mp_os_putenv_obj) },
-    { MP_ROM_QSTR(MP_QSTR_unsetenv), MP_ROM_PTR(&mp_os_unsetenv_obj) },
+    { MP_ROM_QSTR(MP_QSTR_getenv), MP_CUDA_ROM_PTR(&mp_os_getenv_obj) },
+    { MP_ROM_QSTR(MP_QSTR_putenv), MP_CUDA_ROM_PTR(&mp_os_putenv_obj) },
+    { MP_ROM_QSTR(MP_QSTR_unsetenv), MP_CUDA_ROM_PTR(&mp_os_unsetenv_obj) },
     #endif
     #if MICROPY_PY_OS_SYNC
-    { MP_ROM_QSTR(MP_QSTR_sync), MP_ROM_PTR(&mp_os_sync_obj) },
+    { MP_ROM_QSTR(MP_QSTR_sync), MP_CUDA_ROM_PTR(&mp_os_sync_obj) },
     #endif
     #if MICROPY_PY_OS_SYSTEM
-    { MP_ROM_QSTR(MP_QSTR_system), MP_ROM_PTR(&mp_os_system_obj) },
+    { MP_ROM_QSTR(MP_QSTR_system), MP_CUDA_ROM_PTR(&mp_os_system_obj) },
     #endif
     #if MICROPY_PY_OS_UNAME
-    { MP_ROM_QSTR(MP_QSTR_uname), MP_ROM_PTR(&mp_os_uname_obj) },
+    { MP_ROM_QSTR(MP_QSTR_uname), MP_CUDA_ROM_PTR(&mp_os_uname_obj) },
     #endif
     #if MICROPY_PY_OS_URANDOM
-    { MP_ROM_QSTR(MP_QSTR_urandom), MP_ROM_PTR(&mp_os_urandom_obj) },
+    { MP_ROM_QSTR(MP_QSTR_urandom), MP_CUDA_ROM_PTR(&mp_os_urandom_obj) },
     #endif
 
     #if MICROPY_VFS
     { MP_ROM_QSTR(MP_QSTR_sep), MP_ROM_QSTR(MP_QSTR__slash_) },
-    { MP_ROM_QSTR(MP_QSTR_chdir), MP_ROM_PTR(&mp_vfs_chdir_obj) },
-    { MP_ROM_QSTR(MP_QSTR_getcwd), MP_ROM_PTR(&mp_vfs_getcwd_obj) },
-    { MP_ROM_QSTR(MP_QSTR_listdir), MP_ROM_PTR(&mp_vfs_listdir_obj) },
+    { MP_ROM_QSTR(MP_QSTR_chdir), MP_CUDA_ROM_PTR(&mp_vfs_chdir_obj) },
+    { MP_ROM_QSTR(MP_QSTR_getcwd), MP_CUDA_ROM_PTR(&mp_vfs_getcwd_obj) },
+    { MP_ROM_QSTR(MP_QSTR_listdir), MP_CUDA_ROM_PTR(&mp_vfs_listdir_obj) },
     #if MICROPY_VFS_WRITABLE
-    { MP_ROM_QSTR(MP_QSTR_mkdir), MP_ROM_PTR(&mp_vfs_mkdir_obj) },
-    { MP_ROM_QSTR(MP_QSTR_remove), MP_ROM_PTR(&mp_vfs_remove_obj) },
-    { MP_ROM_QSTR(MP_QSTR_rename), MP_ROM_PTR(&mp_vfs_rename_obj) },
-    { MP_ROM_QSTR(MP_QSTR_rmdir), MP_ROM_PTR(&mp_vfs_rmdir_obj) },
-    { MP_ROM_QSTR(MP_QSTR_unlink), MP_ROM_PTR(&mp_vfs_remove_obj) }, // unlink aliases to remove
+    { MP_ROM_QSTR(MP_QSTR_mkdir), MP_CUDA_ROM_PTR(&mp_vfs_mkdir_obj) },
+    { MP_ROM_QSTR(MP_QSTR_remove), MP_CUDA_ROM_PTR(&mp_vfs_remove_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rename), MP_CUDA_ROM_PTR(&mp_vfs_rename_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rmdir), MP_CUDA_ROM_PTR(&mp_vfs_rmdir_obj) },
+    { MP_ROM_QSTR(MP_QSTR_unlink), MP_CUDA_ROM_PTR(&mp_vfs_remove_obj) }, // unlink aliases to remove
     #endif
-    { MP_ROM_QSTR(MP_QSTR_stat), MP_ROM_PTR(&mp_vfs_stat_obj) },
-    { MP_ROM_QSTR(MP_QSTR_statvfs), MP_ROM_PTR(&mp_vfs_statvfs_obj) },
+    { MP_ROM_QSTR(MP_QSTR_stat), MP_CUDA_ROM_PTR(&mp_vfs_stat_obj) },
+    { MP_ROM_QSTR(MP_QSTR_statvfs), MP_CUDA_ROM_PTR(&mp_vfs_statvfs_obj) },
     #endif
 
     // The following are MicroPython extensions.
 
     #if MICROPY_PY_OS_DUPTERM
-    { MP_ROM_QSTR(MP_QSTR_dupterm), MP_ROM_PTR(&mp_os_dupterm_obj) },
+    { MP_ROM_QSTR(MP_QSTR_dupterm), MP_CUDA_ROM_PTR(&mp_os_dupterm_obj) },
     #endif
     #if MICROPY_PY_OS_DUPTERM_NOTIFY
-    { MP_ROM_QSTR(MP_QSTR_dupterm_notify), MP_ROM_PTR(&mp_os_dupterm_notify_obj) },
+    { MP_ROM_QSTR(MP_QSTR_dupterm_notify), MP_CUDA_ROM_PTR(&mp_os_dupterm_notify_obj) },
     #endif
     #if MICROPY_PY_OS_ERRNO
-    { MP_ROM_QSTR(MP_QSTR_errno), MP_ROM_PTR(&mp_os_errno_obj) },
+    { MP_ROM_QSTR(MP_QSTR_errno), MP_CUDA_ROM_PTR(&mp_os_errno_obj) },
     #endif
 
     #if MICROPY_VFS
-    { MP_ROM_QSTR(MP_QSTR_ilistdir), MP_ROM_PTR(&mp_vfs_ilistdir_obj) },
+    { MP_ROM_QSTR(MP_QSTR_ilistdir), MP_CUDA_ROM_PTR(&mp_vfs_ilistdir_obj) },
     #endif
 
     // The following MicroPython extensions are deprecated.  Use the `vfs` module instead.
     #if !MICROPY_PREVIEW_VERSION_2 && MICROPY_VFS
-    { MP_ROM_QSTR(MP_QSTR_mount), MP_ROM_PTR(&mp_vfs_mount_obj) },
-    { MP_ROM_QSTR(MP_QSTR_umount), MP_ROM_PTR(&mp_vfs_umount_obj) },
+    { MP_ROM_QSTR(MP_QSTR_mount), MP_CUDA_ROM_PTR(&mp_vfs_mount_obj) },
+    { MP_ROM_QSTR(MP_QSTR_umount), MP_CUDA_ROM_PTR(&mp_vfs_umount_obj) },
     #if MICROPY_VFS_FAT
-    { MP_ROM_QSTR(MP_QSTR_VfsFat), MP_ROM_PTR(&mp_fat_vfs_type) },
+    { MP_ROM_QSTR(MP_QSTR_VfsFat), MP_CUDA_ROM_PTR(&mp_fat_vfs_type) },
     #endif
     #if MICROPY_VFS_LFS1
-    { MP_ROM_QSTR(MP_QSTR_VfsLfs1), MP_ROM_PTR(&mp_type_vfs_lfs1) },
+    { MP_ROM_QSTR(MP_QSTR_VfsLfs1), MP_CUDA_ROM_PTR(&mp_type_vfs_lfs1) },
     #endif
     #if MICROPY_VFS_LFS2
-    { MP_ROM_QSTR(MP_QSTR_VfsLfs2), MP_ROM_PTR(&mp_type_vfs_lfs2) },
+    { MP_ROM_QSTR(MP_QSTR_VfsLfs2), MP_CUDA_ROM_PTR(&mp_type_vfs_lfs2) },
     #endif
     #if MICROPY_VFS_POSIX
-    { MP_ROM_QSTR(MP_QSTR_VfsPosix), MP_ROM_PTR(&mp_type_vfs_posix) },
+    { MP_ROM_QSTR(MP_QSTR_VfsPosix), MP_CUDA_ROM_PTR(&mp_type_vfs_posix) },
     #endif
     #endif
 
     #if MICROPY_MBFS
     // For special micro:bit filesystem only.
-    { MP_ROM_QSTR(MP_QSTR_listdir), MP_ROM_PTR(&os_mbfs_listdir_obj) },
-    { MP_ROM_QSTR(MP_QSTR_ilistdir), MP_ROM_PTR(&os_mbfs_ilistdir_obj) },
-    { MP_ROM_QSTR(MP_QSTR_stat), MP_ROM_PTR(&os_mbfs_stat_obj) },
-    { MP_ROM_QSTR(MP_QSTR_remove), MP_ROM_PTR(&os_mbfs_remove_obj) },
+    { MP_ROM_QSTR(MP_QSTR_listdir), MP_CUDA_ROM_PTR(&os_mbfs_listdir_obj) },
+    { MP_ROM_QSTR(MP_QSTR_ilistdir), MP_CUDA_ROM_PTR(&os_mbfs_ilistdir_obj) },
+    { MP_ROM_QSTR(MP_QSTR_stat), MP_CUDA_ROM_PTR(&os_mbfs_stat_obj) },
+    { MP_ROM_QSTR(MP_QSTR_remove), MP_CUDA_ROM_PTR(&os_mbfs_remove_obj) },
     #endif
 };
-static MP_DEFINE_CONST_DICT(os_module_globals, os_module_globals_table);
+static MP_DEFINE_CUDA_CONST_DICT(os_module_globals, os_module_globals_table);
 
-const mp_obj_module_t mp_module_os = {
+// `extern` forces external linkage on const in C++ (NVCC), making it visible to nvlink.
+extern MAYBE_CUDA const mp_obj_module_t mp_module_os = {
     .base = { &mp_type_module },
     .globals = (mp_obj_dict_t *)&os_module_globals,
 };

@@ -2086,57 +2086,56 @@ MAYBE_CUDA void mp_obj_str_set_data(mp_obj_str_t *str, const byte *data, size_t 
 // This locals table is used for the following types: str, bytes, bytearray, array.array.
 // Each type takes a different section (start to end offset) of this table.
 // Fix for CUDA dynamic initialization: cast const pointers to mp_obj_t
-#undef MP_ROM_PTR
-#define MP_ROM_PTR(p) ((mp_obj_t)(p))
+#define MP_CUDA_ROM_PTR(p) ((mp_obj_t)(p))
 
 static MAYBE_CUDA const mp_map_elem_t array_bytearray_str_bytes_locals_table[] = {
     #if MICROPY_PY_ARRAY || MICROPY_PY_BUILTINS_BYTEARRAY
-    { MP_ROM_QSTR(MP_QSTR_append), MP_ROM_PTR(&mp_obj_array_append_obj) },
-    { MP_ROM_QSTR(MP_QSTR_extend), MP_ROM_PTR(&mp_obj_array_extend_obj) },
+    { MP_ROM_QSTR(MP_QSTR_append), MP_CUDA_ROM_PTR(&mp_obj_array_append_obj) },
+    { MP_ROM_QSTR(MP_QSTR_extend), MP_CUDA_ROM_PTR(&mp_obj_array_extend_obj) },
     #endif
     #if MICROPY_PY_BUILTINS_BYTES_HEX
-    { MP_ROM_QSTR(MP_QSTR_hex), MP_ROM_PTR(&bytes_hex_as_str_obj) },
-    { MP_ROM_QSTR(MP_QSTR_fromhex), MP_ROM_PTR(&bytes_fromhex_classmethod_obj) },
+    { MP_ROM_QSTR(MP_QSTR_hex), MP_CUDA_ROM_PTR(&bytes_hex_as_str_obj) },
+    { MP_ROM_QSTR(MP_QSTR_fromhex), MP_CUDA_ROM_PTR(&bytes_fromhex_classmethod_obj) },
     #endif
     #if MICROPY_CPYTHON_COMPAT
-    { MP_ROM_QSTR(MP_QSTR_decode), MP_ROM_PTR(&bytes_decode_obj) },
+    { MP_ROM_QSTR(MP_QSTR_decode), MP_CUDA_ROM_PTR(&bytes_decode_obj) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_find), MP_ROM_PTR(&str_find_obj) },
-    { MP_ROM_QSTR(MP_QSTR_rfind), MP_ROM_PTR(&str_rfind_obj) },
-    { MP_ROM_QSTR(MP_QSTR_index), MP_ROM_PTR(&str_index_obj) },
-    { MP_ROM_QSTR(MP_QSTR_rindex), MP_ROM_PTR(&str_rindex_obj) },
-    { MP_ROM_QSTR(MP_QSTR_join), MP_ROM_PTR(&str_join_obj) },
-    { MP_ROM_QSTR(MP_QSTR_split), MP_ROM_PTR(&str_split_obj) },
+    { MP_ROM_QSTR(MP_QSTR_find), MP_CUDA_ROM_PTR(&str_find_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rfind), MP_CUDA_ROM_PTR(&str_rfind_obj) },
+    { MP_ROM_QSTR(MP_QSTR_index), MP_CUDA_ROM_PTR(&str_index_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rindex), MP_CUDA_ROM_PTR(&str_rindex_obj) },
+    { MP_ROM_QSTR(MP_QSTR_join), MP_CUDA_ROM_PTR(&str_join_obj) },
+    { MP_ROM_QSTR(MP_QSTR_split), MP_CUDA_ROM_PTR(&str_split_obj) },
     #if MICROPY_PY_BUILTINS_STR_SPLITLINES
-    { MP_ROM_QSTR(MP_QSTR_splitlines), MP_ROM_PTR(&str_splitlines_obj) },
+    { MP_ROM_QSTR(MP_QSTR_splitlines), MP_CUDA_ROM_PTR(&str_splitlines_obj) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_rsplit), MP_ROM_PTR(&str_rsplit_obj) },
-    { MP_ROM_QSTR(MP_QSTR_startswith), MP_ROM_PTR(&str_startswith_obj) },
-    { MP_ROM_QSTR(MP_QSTR_endswith), MP_ROM_PTR(&str_endswith_obj) },
-    { MP_ROM_QSTR(MP_QSTR_strip), MP_ROM_PTR(&str_strip_obj) },
-    { MP_ROM_QSTR(MP_QSTR_lstrip), MP_ROM_PTR(&str_lstrip_obj) },
-    { MP_ROM_QSTR(MP_QSTR_rstrip), MP_ROM_PTR(&str_rstrip_obj) },
-    { MP_ROM_QSTR(MP_QSTR_format), MP_ROM_PTR(&str_format_obj) },
-    { MP_ROM_QSTR(MP_QSTR_replace), MP_ROM_PTR(&str_replace_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rsplit), MP_CUDA_ROM_PTR(&str_rsplit_obj) },
+    { MP_ROM_QSTR(MP_QSTR_startswith), MP_CUDA_ROM_PTR(&str_startswith_obj) },
+    { MP_ROM_QSTR(MP_QSTR_endswith), MP_CUDA_ROM_PTR(&str_endswith_obj) },
+    { MP_ROM_QSTR(MP_QSTR_strip), MP_CUDA_ROM_PTR(&str_strip_obj) },
+    { MP_ROM_QSTR(MP_QSTR_lstrip), MP_CUDA_ROM_PTR(&str_lstrip_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rstrip), MP_CUDA_ROM_PTR(&str_rstrip_obj) },
+    { MP_ROM_QSTR(MP_QSTR_format), MP_CUDA_ROM_PTR(&str_format_obj) },
+    { MP_ROM_QSTR(MP_QSTR_replace), MP_CUDA_ROM_PTR(&str_replace_obj) },
     #if MICROPY_PY_BUILTINS_STR_COUNT
-    { MP_ROM_QSTR(MP_QSTR_count), MP_ROM_PTR(&str_count_obj) },
+    { MP_ROM_QSTR(MP_QSTR_count), MP_CUDA_ROM_PTR(&str_count_obj) },
     #endif
     #if MICROPY_PY_BUILTINS_STR_PARTITION
-    { MP_ROM_QSTR(MP_QSTR_partition), MP_ROM_PTR(&str_partition_obj) },
-    { MP_ROM_QSTR(MP_QSTR_rpartition), MP_ROM_PTR(&str_rpartition_obj) },
+    { MP_ROM_QSTR(MP_QSTR_partition), MP_CUDA_ROM_PTR(&str_partition_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rpartition), MP_CUDA_ROM_PTR(&str_rpartition_obj) },
     #endif
     #if MICROPY_PY_BUILTINS_STR_CENTER
-    { MP_ROM_QSTR(MP_QSTR_center), MP_ROM_PTR(&str_center_obj) },
+    { MP_ROM_QSTR(MP_QSTR_center), MP_CUDA_ROM_PTR(&str_center_obj) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_lower), MP_ROM_PTR(&str_lower_obj) },
-    { MP_ROM_QSTR(MP_QSTR_upper), MP_ROM_PTR(&str_upper_obj) },
-    { MP_ROM_QSTR(MP_QSTR_isspace), MP_ROM_PTR(&str_isspace_obj) },
-    { MP_ROM_QSTR(MP_QSTR_isalpha), MP_ROM_PTR(&str_isalpha_obj) },
-    { MP_ROM_QSTR(MP_QSTR_isdigit), MP_ROM_PTR(&str_isdigit_obj) },
-    { MP_ROM_QSTR(MP_QSTR_isupper), MP_ROM_PTR(&str_isupper_obj) },
-    { MP_ROM_QSTR(MP_QSTR_islower), MP_ROM_PTR(&str_islower_obj) },
+    { MP_ROM_QSTR(MP_QSTR_lower), MP_CUDA_ROM_PTR(&str_lower_obj) },
+    { MP_ROM_QSTR(MP_QSTR_upper), MP_CUDA_ROM_PTR(&str_upper_obj) },
+    { MP_ROM_QSTR(MP_QSTR_isspace), MP_CUDA_ROM_PTR(&str_isspace_obj) },
+    { MP_ROM_QSTR(MP_QSTR_isalpha), MP_CUDA_ROM_PTR(&str_isalpha_obj) },
+    { MP_ROM_QSTR(MP_QSTR_isdigit), MP_CUDA_ROM_PTR(&str_isdigit_obj) },
+    { MP_ROM_QSTR(MP_QSTR_isupper), MP_CUDA_ROM_PTR(&str_isupper_obj) },
+    { MP_ROM_QSTR(MP_QSTR_islower), MP_CUDA_ROM_PTR(&str_islower_obj) },
     #if MICROPY_CPYTHON_COMPAT
-    { MP_ROM_QSTR(MP_QSTR_encode), MP_ROM_PTR(&str_encode_obj) },
+    { MP_ROM_QSTR(MP_QSTR_encode), MP_CUDA_ROM_PTR(&str_encode_obj) },
     #endif
 };
 

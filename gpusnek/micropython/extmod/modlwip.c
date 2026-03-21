@@ -183,7 +183,7 @@ static mp_obj_t lwip_slip_status(mp_obj_t self_in) {
 
 static MP_DEFINE_CONST_FUN_OBJ_1(lwip_slip_status_obj, lwip_slip_status);
 
-static const mp_rom_map_elem_t lwip_slip_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t lwip_slip_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_status), MP_ROM_PTR(&lwip_slip_status_obj) },
 };
 
@@ -1684,7 +1684,7 @@ static mp_uint_t lwip_socket_ioctl(mp_obj_t self_in, mp_uint_t request, uintptr_
     return ret;
 }
 
-static const mp_rom_map_elem_t lwip_socket_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t lwip_socket_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&mp_stream_close_obj) },
     { MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&mp_stream_close_obj) },
     { MP_ROM_QSTR(MP_QSTR_bind), MP_ROM_PTR(&lwip_socket_bind_obj) },
@@ -1877,7 +1877,7 @@ static mp_obj_t lwip_print_pcbs() {
 }
 MP_DEFINE_CONST_FUN_OBJ_0(lwip_print_pcbs_obj, lwip_print_pcbs);
 
-static const mp_rom_map_elem_t mp_module_lwip_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_lwip_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_lwip) },
     { MP_ROM_QSTR(MP_QSTR_reset), MP_ROM_PTR(&mod_lwip_reset_obj) },
     { MP_ROM_QSTR(MP_QSTR_callback), MP_ROM_PTR(&mod_lwip_callback_obj) },

@@ -140,7 +140,7 @@ static mp_obj_t machine_adc_read(mp_obj_t self_in) {
 static MP_DEFINE_CONST_FUN_OBJ_1(machine_adc_read_obj, machine_adc_read);
 #endif
 
-static const mp_rom_map_elem_t machine_adc_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t machine_adc_locals_dict_table[] = {
     #if MICROPY_PY_MACHINE_ADC_INIT
     { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&machine_adc_init_obj) },
     #endif

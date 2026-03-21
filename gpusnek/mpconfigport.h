@@ -19,8 +19,12 @@
 #define MICROPY_NO_ALLOCA               (1)  // Don't use alloca
 #define MICROPY_ENABLE_EXTERNAL_IMPORT  (0)  // No file imports
 #define MICROPY_READER_POSIX            (0)  // No file reading
-#define MICROPY_READER_VFS              (0)  // No VFS
-
+#define MICROPY_READER_VFS              (0)  // Enable VFS reader
+#define MICROPY_VFS                     (1)  // Enable VFS subsystem
+#define MICROPY_VFS_LFS2                (1)  // Enable LittleFS v2
+#define MICROPY_ENABLE_FINALISER        (1)  // Required by VFS LFS
+#define MICROPY_PY_OS                   (1)  // Enable os module
+#define MICROPY_PY_VFS                  (1)  // Enable VFS module
 // Compiler required for parsing Python code
 #define MICROPY_ENABLE_COMPILER         (1)
 
@@ -41,11 +45,16 @@
 // memoryview depends on array_new() which is gated on MICROPY_PY_ARRAY.
 #define MICROPY_PY_BUILTINS_MEMORYVIEW  (1)
 #define MICROPY_PY_ARRAY                (1)
+#define MICROPY_PY_BUILTINS_BYTEARRAY   (1)
+#define MICROPY_PY_BUILTINS_SLICE       (1)
+#define MICROPY_PY_ARRAY_SLICE_ASSIGN   (1)
 #define MICROPY_FLOAT_IMPL              (MICROPY_FLOAT_IMPL_FLOAT)
 
 // Memory settings - small allocations for POC
 #define MICROPY_ALLOC_PATH_MAX          (64)
 #define MICROPY_ALLOC_PARSE_CHUNK_INIT  (16)
+
+#define MICROPY_USE_INTERNAL_PRINTF (0)
 
 // Type definitions for the target
 typedef long mp_off_t;
@@ -55,7 +64,7 @@ typedef long mp_off_t;
 
 // Board/MCU names
 #define MICROPY_HW_BOARD_NAME           "gpu"
-#define MICROPY_HW_MCU_NAME             "snek"
+#define MICROPY_HW_MCU_NAME             "1,048,576 snek"
 
 // We don't need frozen modules for POC
 #define MICROPY_MODULE_FROZEN_MPY       (0)

@@ -136,7 +136,7 @@ static mp_uint_t vfs_rom_file_ioctl(mp_obj_t o_in, mp_uint_t request, uintptr_t 
     }
 }
 
-static const mp_rom_map_elem_t vfs_rom_rawfile_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t vfs_rom_rawfile_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
     { MP_ROM_QSTR(MP_QSTR_readinto), MP_ROM_PTR(&mp_stream_readinto_obj) },
     { MP_ROM_QSTR(MP_QSTR_readline), MP_ROM_PTR(&mp_stream_unbuffered_readline_obj) },

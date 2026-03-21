@@ -196,7 +196,7 @@ static mp_obj_t time_ticks_add(mp_obj_t ticks_in, mp_obj_t delta_in) {
 }
 MP_DEFINE_CONST_FUN_OBJ_2(mp_time_ticks_add_obj, time_ticks_add);
 
-static const mp_rom_map_elem_t mp_module_time_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_time_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_time) },
 
     #if MICROPY_PY_TIME_GMTIME_LOCALTIME_MKTIME

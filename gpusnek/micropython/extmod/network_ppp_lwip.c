@@ -347,7 +347,7 @@ static mp_obj_t network_ppp_ipconfig(size_t n_args, const mp_obj_t *args, mp_map
 }
 static MP_DEFINE_CONST_FUN_OBJ_KW(network_ppp_ipconfig_obj, 1, network_ppp_ipconfig);
 
-static const mp_rom_map_elem_t network_ppp_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t network_ppp_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&network_ppp___del___obj) },
     { MP_ROM_QSTR(MP_QSTR_config), MP_ROM_PTR(&network_ppp_config_obj) },
     { MP_ROM_QSTR(MP_QSTR_status), MP_ROM_PTR(&network_ppp_status_obj) },

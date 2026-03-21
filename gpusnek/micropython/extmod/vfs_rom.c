@@ -437,7 +437,7 @@ static mp_obj_t vfs_rom_statvfs(mp_obj_t self_in, mp_obj_t path_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_2(vfs_rom_statvfs_obj, vfs_rom_statvfs);
 
-static const mp_rom_map_elem_t vfs_rom_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t vfs_rom_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_mount), MP_ROM_PTR(&vfs_rom_mount_obj) },
     { MP_ROM_QSTR(MP_QSTR_umount), MP_ROM_PTR(&mp_identity_obj) },
     { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&vfs_rom_open_obj) },

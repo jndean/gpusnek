@@ -135,7 +135,7 @@ static MP_DEFINE_CONST_FUN_OBJ_KW(machine_uart_irq_obj, 1, machine_uart_irq);
 
 #endif
 
-static const mp_rom_map_elem_t machine_uart_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t machine_uart_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&machine_uart_init_obj) },
     { MP_ROM_QSTR(MP_QSTR_deinit), MP_ROM_PTR(&machine_uart_deinit_obj) },
 

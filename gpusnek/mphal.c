@@ -69,6 +69,10 @@ MAYBE_CUDA void mp_hal_stdout_tx_strn_cooked(const char *str, size_t len) {
 }
 
 // Timing functions - return 0 (no timing support, TODO)
+MAYBE_CUDA uint64_t mp_hal_time_ns(void) {
+    return 0ULL;
+}
+
 MAYBE_CUDA mp_uint_t mp_hal_ticks_ms(void) {
     return 0;
 }

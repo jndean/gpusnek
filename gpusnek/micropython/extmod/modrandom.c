@@ -230,7 +230,7 @@ static MP_DEFINE_CONST_FUN_OBJ_0(mod_random___init___obj, mod_random___init__);
 #endif
 
 #if !MICROPY_ENABLE_DYNRUNTIME
-static const mp_rom_map_elem_t mp_module_random_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_random_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_random) },
     #if SEED_ON_IMPORT
     { MP_ROM_QSTR(MP_QSTR___init__), MP_ROM_PTR(&mod_random___init___obj) },

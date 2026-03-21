@@ -364,7 +364,7 @@ static const mp_stream_p_t deflateio_stream_p = {
 };
 
 #if !MICROPY_ENABLE_DYNRUNTIME
-static const mp_rom_map_elem_t deflateio_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t deflateio_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
     { MP_ROM_QSTR(MP_QSTR_readinto), MP_ROM_PTR(&mp_stream_readinto_obj) },
     { MP_ROM_QSTR(MP_QSTR_readline), MP_ROM_PTR(&mp_stream_unbuffered_readline_obj) },
@@ -386,7 +386,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
     locals_dict, &deflateio_locals_dict
     );
 
-static const mp_rom_map_elem_t mp_module_deflate_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_deflate_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_deflate) },
     { MP_ROM_QSTR(MP_QSTR_DeflateIO), MP_ROM_PTR(&deflateio_type) },
     { MP_ROM_QSTR(MP_QSTR_AUTO), MP_ROM_INT(DEFLATEIO_FORMAT_AUTO) },

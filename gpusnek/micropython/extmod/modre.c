@@ -165,7 +165,7 @@ MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(match_end_obj, 1, 2, match_end);
 #endif
 
 #if !MICROPY_ENABLE_DYNRUNTIME
-static const mp_rom_map_elem_t match_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t match_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_group), MP_ROM_PTR(&match_group_obj) },
     #if MICROPY_PY_RE_MATCH_GROUPS
     { MP_ROM_QSTR(MP_QSTR_groups), MP_ROM_PTR(&match_groups_obj) },
@@ -425,7 +425,7 @@ MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(re_sub_obj, 3, 5, re_sub_helper);
 #endif
 
 #if !MICROPY_ENABLE_DYNRUNTIME
-static const mp_rom_map_elem_t re_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t re_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_match), MP_ROM_PTR(&re_match_obj) },
     { MP_ROM_QSTR(MP_QSTR_search), MP_ROM_PTR(&re_search_obj) },
     { MP_ROM_QSTR(MP_QSTR_split), MP_ROM_PTR(&re_split_obj) },
@@ -477,7 +477,7 @@ static mp_obj_t mod_re_compile(size_t n_args, const mp_obj_t *args) {
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_re_compile_obj, 1, 2, mod_re_compile);
 
 #if !MICROPY_ENABLE_DYNRUNTIME
-static const mp_rom_map_elem_t mp_module_re_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_re_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_re) },
     { MP_ROM_QSTR(MP_QSTR_compile), MP_ROM_PTR(&mod_re_compile_obj) },
     { MP_ROM_QSTR(MP_QSTR_match), MP_ROM_PTR(&re_match_obj) },

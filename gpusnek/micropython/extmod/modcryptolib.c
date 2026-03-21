@@ -342,7 +342,7 @@ static mp_obj_t cryptolib_aes_decrypt(size_t n_args, const mp_obj_t *args) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(cryptolib_aes_decrypt_obj, 2, 3, cryptolib_aes_decrypt);
 
-static const mp_rom_map_elem_t cryptolib_aes_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t cryptolib_aes_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_encrypt), MP_ROM_PTR(&cryptolib_aes_encrypt_obj) },
     { MP_ROM_QSTR(MP_QSTR_decrypt), MP_ROM_PTR(&cryptolib_aes_decrypt_obj) },
 };
@@ -356,7 +356,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
     locals_dict, &cryptolib_aes_locals_dict
     );
 
-static const mp_rom_map_elem_t mp_module_cryptolib_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_cryptolib_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_cryptolib) },
     { MP_ROM_QSTR(MP_QSTR_aes), MP_ROM_PTR(&cryptolib_aes_type) },
     #if MICROPY_PY_CRYPTOLIB_CONSTS

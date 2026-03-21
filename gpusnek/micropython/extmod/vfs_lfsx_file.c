@@ -35,20 +35,20 @@
 #include "py/mperrno.h"
 #include "extmod/vfs.h"
 
-static void MP_VFS_LFSx(check_open)(MP_OBJ_VFS_LFSx_FILE * self) {
+static MAYBE_CUDA void MP_VFS_LFSx(check_open)(MP_OBJ_VFS_LFSx_FILE * self) {
     if (self->vfs == NULL) {
         mp_raise_ValueError(NULL);
     }
 }
 
-static void MP_VFS_LFSx(file_print)(const mp_print_t * print, mp_obj_t self_in, mp_print_kind_t kind) {
+static MAYBE_CUDA void MP_VFS_LFSx(file_print)(const mp_print_t * print, mp_obj_t self_in, mp_print_kind_t kind) {
     (void)self_in;
     (void)kind;
     mp_printf(print, "<io.%s>", mp_obj_get_type_str(self_in));
 }
 
-mp_obj_t MP_VFS_LFSx(file_open)(mp_obj_t self_in, mp_obj_t path_in, mp_obj_t mode_in) {
-    MP_OBJ_VFS_LFSx *self = MP_OBJ_TO_PTR(self_in);
+MAYBE_CUDA mp_obj_t MP_VFS_LFSx(file_open)(mp_obj_t self_in, mp_obj_t path_in, mp_obj_t mode_in) {
+    MP_OBJ_VFS_LFSx *self = (MP_OBJ_VFS_LFSx *)MP_OBJ_TO_PTR(self_in);
 
     int flags = 0;
     const mp_obj_type_t *type = &MP_TYPE_VFS_LFSx_(_textio);
@@ -122,8 +122,8 @@ mp_obj_t MP_VFS_LFSx(file_open)(mp_obj_t self_in, mp_obj_t path_in, mp_obj_t mod
     return MP_OBJ_FROM_PTR(o);
 }
 
-static mp_uint_t MP_VFS_LFSx(file_read)(mp_obj_t self_in, void *buf, mp_uint_t size, int *errcode) {
-    MP_OBJ_VFS_LFSx_FILE *self = MP_OBJ_TO_PTR(self_in);
+static MAYBE_CUDA mp_uint_t MP_VFS_LFSx(file_read)(mp_obj_t self_in, void *buf, mp_uint_t size, int *errcode) {
+    MP_OBJ_VFS_LFSx_FILE *self = (MP_OBJ_VFS_LFSx_FILE *)MP_OBJ_TO_PTR(self_in);
     MP_VFS_LFSx(check_open)(self);
     LFSx_API(ssize_t) sz = LFSx_API(file_read)(&self->vfs->lfs, &self->file, buf, size);
     if (sz < 0) {
@@ -133,8 +133,8 @@ static mp_uint_t MP_VFS_LFSx(file_read)(mp_obj_t self_in, void *buf, mp_uint_t s
     return sz;
 }
 
-static mp_uint_t MP_VFS_LFSx(file_write)(mp_obj_t self_in, const void *buf, mp_uint_t size, int *errcode) {
-    MP_OBJ_VFS_LFSx_FILE *self = MP_OBJ_TO_PTR(self_in);
+static MAYBE_CUDA mp_uint_t MP_VFS_LFSx(file_write)(mp_obj_t self_in, const void *buf, mp_uint_t size, int *errcode) {
+    MP_OBJ_VFS_LFSx_FILE *self = (MP_OBJ_VFS_LFSx_FILE *)MP_OBJ_TO_PTR(self_in);
     MP_VFS_LFSx(check_open)(self);
     #if LFS_BUILD_VERSION == 2
     if (self->vfs->enable_mtime) {
@@ -149,8 +149,8 @@ static mp_uint_t MP_VFS_LFSx(file_write)(mp_obj_t self_in, const void *buf, mp_u
     return sz;
 }
 
-static mp_uint_t MP_VFS_LFSx(file_ioctl)(mp_obj_t self_in, mp_uint_t request, uintptr_t arg, int *errcode) {
-    MP_OBJ_VFS_LFSx_FILE *self = MP_OBJ_TO_PTR(self_in);
+static MAYBE_CUDA mp_uint_t MP_VFS_LFSx(file_ioctl)(mp_obj_t self_in, mp_uint_t request, uintptr_t arg, int *errcode) {
+    MP_OBJ_VFS_LFSx_FILE *self = (MP_OBJ_VFS_LFSx_FILE *)MP_OBJ_TO_PTR(self_in);
 
     if (request != MP_STREAM_CLOSE) {
         MP_VFS_LFSx(check_open)(self);
@@ -194,23 +194,26 @@ static mp_uint_t MP_VFS_LFSx(file_ioctl)(mp_obj_t self_in, mp_uint_t request, ui
     }
 }
 
-static const mp_rom_map_elem_t MP_VFS_LFSx(file_locals_dict_table)[] = {
-    { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
-    { MP_ROM_QSTR(MP_QSTR_readinto), MP_ROM_PTR(&mp_stream_readinto_obj) },
-    { MP_ROM_QSTR(MP_QSTR_readline), MP_ROM_PTR(&mp_stream_unbuffered_readline_obj) },
-    { MP_ROM_QSTR(MP_QSTR_readlines), MP_ROM_PTR(&mp_stream_unbuffered_readlines_obj) },
-    { MP_ROM_QSTR(MP_QSTR_write), MP_ROM_PTR(&mp_stream_write_obj) },
-    { MP_ROM_QSTR(MP_QSTR_flush), MP_ROM_PTR(&mp_stream_flush_obj) },
-    { MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&mp_stream_close_obj) },
-    { MP_ROM_QSTR(MP_QSTR_seek), MP_ROM_PTR(&mp_stream_seek_obj) },
-    { MP_ROM_QSTR(MP_QSTR_tell), MP_ROM_PTR(&mp_stream_tell_obj) },
-    { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&mp_stream_close_obj) },
-    { MP_ROM_QSTR(MP_QSTR___enter__), MP_ROM_PTR(&mp_identity_obj) },
-    { MP_ROM_QSTR(MP_QSTR___exit__), MP_ROM_PTR(&mp_stream___exit___obj) },
-};
-static MP_DEFINE_CONST_DICT(MP_VFS_LFSx(file_locals_dict), MP_VFS_LFSx(file_locals_dict_table));
+// Fix for CUDA dynamic initialization: cast const pointers to mp_obj_t
+#define MP_CUDA_ROM_PTR(p) ((mp_obj_t)(p))
 
-static const mp_stream_p_t MP_VFS_LFSx(fileio_stream_p) = {
+static MAYBE_CUDA const mp_map_elem_t MP_VFS_LFSx(file_locals_dict_table)[] = {
+    { MP_ROM_QSTR(MP_QSTR_read), MP_CUDA_ROM_PTR(&mp_stream_read_obj) },
+    { MP_ROM_QSTR(MP_QSTR_readinto), MP_CUDA_ROM_PTR(&mp_stream_readinto_obj) },
+    { MP_ROM_QSTR(MP_QSTR_readline), MP_CUDA_ROM_PTR(&mp_stream_unbuffered_readline_obj) },
+    { MP_ROM_QSTR(MP_QSTR_readlines), MP_CUDA_ROM_PTR(&mp_stream_unbuffered_readlines_obj) },
+    { MP_ROM_QSTR(MP_QSTR_write), MP_CUDA_ROM_PTR(&mp_stream_write_obj) },
+    { MP_ROM_QSTR(MP_QSTR_flush), MP_CUDA_ROM_PTR(&mp_stream_flush_obj) },
+    { MP_ROM_QSTR(MP_QSTR_close), MP_CUDA_ROM_PTR(&mp_stream_close_obj) },
+    { MP_ROM_QSTR(MP_QSTR_seek), MP_CUDA_ROM_PTR(&mp_stream_seek_obj) },
+    { MP_ROM_QSTR(MP_QSTR_tell), MP_CUDA_ROM_PTR(&mp_stream_tell_obj) },
+    { MP_ROM_QSTR(MP_QSTR___del__), MP_CUDA_ROM_PTR(&mp_stream_close_obj) },
+    { MP_ROM_QSTR(MP_QSTR___enter__), MP_CUDA_ROM_PTR(&mp_identity_obj) },
+    { MP_ROM_QSTR(MP_QSTR___exit__), MP_CUDA_ROM_PTR(&mp_stream___exit___obj) },
+};
+static MP_DEFINE_CUDA_CONST_DICT(MP_VFS_LFSx(file_locals_dict), MP_VFS_LFSx(file_locals_dict_table));
+
+static MAYBE_CUDA const mp_stream_p_t MP_VFS_LFSx(fileio_stream_p) = {
     .read = MP_VFS_LFSx(file_read),
     .write = MP_VFS_LFSx(file_write),
     .ioctl = MP_VFS_LFSx(file_ioctl),
@@ -225,7 +228,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     locals_dict, &MP_VFS_LFSx(file_locals_dict)
     );
 
-static const mp_stream_p_t MP_VFS_LFSx(textio_stream_p) = {
+static MAYBE_CUDA const mp_stream_p_t MP_VFS_LFSx(textio_stream_p) = {
     .read = MP_VFS_LFSx(file_read),
     .write = MP_VFS_LFSx(file_write),
     .ioctl = MP_VFS_LFSx(file_ioctl),

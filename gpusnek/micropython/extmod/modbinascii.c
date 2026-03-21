@@ -183,7 +183,7 @@ static mp_obj_t mod_binascii_crc32(size_t n_args, const mp_obj_t *args) {
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_binascii_crc32_obj, 1, 2, mod_binascii_crc32);
 #endif
 
-static const mp_rom_map_elem_t mp_module_binascii_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_binascii_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_binascii) },
     #if MICROPY_PY_BUILTINS_BYTES_HEX
     { MP_ROM_QSTR(MP_QSTR_hexlify), MP_ROM_PTR(&bytes_hex_as_bytes_obj) },

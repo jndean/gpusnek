@@ -195,7 +195,7 @@
 
 #if MICROPY_PY_BUILTINS_SLICE
 // This function is marked "no inline" so it doesn't increase the C stack usage of the main VM function.
-MP_NOINLINE static mp_obj_t *build_slice_stack_allocated(byte op, mp_obj_t *sp, mp_obj_t step) {
+MP_NOINLINE static MAYBE_CUDA mp_obj_t *build_slice_stack_allocated(byte op, mp_obj_t *sp, mp_obj_t step) {
     mp_obj_t stop = sp[2];
     mp_obj_t start = sp[1];
     mp_obj_slice_t slice = { .base = { .type = &mp_type_slice }, .start = start, .stop = stop, .step = step };

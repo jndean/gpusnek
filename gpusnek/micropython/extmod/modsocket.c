@@ -445,7 +445,7 @@ static mp_obj_t socket_setblocking(mp_obj_t self_in, mp_obj_t blocking) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_2(socket_setblocking_obj, socket_setblocking);
 
-static const mp_rom_map_elem_t socket_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t socket_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&mp_stream_close_obj) },
     { MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&mp_stream_close_obj) },
     { MP_ROM_QSTR(MP_QSTR_bind), MP_ROM_PTR(&socket_bind_obj) },
@@ -613,7 +613,7 @@ static mp_obj_t mod_socket_getaddrinfo(size_t n_args, const mp_obj_t *args) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_socket_getaddrinfo_obj, 2, 6, mod_socket_getaddrinfo);
 
-static const mp_rom_map_elem_t mp_module_socket_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_socket_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_socket) },
 
     { MP_ROM_QSTR(MP_QSTR_socket), MP_ROM_PTR(&socket_type) },

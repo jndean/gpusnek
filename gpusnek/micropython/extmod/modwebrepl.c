@@ -328,7 +328,7 @@ static mp_obj_t webrepl_set_password(mp_obj_t passwd_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(webrepl_set_password_obj, webrepl_set_password);
 
-static const mp_rom_map_elem_t webrepl_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t webrepl_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
     { MP_ROM_QSTR(MP_QSTR_readinto), MP_ROM_PTR(&mp_stream_readinto_obj) },
     { MP_ROM_QSTR(MP_QSTR_write), MP_ROM_PTR(&mp_stream_write_obj) },
@@ -351,7 +351,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
     locals_dict, &webrepl_locals_dict
     );
 
-static const mp_rom_map_elem_t webrepl_module_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t webrepl_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR__webrepl) },
     { MP_ROM_QSTR(MP_QSTR__webrepl), MP_ROM_PTR(&webrepl_type) },
     { MP_ROM_QSTR(MP_QSTR_password), MP_ROM_PTR(&webrepl_set_password_obj) },

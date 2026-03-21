@@ -500,7 +500,7 @@ static mp_obj_t machine_i2s_shift(size_t n_args, const mp_obj_t *pos_args, mp_ma
 static MP_DEFINE_CONST_FUN_OBJ_KW(machine_i2s_shift_fun_obj, 0, machine_i2s_shift);
 static MP_DEFINE_CONST_STATICMETHOD_OBJ(machine_i2s_shift_obj, MP_ROM_PTR(&machine_i2s_shift_fun_obj));
 
-static const mp_rom_map_elem_t machine_i2s_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t machine_i2s_locals_dict_table[] = {
     // Methods
     { MP_ROM_QSTR(MP_QSTR_init),            MP_ROM_PTR(&machine_i2s_init_obj) },
     { MP_ROM_QSTR(MP_QSTR_readinto),        MP_ROM_PTR(&mp_stream_readinto_obj) },

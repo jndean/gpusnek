@@ -86,34 +86,34 @@ typedef struct _mp_vfs_mount_t {
     struct _mp_vfs_mount_t *next;
 } mp_vfs_mount_t;
 
-void mp_vfs_blockdev_init(mp_vfs_blockdev_t *self, mp_obj_t bdev);
-int mp_vfs_blockdev_read(mp_vfs_blockdev_t *self, size_t block_num, size_t num_blocks, uint8_t *buf);
-int mp_vfs_blockdev_read_ext(mp_vfs_blockdev_t *self, size_t block_num, size_t block_off, size_t len, uint8_t *buf);
-int mp_vfs_blockdev_write(mp_vfs_blockdev_t *self, size_t block_num, size_t num_blocks, const uint8_t *buf);
-int mp_vfs_blockdev_write_ext(mp_vfs_blockdev_t *self, size_t block_num, size_t block_off, size_t len, const uint8_t *buf);
-mp_obj_t mp_vfs_blockdev_ioctl(mp_vfs_blockdev_t *self, uintptr_t cmd, uintptr_t arg);
+MAYBE_CUDA void mp_vfs_blockdev_init(mp_vfs_blockdev_t *self, mp_obj_t bdev);
+MAYBE_CUDA int mp_vfs_blockdev_read(mp_vfs_blockdev_t *self, size_t block_num, size_t num_blocks, uint8_t *buf);
+MAYBE_CUDA int mp_vfs_blockdev_read_ext(mp_vfs_blockdev_t *self, size_t block_num, size_t block_off, size_t len, uint8_t *buf);
+MAYBE_CUDA int mp_vfs_blockdev_write(mp_vfs_blockdev_t *self, size_t block_num, size_t num_blocks, const uint8_t *buf);
+MAYBE_CUDA int mp_vfs_blockdev_write_ext(mp_vfs_blockdev_t *self, size_t block_num, size_t block_off, size_t len, const uint8_t *buf);
+MAYBE_CUDA mp_obj_t mp_vfs_blockdev_ioctl(mp_vfs_blockdev_t *self, uintptr_t cmd, uintptr_t arg);
 
-mp_vfs_mount_t *mp_vfs_lookup_path(const char *path, const char **path_out);
-mp_import_stat_t mp_vfs_import_stat(const char *path);
-mp_obj_t mp_vfs_mount(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
-mp_obj_t mp_vfs_umount(mp_obj_t mnt_in);
-mp_obj_t mp_vfs_open(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
-mp_obj_t mp_vfs_chdir(mp_obj_t path_in);
-mp_obj_t mp_vfs_getcwd(void);
-mp_obj_t mp_vfs_ilistdir(size_t n_args, const mp_obj_t *args);
-mp_obj_t mp_vfs_listdir(size_t n_args, const mp_obj_t *args);
+MAYBE_CUDA mp_vfs_mount_t *mp_vfs_lookup_path(const char *path, const char **path_out);
+MAYBE_CUDA mp_import_stat_t mp_vfs_import_stat(const char *path);
+MAYBE_CUDA mp_obj_t mp_vfs_mount(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
+MAYBE_CUDA mp_obj_t mp_vfs_umount(mp_obj_t mnt_in);
+MAYBE_CUDA mp_obj_t mp_vfs_open(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
+MAYBE_CUDA mp_obj_t mp_vfs_chdir(mp_obj_t path_in);
+MAYBE_CUDA mp_obj_t mp_vfs_getcwd(void);
+MAYBE_CUDA mp_obj_t mp_vfs_ilistdir(size_t n_args, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_vfs_listdir(size_t n_args, const mp_obj_t *args);
 #if MICROPY_VFS_WRITABLE
-mp_obj_t mp_vfs_mkdir(mp_obj_t path_in);
-mp_obj_t mp_vfs_remove(mp_obj_t path_in);
-mp_obj_t mp_vfs_rename(mp_obj_t old_path_in, mp_obj_t new_path_in);
-mp_obj_t mp_vfs_rmdir(mp_obj_t path_in);
+MAYBE_CUDA mp_obj_t mp_vfs_mkdir(mp_obj_t path_in);
+MAYBE_CUDA mp_obj_t mp_vfs_remove(mp_obj_t path_in);
+MAYBE_CUDA mp_obj_t mp_vfs_rename(mp_obj_t old_path_in, mp_obj_t new_path_in);
+MAYBE_CUDA mp_obj_t mp_vfs_rmdir(mp_obj_t path_in);
 #endif
-mp_obj_t mp_vfs_stat(mp_obj_t path_in);
-mp_obj_t mp_vfs_statvfs(mp_obj_t path_in);
+MAYBE_CUDA mp_obj_t mp_vfs_stat(mp_obj_t path_in);
+MAYBE_CUDA mp_obj_t mp_vfs_statvfs(mp_obj_t path_in);
 
-int mp_vfs_mount_and_chdir_protected(mp_obj_t bdev, mp_obj_t mount_point);
+MAYBE_CUDA int mp_vfs_mount_and_chdir_protected(mp_obj_t bdev, mp_obj_t mount_point);
 #if MICROPY_VFS_ROM && MICROPY_VFS_ROM_IOCTL
-int mp_vfs_mount_romfs_protected(void);
+MAYBE_CUDA int mp_vfs_mount_romfs_protected(void);
 #endif
 
 MP_DECLARE_CONST_FUN_OBJ_KW(mp_vfs_mount_obj);
@@ -137,7 +137,7 @@ MP_DECLARE_CONST_FUN_OBJ_1(mp_vfs_statvfs_obj);
 // This is a generic interface to allow querying and modifying the user-accessible,
 // read-only memory area of a device, if it is configured with such an area.
 // Supported ioctl commands are given by MP_VFS_ROM_IOCTL_xxx.
-mp_obj_t mp_vfs_rom_ioctl(size_t n_args, const mp_obj_t *args);
+MAYBE_CUDA mp_obj_t mp_vfs_rom_ioctl(size_t n_args, const mp_obj_t *args);
 #endif
 
 #endif // MICROPY_INCLUDED_EXTMOD_VFS_H

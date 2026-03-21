@@ -865,7 +865,7 @@ static mp_obj_t framebuf_text(size_t n_args, const mp_obj_t *args_in) {
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(framebuf_text_obj, 4, 5, framebuf_text);
 
 #if !MICROPY_ENABLE_DYNRUNTIME
-static const mp_rom_map_elem_t framebuf_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t framebuf_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_fill), MP_ROM_PTR(&framebuf_fill_obj) },
     { MP_ROM_QSTR(MP_QSTR_fill_rect), MP_ROM_PTR(&framebuf_fill_rect_obj) },
     { MP_ROM_QSTR(MP_QSTR_pixel), MP_ROM_PTR(&framebuf_pixel_obj) },
@@ -902,7 +902,7 @@ static mp_obj_t legacy_framebuffer1(size_t n_args, const mp_obj_t *args_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(legacy_framebuffer1_obj, 3, 4, legacy_framebuffer1);
 
-static const mp_rom_map_elem_t framebuf_module_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t framebuf_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_framebuf) },
     { MP_ROM_QSTR(MP_QSTR_FrameBuffer), MP_ROM_PTR(&mp_type_framebuf) },
     { MP_ROM_QSTR(MP_QSTR_FrameBuffer1), MP_ROM_PTR(&legacy_framebuffer1_obj) },

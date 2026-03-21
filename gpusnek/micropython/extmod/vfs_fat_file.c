@@ -146,7 +146,7 @@ static mp_uint_t file_obj_ioctl(mp_obj_t o_in, mp_uint_t request, uintptr_t arg,
 
 // TODO gc hook to close the file if not already closed
 
-static const mp_rom_map_elem_t vfs_fat_rawfile_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t vfs_fat_rawfile_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
     { MP_ROM_QSTR(MP_QSTR_readinto), MP_ROM_PTR(&mp_stream_readinto_obj) },
     { MP_ROM_QSTR(MP_QSTR_readline), MP_ROM_PTR(&mp_stream_unbuffered_readline_obj) },

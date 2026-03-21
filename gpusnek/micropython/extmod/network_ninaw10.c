@@ -987,7 +987,7 @@ static void network_ninaw10_deinit(void) {
     MP_STATE_PORT(mp_wifi_poll_list) = NULL;
 }
 
-static const mp_rom_map_elem_t nina_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t nina_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_active),              MP_ROM_PTR(&network_ninaw10_active_obj) },
     { MP_ROM_QSTR(MP_QSTR_scan),                MP_ROM_PTR(&network_ninaw10_scan_obj) },
     { MP_ROM_QSTR(MP_QSTR_connect),             MP_ROM_PTR(&network_ninaw10_connect_obj) },

@@ -158,7 +158,7 @@ static mp_obj_t signal_off(mp_obj_t self_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(signal_off_obj, signal_off);
 
-static const mp_rom_map_elem_t signal_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t signal_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_value), MP_ROM_PTR(&signal_value_obj) },
     { MP_ROM_QSTR(MP_QSTR_on), MP_ROM_PTR(&signal_on_obj) },
     { MP_ROM_QSTR(MP_QSTR_off), MP_ROM_PTR(&signal_off_obj) },

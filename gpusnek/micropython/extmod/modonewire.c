@@ -145,7 +145,7 @@ static mp_obj_t onewire_crc8(mp_obj_t data) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(onewire_crc8_obj, onewire_crc8);
 
-static const mp_rom_map_elem_t onewire_module_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t onewire_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_onewire) },
 
     { MP_ROM_QSTR(MP_QSTR_reset), MP_ROM_PTR(&onewire_reset_obj) },

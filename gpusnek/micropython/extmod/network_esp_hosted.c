@@ -301,7 +301,7 @@ static mp_obj_t network_esp_hosted_status(size_t n_args, const mp_obj_t *args) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(network_esp_hosted_status_obj, 1, 2, network_esp_hosted_status);
 
-static const mp_rom_map_elem_t network_esp_hosted_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t network_esp_hosted_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_active),              MP_ROM_PTR(&network_esp_hosted_active_obj) },
     { MP_ROM_QSTR(MP_QSTR_scan),                MP_ROM_PTR(&network_esp_hosted_scan_obj) },
     { MP_ROM_QSTR(MP_QSTR_connect),             MP_ROM_PTR(&network_esp_hosted_connect_obj) },

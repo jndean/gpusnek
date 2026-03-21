@@ -1,3 +1,11 @@
+#ifndef MAYBE_CUDA
+#ifdef __CUDACC__
+#define MAYBE_CUDA __host__ __device__
+#else
+#define MAYBE_CUDA
+#endif
+#endif
+
 /*
  * lfs2 utility functions
  *
@@ -43,6 +51,14 @@
 #include <stdbool.h>
 #include <string.h>
 #include <inttypes.h>
+
+// When compiling for CUDA device code, redirect standard string/memory
+// functions to our __device__ implementations so that lfs2.c
+// (and any other littlefs file that includes this header) uses device-
+// compatible versions rather than the host-only declarations from <string.h>.
+#ifdef __CUDACC__
+#include "py/cuda_string.h"
+#endif
 
 #ifndef LFS2_NO_MALLOC
 #include <stdlib.h>
@@ -123,25 +139,25 @@ extern "C"
 // expensive basic C implementation for debugging purposes
 
 // Min/max functions for unsigned 32-bit numbers
-static inline uint32_t lfs2_max(uint32_t a, uint32_t b) {
+static MAYBE_CUDA inline uint32_t lfs2_max(uint32_t a, uint32_t b) {
     return (a > b) ? a : b;
 }
 
-static inline uint32_t lfs2_min(uint32_t a, uint32_t b) {
+static MAYBE_CUDA inline uint32_t lfs2_min(uint32_t a, uint32_t b) {
     return (a < b) ? a : b;
 }
 
 // Align to nearest multiple of a size
-static inline uint32_t lfs2_aligndown(uint32_t a, uint32_t alignment) {
+static MAYBE_CUDA inline uint32_t lfs2_aligndown(uint32_t a, uint32_t alignment) {
     return a - (a % alignment);
 }
 
-static inline uint32_t lfs2_alignup(uint32_t a, uint32_t alignment) {
+static MAYBE_CUDA inline uint32_t lfs2_alignup(uint32_t a, uint32_t alignment) {
     return lfs2_aligndown(a + alignment-1, alignment);
 }
 
 // Find the smallest power of 2 greater than or equal to a
-static inline uint32_t lfs2_npw2(uint32_t a) {
+static MAYBE_CUDA inline uint32_t lfs2_npw2(uint32_t a) {
 #if !defined(LFS2_NO_INTRINSICS) && (defined(__GNUC__) || defined(__CC_ARM))
     return 32 - __builtin_clz(a-1);
 #else
@@ -158,7 +174,7 @@ static inline uint32_t lfs2_npw2(uint32_t a) {
 
 // Count the number of trailing binary zeros in a
 // lfs2_ctz(0) may be undefined
-static inline uint32_t lfs2_ctz(uint32_t a) {
+static MAYBE_CUDA inline uint32_t lfs2_ctz(uint32_t a) {
 #if !defined(LFS2_NO_INTRINSICS) && defined(__GNUC__)
     return __builtin_ctz(a);
 #else
@@ -167,7 +183,7 @@ static inline uint32_t lfs2_ctz(uint32_t a) {
 }
 
 // Count the number of binary ones in a
-static inline uint32_t lfs2_popc(uint32_t a) {
+static MAYBE_CUDA inline uint32_t lfs2_popc(uint32_t a) {
 #if !defined(LFS2_NO_INTRINSICS) && (defined(__GNUC__) || defined(__CC_ARM))
     return __builtin_popcount(a);
 #else
@@ -179,12 +195,12 @@ static inline uint32_t lfs2_popc(uint32_t a) {
 
 // Find the sequence comparison of a and b, this is the distance
 // between a and b ignoring overflow
-static inline int lfs2_scmp(uint32_t a, uint32_t b) {
+static MAYBE_CUDA inline int lfs2_scmp(uint32_t a, uint32_t b) {
     return (int)(unsigned)(a - b);
 }
 
 // Convert between 32-bit little-endian and native order
-static inline uint32_t lfs2_fromle32(uint32_t a) {
+static MAYBE_CUDA inline uint32_t lfs2_fromle32(uint32_t a) {
 #if (defined(  BYTE_ORDER  ) && defined(  ORDER_LITTLE_ENDIAN  ) &&   BYTE_ORDER   ==   ORDER_LITTLE_ENDIAN  ) || \
     (defined(__BYTE_ORDER  ) && defined(__ORDER_LITTLE_ENDIAN  ) && __BYTE_ORDER   == __ORDER_LITTLE_ENDIAN  ) || \
     (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
@@ -202,12 +218,12 @@ static inline uint32_t lfs2_fromle32(uint32_t a) {
 #endif
 }
 
-static inline uint32_t lfs2_tole32(uint32_t a) {
+static MAYBE_CUDA inline uint32_t lfs2_tole32(uint32_t a) {
     return lfs2_fromle32(a);
 }
 
 // Convert between 32-bit big-endian and native order
-static inline uint32_t lfs2_frombe32(uint32_t a) {
+static MAYBE_CUDA inline uint32_t lfs2_frombe32(uint32_t a) {
 #if !defined(LFS2_NO_INTRINSICS) && ( \
     (defined(  BYTE_ORDER  ) && defined(  ORDER_LITTLE_ENDIAN  ) &&   BYTE_ORDER   ==   ORDER_LITTLE_ENDIAN  ) || \
     (defined(__BYTE_ORDER  ) && defined(__ORDER_LITTLE_ENDIAN  ) && __BYTE_ORDER   == __ORDER_LITTLE_ENDIAN  ) || \
@@ -225,24 +241,24 @@ static inline uint32_t lfs2_frombe32(uint32_t a) {
 #endif
 }
 
-static inline uint32_t lfs2_tobe32(uint32_t a) {
+static MAYBE_CUDA inline uint32_t lfs2_tobe32(uint32_t a) {
     return lfs2_frombe32(a);
 }
 
 // Calculate CRC-32 with polynomial = 0x04c11db7
 #ifdef LFS2_CRC
-static inline uint32_t lfs2_crc(uint32_t crc, const void *buffer, size_t size) {
+static MAYBE_CUDA inline uint32_t lfs2_crc(uint32_t crc, const void *buffer, size_t size) {
     return LFS2_CRC(crc, buffer, size);
 }
 #else
-uint32_t lfs2_crc(uint32_t crc, const void *buffer, size_t size);
+uint32_t MAYBE_CUDA lfs2_crc(uint32_t crc, const void *buffer, size_t size);
 #endif
 
 // Allocate memory, only used if buffers are not provided to littlefs
 //
 // littlefs current has no alignment requirements, as it only allocates
 // byte-level buffers.
-static inline void *lfs2_malloc(size_t size) {
+static inline MAYBE_CUDA void *lfs2_malloc(size_t size) {
 #if defined(LFS2_MALLOC)
     return LFS2_MALLOC(size);
 #elif !defined(LFS2_NO_MALLOC)
@@ -254,7 +270,7 @@ static inline void *lfs2_malloc(size_t size) {
 }
 
 // Deallocate memory, only used if buffers are not provided to littlefs
-static inline void lfs2_free(void *p) {
+static MAYBE_CUDA inline void lfs2_free(void *p) {
 #if defined(LFS2_FREE)
     LFS2_FREE(p);
 #elif !defined(LFS2_NO_MALLOC)

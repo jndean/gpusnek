@@ -240,7 +240,7 @@ static const MP_DEFINE_BYTES_OBJ(builtin_default_desc_dev_obj,
 static const MP_DEFINE_BYTES_OBJ(builtin_default_desc_cfg_obj,
     mp_usbd_builtin_desc_cfg, MP_USBD_BUILTIN_DESC_CFG_LEN);
 
-static const mp_rom_map_elem_t usb_device_builtin_default_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t usb_device_builtin_default_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_itf_max), MP_OBJ_NEW_SMALL_INT(USBD_ITF_BUILTIN_MAX) },
     { MP_ROM_QSTR(MP_QSTR_ep_max), MP_OBJ_NEW_SMALL_INT(USBD_EP_BUILTIN_MAX) },
     { MP_ROM_QSTR(MP_QSTR_str_max), MP_OBJ_NEW_SMALL_INT(USBD_STR_BUILTIN_MAX) },
@@ -258,7 +258,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 #endif // HAS_BUILTIN_DRIVERS
 
 // BUILTIN_NONE holds properties for no enabled built-in USB device support
-static const mp_rom_map_elem_t usb_device_builtin_none_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t usb_device_builtin_none_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_itf_max), MP_OBJ_NEW_SMALL_INT(0) },
     { MP_ROM_QSTR(MP_QSTR_ep_max), MP_OBJ_NEW_SMALL_INT(0) },
     { MP_ROM_QSTR(MP_QSTR_str_max), MP_OBJ_NEW_SMALL_INT(1) },
@@ -274,7 +274,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
     locals_dict, &usb_device_builtin_none_dict
     );
 
-static const mp_rom_map_elem_t usb_device_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t usb_device_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_config), MP_ROM_PTR(&usb_device_config_obj) },
     { MP_ROM_QSTR(MP_QSTR_submit_xfer), MP_ROM_PTR(&usb_device_submit_xfer_obj) },
     { MP_ROM_QSTR(MP_QSTR_active), MP_ROM_PTR(&usb_device_active_obj) },

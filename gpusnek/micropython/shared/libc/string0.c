@@ -29,7 +29,7 @@
 
 #define likely(x) __builtin_expect((x), 1)
 
-void *memcpy(void *dst, const void *src, size_t n) {
+MAYBE_CUDA void *memcpy(void *dst, const void *src, size_t n) {
     if (likely(!(((uintptr_t)dst) & 3) && !(((uintptr_t)src) & 3))) {
         // pointers aligned
         uint32_t *d = dst;
@@ -64,14 +64,14 @@ void *memcpy(void *dst, const void *src, size_t n) {
     return dst;
 }
 
-void *__memcpy_chk(void *dest, const void *src, size_t len, size_t slen) {
+MAYBE_CUDA void *__memcpy_chk(void *dest, const void *src, size_t len, size_t slen) {
     if (len > slen) {
         return NULL;
     }
     return memcpy(dest, src, len);
 }
 
-void *memmove(void *dest, const void *src, size_t n) {
+MAYBE_CUDA void *memmove(void *dest, const void *src, size_t n) {
     if (src < dest && (uint8_t*)dest < (const uint8_t*)src + n) {
         // need to copy backwards
         uint8_t *d = (uint8_t*)dest + n - 1;
@@ -86,7 +86,7 @@ void *memmove(void *dest, const void *src, size_t n) {
     }
 }
 
-void *memset(void *s, int c, size_t n) {
+MAYBE_CUDA void *memset(void *s, int c, size_t n) {
     if (c == 0 && ((uintptr_t)s & 3) == 0) {
         // aligned store of 0
         uint32_t *s32 = s;
@@ -109,7 +109,7 @@ void *memset(void *s, int c, size_t n) {
     return s;
 }
 
-int memcmp(const void *s1, const void *s2, size_t n) {
+MAYBE_CUDA int memcmp(const void *s1, const void *s2, size_t n) {
     const uint8_t *s1_8 = s1;
     const uint8_t *s2_8 = s2;
     while (n--) {
@@ -121,7 +121,7 @@ int memcmp(const void *s1, const void *s2, size_t n) {
     return 0;
 }
 
-void *memchr(const void *s, int c, size_t n) {
+MAYBE_CUDA void *memchr(const void *s, int c, size_t n) {
     if (n != 0) {
         const unsigned char *p = s;
 
@@ -133,7 +133,7 @@ void *memchr(const void *s, int c, size_t n) {
     return 0;
 }
 
-size_t strlen(const char *str) {
+MAYBE_CUDA size_t strlen(const char *str) {
     int len = 0;
     for (const char *s = str; *s; s++) {
         len += 1;
@@ -141,7 +141,7 @@ size_t strlen(const char *str) {
     return len;
 }
 
-int strcmp(const char *s1, const char *s2) {
+MAYBE_CUDA int strcmp(const char *s1, const char *s2) {
     while (*s1 && *s2) {
         char c1 = *s1++; // XXX UTF8 get char, next char
         char c2 = *s2++; // XXX UTF8 get char, next char
@@ -153,7 +153,7 @@ int strcmp(const char *s1, const char *s2) {
     else return 0;
 }
 
-int strncmp(const char *s1, const char *s2, size_t n) {
+MAYBE_CUDA int strncmp(const char *s1, const char *s2, size_t n) {
     while (n > 0 && *s1 && *s2) {
         char c1 = *s1++; // XXX UTF8 get char, next char
         char c2 = *s2++; // XXX UTF8 get char, next char
@@ -167,7 +167,7 @@ int strncmp(const char *s1, const char *s2, size_t n) {
     else return 0;
 }
 
-char *strcpy(char *dest, const char *src) {
+MAYBE_CUDA char *strcpy(char *dest, const char *src) {
     char *d = dest;
     while (*src) {
         *d++ = *src++;
@@ -178,7 +178,7 @@ char *strcpy(char *dest, const char *src) {
 
 // Public Domain implementation of strncpy from:
 // http://en.wikibooks.org/wiki/C_Programming/Strings#The_strncpy_function
-char *strncpy(char *s1, const char *s2, size_t n) {
+MAYBE_CUDA char *strncpy(char *s1, const char *s2, size_t n) {
      char *dst = s1;
      const char *src = s2;
      /* Copy bytes, one at a time.  */
@@ -196,7 +196,7 @@ char *strncpy(char *s1, const char *s2, size_t n) {
  }
 
 // needed because gcc optimises strcpy + strcat to this
-char *stpcpy(char *dest, const char *src) {
+MAYBE_CUDA char *stpcpy(char *dest, const char *src) {
     while (*src) {
         *dest++ = *src++;
     }
@@ -204,7 +204,7 @@ char *stpcpy(char *dest, const char *src) {
     return dest;
 }
 
-char *strcat(char *dest, const char *src) {
+MAYBE_CUDA char *strcat(char *dest, const char *src) {
     char *d = dest;
     while (*d) {
         d++;
@@ -218,7 +218,7 @@ char *strcat(char *dest, const char *src) {
 
 // Public Domain implementation of strchr from:
 // http://en.wikibooks.org/wiki/C_Programming/Strings#The_strchr_function
-char *strchr(const char *s, int c)
+MAYBE_CUDA char *strchr(const char *s, int c)
 {
     /* Scan s for the character.  When this loop is finished,
        s will either point to the end of the string or the
@@ -231,7 +231,7 @@ char *strchr(const char *s, int c)
 
 // Public Domain implementation of strstr from:
 // http://en.wikibooks.org/wiki/C_Programming/Strings#The_strstr_function
-char *strstr(const char *haystack, const char *needle)
+MAYBE_CUDA char *strstr(const char *haystack, const char *needle)
 {
     size_t needlelen;
     /* Check for the null needle case.  */
@@ -244,7 +244,7 @@ char *strstr(const char *haystack, const char *needle)
     return 0;
 }
 
-size_t strspn(const char *s, const char *accept) {
+MAYBE_CUDA size_t strspn(const char *s, const char *accept) {
     const char *ss = s;
     while (*s && strchr(accept, *s) != NULL) {
         ++s;
@@ -252,7 +252,7 @@ size_t strspn(const char *s, const char *accept) {
     return s - ss;
 }
 
-size_t strcspn(const char *s, const char *reject) {
+MAYBE_CUDA size_t strcspn(const char *s, const char *reject) {
     const char *ss = s;
     while (*s && strchr(reject, *s) == NULL) {
         ++s;

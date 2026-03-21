@@ -40,7 +40,7 @@ typedef enum {
 
 #define mp_builtin_open_obj mp_vfs_open_obj
 
-mp_import_stat_t mp_vfs_import_stat(const char *path);
+MAYBE_CUDA mp_import_stat_t mp_vfs_import_stat(const char *path);
 MAYBE_CUDA mp_obj_t mp_vfs_open(size_t n_args, const mp_obj_t *args, mp_map_t *kwargs);
 
 MP_DECLARE_CONST_FUN_OBJ_KW(mp_vfs_open_obj);

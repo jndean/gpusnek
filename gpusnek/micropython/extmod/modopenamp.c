@@ -123,7 +123,7 @@ static mp_obj_t virtio_dev_deinit(mp_obj_t self_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(virtio_dev_deinit_obj, virtio_dev_deinit);
 
-static const mp_rom_map_elem_t virtio_dev_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t virtio_dev_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_VirtIODev) },
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&virtio_dev_deinit_obj) },
 };
@@ -246,7 +246,7 @@ static mp_obj_t endpoint_make_new(const mp_obj_type_t *type, size_t n_args, size
     return MP_OBJ_FROM_PTR(self);
 }
 
-static const mp_rom_map_elem_t endpoint_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t endpoint_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_Endpoint) },
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&endpoint_deinit_obj) },
     { MP_ROM_QSTR(MP_QSTR_send), MP_ROM_PTR(&endpoint_send_obj) },
@@ -405,7 +405,7 @@ void openamp_init(void) {
     MP_STATE_PORT(virtio_device) = virtio_device;
 }
 
-static const mp_rom_map_elem_t globals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t globals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_openamp) },
     { MP_ROM_QSTR(MP_QSTR_ENDPOINT_ADDR_ANY), MP_ROM_INT(RPMSG_ADDR_ANY) },
     { MP_ROM_QSTR(MP_QSTR_new_service_callback), MP_ROM_PTR(&openamp_new_service_callback_obj) },

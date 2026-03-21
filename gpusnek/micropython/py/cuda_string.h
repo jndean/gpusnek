@@ -23,6 +23,9 @@ MAYBE_CUDA void *__mp_memmove(void *dst, const void *src, size_t n);
 MAYBE_CUDA int __mp_memcmp(const void *s1, const void *s2, size_t n);
 MAYBE_CUDA void *__mp_memset(void *s, int c, size_t n);
 MAYBE_CUDA char *__mp_strchr(const char *s, int c);
+MAYBE_CUDA char *__mp_strcpy(char *dst, const char *src);
+MAYBE_CUDA size_t __mp_strcspn(const char *s, const char *reject);
+MAYBE_CUDA size_t __mp_strspn(const char *s, const char *accept);
 MAYBE_CUDA unsigned long __mp_strtoul(const char *nptr, char **endptr, int base);
 
 // Redirect standard library calls to our implementations
@@ -34,6 +37,9 @@ MAYBE_CUDA unsigned long __mp_strtoul(const char *nptr, char **endptr, int base)
 #undef memcmp
 #undef memset
 #undef strchr
+#undef strcpy
+#undef strcspn
+#undef strspn
 #undef strtoul
 #define strlen(s) __mp_strlen(s)
 #define strcmp(a, b) __mp_strcmp(a, b)
@@ -43,6 +49,9 @@ MAYBE_CUDA unsigned long __mp_strtoul(const char *nptr, char **endptr, int base)
 #define memcmp(a, b, n) __mp_memcmp(a, b, n)
 #define memset(d, c, n) __mp_memset(d, c, n)
 #define strchr(s, c) __mp_strchr(s, c)
+#define strcpy(d, s) __mp_strcpy(d, s)
+#define strcspn(s, r) __mp_strcspn(s, r)
+#define strspn(s, a) __mp_strspn(s, a)
 #define strtoul(s, e, b) __mp_strtoul(s, e, b)
 
 #endif // MICROPY_CUDA_STRING_H

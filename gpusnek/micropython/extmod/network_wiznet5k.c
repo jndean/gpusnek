@@ -1038,7 +1038,7 @@ static mp_obj_t wiznet5k_config(size_t n_args, const mp_obj_t *args, mp_map_t *k
 }
 static MP_DEFINE_CONST_FUN_OBJ_KW(wiznet5k_config_obj, 1, wiznet5k_config);
 
-static const mp_rom_map_elem_t wiznet5k_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t wiznet5k_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_regs), MP_ROM_PTR(&wiznet5k_regs_obj) },
     { MP_ROM_QSTR(MP_QSTR_isconnected), MP_ROM_PTR(&wiznet5k_isconnected_obj) },
     { MP_ROM_QSTR(MP_QSTR_active), MP_ROM_PTR(&wiznet5k_active_obj) },

@@ -65,16 +65,26 @@ typedef struct _mp_obj_polymorph_iter_with_finaliser_t {
 } mp_obj_polymorph_with_finaliser_iter_t;
 
 static MAYBE_CUDA mp_obj_t mp_obj_polymorph_iter_del(mp_obj_t self_in) {
-    mp_obj_polymorph_with_finaliser_iter_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_polymorph_with_finaliser_iter_t *self = (mp_obj_polymorph_with_finaliser_iter_t *)MP_OBJ_TO_PTR(self_in);
     // Redirect call to object instance's finaliser method
     return self->finaliser(self_in);
 }
 static MAYBE_CUDA MP_DEFINE_CONST_FUN_OBJ_1(mp_obj_polymorph_iter_del_obj, mp_obj_polymorph_iter_del);
 
-static MAYBE_CUDA const mp_rom_map_elem_t mp_obj_polymorph_iter_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&mp_obj_polymorph_iter_del_obj) },
+static MAYBE_CUDA const mp_map_elem_t mp_obj_polymorph_iter_locals_dict_table[] = {
+    { MP_ROM_QSTR(MP_QSTR___del__), (mp_obj_t)(&mp_obj_polymorph_iter_del_obj) },
 };
-static MAYBE_CUDA MP_DEFINE_CONST_DICT(mp_obj_polymorph_iter_locals_dict, mp_obj_polymorph_iter_locals_dict_table);
+static MAYBE_CUDA const mp_obj_dict_t mp_obj_polymorph_iter_locals_dict = {
+    .base = {&mp_type_dict},
+    .map = {
+        .all_keys_are_qstrs = 1,
+        .is_fixed = 1,
+        .is_ordered = 1,
+        .used = 1,
+        .alloc = 1,
+        .table = (mp_map_elem_t *)mp_obj_polymorph_iter_locals_dict_table,
+    },
+};
 
 MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_polymorph_iter_with_finaliser,

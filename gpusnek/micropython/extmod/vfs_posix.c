@@ -424,7 +424,7 @@ static MP_DEFINE_CONST_FUN_OBJ_2(vfs_posix_statvfs_obj, vfs_posix_statvfs);
 
 #endif
 
-static const mp_rom_map_elem_t vfs_posix_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t vfs_posix_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_mount), MP_ROM_PTR(&vfs_posix_mount_obj) },
     { MP_ROM_QSTR(MP_QSTR_umount), MP_ROM_PTR(&vfs_posix_umount_obj) },
     { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&vfs_posix_open_obj) },

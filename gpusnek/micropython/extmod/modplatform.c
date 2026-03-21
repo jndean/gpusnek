@@ -96,7 +96,7 @@ static mp_obj_t platform_processor(void) {
 static MP_DEFINE_CONST_FUN_OBJ_0(platform_processor_obj, platform_processor);
 #endif
 
-static const mp_rom_map_elem_t modplatform_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t modplatform_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_platform) },
     { MP_ROM_QSTR(MP_QSTR_platform), MP_ROM_PTR(&platform_platform_obj) },
     { MP_ROM_QSTR(MP_QSTR_python_compiler), MP_ROM_PTR(&platform_python_compiler_obj) },

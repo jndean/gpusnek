@@ -252,7 +252,7 @@ static mp_uint_t vfs_posix_file_ioctl(mp_obj_t o_in, mp_uint_t request, uintptr_
     }
 }
 
-static const mp_rom_map_elem_t vfs_posix_rawfile_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t vfs_posix_rawfile_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_fileno), MP_ROM_PTR(&vfs_posix_file_fileno_obj) },
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
     { MP_ROM_QSTR(MP_QSTR_readinto), MP_ROM_PTR(&mp_stream_readinto_obj) },

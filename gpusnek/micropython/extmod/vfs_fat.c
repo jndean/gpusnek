@@ -411,7 +411,7 @@ static mp_obj_t vfs_fat_umount(mp_obj_t self_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(fat_vfs_umount_obj, vfs_fat_umount);
 
-static const mp_rom_map_elem_t fat_vfs_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t fat_vfs_locals_dict_table[] = {
     #if _FS_REENTRANT
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&fat_vfs_del_obj) },
     #endif

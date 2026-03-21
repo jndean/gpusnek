@@ -931,7 +931,7 @@ static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(bluetooth_ble_hci_cmd_obj, 5, 5, blue
 // Bluetooth object: Definition
 // ----------------------------------------------------------------------------
 
-static const mp_rom_map_elem_t bluetooth_ble_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t bluetooth_ble_locals_dict_table[] = {
     // General
     { MP_ROM_QSTR(MP_QSTR_active), MP_ROM_PTR(&bluetooth_ble_active_obj) },
     { MP_ROM_QSTR(MP_QSTR_config), MP_ROM_PTR(&bluetooth_ble_config_obj) },
@@ -984,7 +984,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
     locals_dict, &bluetooth_ble_locals_dict
     );
 
-static const mp_rom_map_elem_t mp_module_bluetooth_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_bluetooth_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_bluetooth) },
     { MP_ROM_QSTR(MP_QSTR_BLE), MP_ROM_PTR(&mp_type_bluetooth_ble) },
     { MP_ROM_QSTR(MP_QSTR_UUID), MP_ROM_PTR(&mp_type_bluetooth_uuid) },
@@ -1695,7 +1695,7 @@ void mp_bluetooth_gattc_on_read_write_status(uint8_t event, uint16_t conn_handle
 // GATTS DB
 // ----------------------------------------------------------------------------
 
-void mp_bluetooth_gatts_db_create_entry(mp_gatts_db_t db, uint16_t handle, size_t len) {
+MAYBE_CUDA void mp_bluetooth_gatts_db_create_entry(mp_gatts_db_t db, uint16_t handle, size_t len) {
     mp_map_elem_t *elem = mp_map_lookup(db, MP_OBJ_NEW_SMALL_INT(handle), MP_MAP_LOOKUP_ADD_IF_NOT_FOUND);
     mp_bluetooth_gatts_db_entry_t *entry = m_new(mp_bluetooth_gatts_db_entry_t, 1);
     entry->data = m_new(uint8_t, len);
@@ -1705,7 +1705,7 @@ void mp_bluetooth_gatts_db_create_entry(mp_gatts_db_t db, uint16_t handle, size_
     elem->value = MP_OBJ_FROM_PTR(entry);
 }
 
-mp_bluetooth_gatts_db_entry_t *mp_bluetooth_gatts_db_lookup(mp_gatts_db_t db, uint16_t handle) {
+MAYBE_CUDA mp_bluetooth_gatts_db_entry_t *mp_bluetooth_gatts_db_lookup(mp_gatts_db_t db, uint16_t handle) {
     mp_map_elem_t *elem = mp_map_lookup(db, MP_OBJ_NEW_SMALL_INT(handle), MP_MAP_LOOKUP);
     if (!elem) {
         return NULL;
@@ -1713,7 +1713,7 @@ mp_bluetooth_gatts_db_entry_t *mp_bluetooth_gatts_db_lookup(mp_gatts_db_t db, ui
     return MP_OBJ_TO_PTR(elem->value);
 }
 
-int mp_bluetooth_gatts_db_read(mp_gatts_db_t db, uint16_t handle, const uint8_t **value, size_t *value_len) {
+MAYBE_CUDA int mp_bluetooth_gatts_db_read(mp_gatts_db_t db, uint16_t handle, const uint8_t **value, size_t *value_len) {
     MICROPY_PY_BLUETOOTH_ENTER
     mp_bluetooth_gatts_db_entry_t *entry = mp_bluetooth_gatts_db_lookup(db, handle);
     if (entry) {
@@ -1727,7 +1727,7 @@ int mp_bluetooth_gatts_db_read(mp_gatts_db_t db, uint16_t handle, const uint8_t 
     return entry ? 0 : MP_EINVAL;
 }
 
-int mp_bluetooth_gatts_db_write(mp_gatts_db_t db, uint16_t handle, const uint8_t *value, size_t value_len) {
+MAYBE_CUDA int mp_bluetooth_gatts_db_write(mp_gatts_db_t db, uint16_t handle, const uint8_t *value, size_t value_len) {
     MICROPY_PY_BLUETOOTH_ENTER
     mp_bluetooth_gatts_db_entry_t *entry = mp_bluetooth_gatts_db_lookup(db, handle);
     if (entry) {
@@ -1749,7 +1749,7 @@ int mp_bluetooth_gatts_db_write(mp_gatts_db_t db, uint16_t handle, const uint8_t
     return entry ? 0 : MP_EINVAL;
 }
 
-int mp_bluetooth_gatts_db_resize(mp_gatts_db_t db, uint16_t handle, size_t len, bool append) {
+MAYBE_CUDA int mp_bluetooth_gatts_db_resize(mp_gatts_db_t db, uint16_t handle, size_t len, bool append) {
     MICROPY_PY_BLUETOOTH_ENTER
     mp_bluetooth_gatts_db_entry_t *entry = mp_bluetooth_gatts_db_lookup(db, handle);
     if (entry) {

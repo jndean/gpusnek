@@ -25,6 +25,13 @@ SRC_QSTR += micropython/shared/runtime/pyexec.c \
 # Include py core make definitions
 include $(TOP)/py/py.mk
 
+# Enable VFS and LFS2
+MICROPY_VFS = 1
+MICROPY_VFS_LFS2 = 1
+
+# Include extmod make definitions
+include $(TOP)/extmod/extmod.mk
+
 # Include directories
 INC += -I.
 INC += -I$(TOP)
@@ -63,7 +70,7 @@ SRC_C = \
 	micropython/shared/readline/readline.c
 
 # Object files
-OBJ = $(PY_CORE_O)
+OBJ = $(PY_O)
 OBJ += $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 
 # Rule for .cu files

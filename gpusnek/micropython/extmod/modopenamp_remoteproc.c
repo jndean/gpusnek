@@ -153,7 +153,7 @@ mp_obj_t openamp_remoteproc_make_new(const mp_obj_type_t *type, size_t n_args, s
     return MP_OBJ_FROM_PTR(self);
 }
 
-static const mp_rom_map_elem_t openamp_remoteproc_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t openamp_remoteproc_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_RemoteProc) },
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&openamp_remoteproc_shutdown_obj) },
     { MP_ROM_QSTR(MP_QSTR_start), MP_ROM_PTR(&openamp_remoteproc_start_obj) },

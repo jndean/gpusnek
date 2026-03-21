@@ -140,7 +140,7 @@ static MP_DEFINE_CONST_FUN_OBJ_1(machine_enable_irq_obj, machine_enable_irq);
 
 #endif
 
-static const mp_rom_map_elem_t machine_module_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t machine_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_machine) },
 
     // Memory access objects.

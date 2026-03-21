@@ -441,7 +441,21 @@ typedef struct _mp_rom_obj_t { mp_const_obj_t o; } mp_rom_obj_t;
         }, \
     }
 
+#define MP_DEFINE_CUDA_CONST_DICT_WITH_SIZE(dict_name, table_name, n) \
+    MAYBE_CUDA const mp_obj_dict_t dict_name = { \
+        .base = {&mp_type_dict}, \
+        .map = { \
+            .all_keys_are_qstrs = 1, \
+            .is_fixed = 1, \
+            .is_ordered = 1, \
+            .used = n, \
+            .alloc = n, \
+            .table = (mp_map_elem_t *)table_name, \
+        }, \
+    }
+
 #define MP_DEFINE_CONST_DICT(dict_name, table_name) MP_DEFINE_CONST_DICT_WITH_SIZE(dict_name, table_name, MP_ARRAY_SIZE(table_name))
+#define MP_DEFINE_CUDA_CONST_DICT(dict_name, table_name) MP_DEFINE_CUDA_CONST_DICT_WITH_SIZE(dict_name, table_name, MP_ARRAY_SIZE(table_name))
 
 // These macros are used to declare and define constant staticmethod and classmethod objects
 // You can put "static" in front of the definitions to make them local

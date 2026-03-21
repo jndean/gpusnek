@@ -625,7 +625,7 @@ static mp_obj_t poll_iternext(mp_obj_t self_in) {
     return MP_OBJ_STOP_ITERATION;
 }
 
-static const mp_rom_map_elem_t poll_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t poll_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_register), MP_ROM_PTR(&poll_register_obj) },
     { MP_ROM_QSTR(MP_QSTR_unregister), MP_ROM_PTR(&poll_unregister_obj) },
     { MP_ROM_QSTR(MP_QSTR_modify), MP_ROM_PTR(&poll_modify_obj) },
@@ -652,7 +652,7 @@ static mp_obj_t select_poll(void) {
 }
 MP_DEFINE_CONST_FUN_OBJ_0(mp_select_poll_obj, select_poll);
 
-static const mp_rom_map_elem_t mp_module_select_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_select_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_select) },
     #if MICROPY_PY_SELECT_SELECT
     { MP_ROM_QSTR(MP_QSTR_select), MP_ROM_PTR(&mp_select_select_obj) },

@@ -674,7 +674,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
     buffer, uctypes_get_buffer
     );
 
-static const mp_rom_map_elem_t mp_module_uctypes_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_uctypes_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_uctypes) },
     { MP_ROM_QSTR(MP_QSTR_struct), MP_ROM_PTR(&uctypes_struct_type) },
     { MP_ROM_QSTR(MP_QSTR_sizeof), MP_ROM_PTR(&uctypes_struct_sizeof_obj) },

@@ -36,7 +36,7 @@
 
 static MAYBE_CUDA void slice_print(const mp_print_t *print, mp_obj_t o_in, mp_print_kind_t kind) {
     (void)kind;
-    mp_obj_slice_t *o = MP_OBJ_TO_PTR(o_in);
+    mp_obj_slice_t *o = (mp_obj_slice_t *)MP_OBJ_TO_PTR(o_in);
     mp_print_str(print, "slice(");
     mp_obj_print_helper(print, o->start, PRINT_REPR);
     mp_print_str(print, ", ");
@@ -110,9 +110,9 @@ MP_DEFINE_CONST_OBJ_TYPE(
     mp_type_slice,
     MP_QSTR_slice,
     MP_TYPE_FLAG_NONE,
-    unary_op, slice_unary_op,
+    print, slice_print,
+    unary_op, slice_unary_op
     SLICE_TYPE_ATTR_OR_LOCALS_DICT
-    print, slice_print
     );
 
 MAYBE_CUDA mp_obj_t mp_obj_new_slice(mp_obj_t ostart, mp_obj_t ostop, mp_obj_t ostep) {
@@ -127,7 +127,7 @@ MAYBE_CUDA mp_obj_t mp_obj_new_slice(mp_obj_t ostart, mp_obj_t ostop, mp_obj_t o
 // the given length, resolving missing components, negative values and values off
 // the end of the sequence.
 MAYBE_CUDA void mp_obj_slice_indices(mp_obj_t self_in, mp_int_t length, mp_bound_slice_t *result) {
-    mp_obj_slice_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_slice_t *self = (mp_obj_slice_t *)MP_OBJ_TO_PTR(self_in);
     mp_int_t start, stop, step;
 
     if (self->step == mp_const_none) {

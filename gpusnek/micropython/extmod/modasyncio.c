@@ -151,7 +151,7 @@ static mp_obj_t task_queue_remove(mp_obj_t self_in, mp_obj_t task_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_2(task_queue_remove_obj, task_queue_remove);
 
-static const mp_rom_map_elem_t task_queue_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t task_queue_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_peek), MP_ROM_PTR(&task_queue_peek_obj) },
     { MP_ROM_QSTR(MP_QSTR_push), MP_ROM_PTR(&task_queue_push_obj) },
     { MP_ROM_QSTR(MP_QSTR_pop), MP_ROM_PTR(&task_queue_pop_obj) },
@@ -319,7 +319,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
 /******************************************************************************/
 // C-level asyncio module
 
-static const mp_rom_map_elem_t mp_module_asyncio_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_asyncio_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR__asyncio) },
     { MP_ROM_QSTR(MP_QSTR_TaskQueue), MP_ROM_PTR(&task_queue_type) },
     { MP_ROM_QSTR(MP_QSTR_Task), MP_ROM_PTR(&task_type) },

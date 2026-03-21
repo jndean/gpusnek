@@ -288,7 +288,7 @@ static mp_uint_t websocket_ioctl(mp_obj_t self_in, mp_uint_t request, uintptr_t 
     }
 }
 
-static const mp_rom_map_elem_t websocket_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t websocket_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
     { MP_ROM_QSTR(MP_QSTR_readinto), MP_ROM_PTR(&mp_stream_readinto_obj) },
     { MP_ROM_QSTR(MP_QSTR_readline), MP_ROM_PTR(&mp_stream_unbuffered_readline_obj) },
@@ -313,7 +313,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
     locals_dict, &websocket_locals_dict
     );
 
-static const mp_rom_map_elem_t websocket_module_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t websocket_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_websocket) },
     { MP_ROM_QSTR(MP_QSTR_websocket), MP_ROM_PTR(&websocket_type) },
 };

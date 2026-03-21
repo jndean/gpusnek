@@ -1,3 +1,11 @@
+#ifndef MAYBE_CUDA
+#ifdef __CUDACC__
+#define MAYBE_CUDA __host__ __device__
+#else
+#define MAYBE_CUDA
+#endif
+#endif
+
 /*
  * The little filesystem
  *
@@ -396,6 +404,11 @@ typedef struct lfs2_dir {
     lfs2_block_t head[2];
 } lfs2_dir_t;
 
+struct lfs2_ctz {
+    lfs2_block_t head;
+    lfs2_size_t size;
+};
+
 // littlefs file type
 typedef struct lfs2_file {
     struct lfs2_file *next;
@@ -403,10 +416,7 @@ typedef struct lfs2_file {
     uint8_t type;
     lfs2_mdir_t m;
 
-    struct lfs2_ctz {
-        lfs2_block_t head;
-        lfs2_size_t size;
-    } ctz;
+    struct lfs2_ctz ctz;
 
     uint32_t flags;
     lfs2_off_t pos;
@@ -431,31 +441,35 @@ typedef struct lfs2_gstate {
     lfs2_block_t pair[2];
 } lfs2_gstate_t;
 
+struct lfs2_mlist {
+    struct lfs2_mlist *next;
+    uint16_t id;
+    uint8_t type;
+    lfs2_mdir_t m;
+};
+
+struct lfs2_lookahead {
+    lfs2_block_t start;
+    lfs2_block_t size;
+    lfs2_block_t next;
+    lfs2_block_t ckpoint;
+    uint8_t *buffer;
+};
+
 // The littlefs filesystem type
 typedef struct lfs2 {
     lfs2_cache_t rcache;
     lfs2_cache_t pcache;
 
     lfs2_block_t root[2];
-    struct lfs2_mlist {
-        struct lfs2_mlist *next;
-        uint16_t id;
-        uint8_t type;
-        lfs2_mdir_t m;
-    } *mlist;
+    struct lfs2_mlist *mlist;
     uint32_t seed;
 
     lfs2_gstate_t gstate;
     lfs2_gstate_t gdisk;
     lfs2_gstate_t gdelta;
 
-    struct lfs2_lookahead {
-        lfs2_block_t start;
-        lfs2_block_t size;
-        lfs2_block_t next;
-        lfs2_block_t ckpoint;
-        uint8_t *buffer;
-    } lookahead;
+    struct lfs2_lookahead lookahead;
 
     const struct lfs2_config *cfg;
     lfs2_size_t block_count;
@@ -480,7 +494,7 @@ typedef struct lfs2 {
 // be zeroed for defaults and backwards compatibility.
 //
 // Returns a negative error code on failure.
-int lfs2_format(lfs2_t *lfs2, const struct lfs2_config *config);
+MAYBE_CUDA int lfs2_format(lfs2_t *lfs2, const struct lfs2_config *config);
 #endif
 
 // Mounts a littlefs
@@ -491,13 +505,13 @@ int lfs2_format(lfs2_t *lfs2, const struct lfs2_config *config);
 // be zeroed for defaults and backwards compatibility.
 //
 // Returns a negative error code on failure.
-int lfs2_mount(lfs2_t *lfs2, const struct lfs2_config *config);
+MAYBE_CUDA int lfs2_mount(lfs2_t *lfs2, const struct lfs2_config *config);
 
 // Unmounts a littlefs
 //
 // Does nothing besides releasing any allocated resources.
 // Returns a negative error code on failure.
-int lfs2_unmount(lfs2_t *lfs2);
+MAYBE_CUDA int lfs2_unmount(lfs2_t *lfs2);
 
 /// General operations ///
 
@@ -506,7 +520,7 @@ int lfs2_unmount(lfs2_t *lfs2);
 //
 // If removing a directory, the directory must be empty.
 // Returns a negative error code on failure.
-int lfs2_remove(lfs2_t *lfs2, const char *path);
+MAYBE_CUDA int lfs2_remove(lfs2_t *lfs2, const char *path);
 #endif
 
 #ifndef LFS2_READONLY
@@ -516,14 +530,14 @@ int lfs2_remove(lfs2_t *lfs2, const char *path);
 // If the destination is a directory, the directory must be empty.
 //
 // Returns a negative error code on failure.
-int lfs2_rename(lfs2_t *lfs2, const char *oldpath, const char *newpath);
+MAYBE_CUDA int lfs2_rename(lfs2_t *lfs2, const char *oldpath, const char *newpath);
 #endif
 
 // Find info about a file or directory
 //
 // Fills out the info structure, based on the specified file or directory.
 // Returns a negative error code on failure.
-int lfs2_stat(lfs2_t *lfs2, const char *path, struct lfs2_info *info);
+MAYBE_CUDA int lfs2_stat(lfs2_t *lfs2, const char *path, struct lfs2_info *info);
 
 // Get a custom attribute
 //
@@ -537,7 +551,7 @@ int lfs2_stat(lfs2_t *lfs2, const char *path, struct lfs2_info *info);
 // Note, the returned size is the size of the attribute on disk, irrespective
 // of the size of the buffer. This can be used to dynamically allocate a buffer
 // or check for existence.
-lfs2_ssize_t lfs2_getattr(lfs2_t *lfs2, const char *path,
+MAYBE_CUDA lfs2_ssize_t lfs2_getattr(lfs2_t *lfs2, const char *path,
         uint8_t type, void *buffer, lfs2_size_t size);
 
 #ifndef LFS2_READONLY
@@ -548,7 +562,7 @@ lfs2_ssize_t lfs2_getattr(lfs2_t *lfs2, const char *path,
 // implicitly created.
 //
 // Returns a negative error code on failure.
-int lfs2_setattr(lfs2_t *lfs2, const char *path,
+MAYBE_CUDA int lfs2_setattr(lfs2_t *lfs2, const char *path,
         uint8_t type, const void *buffer, lfs2_size_t size);
 #endif
 
@@ -558,7 +572,7 @@ int lfs2_setattr(lfs2_t *lfs2, const char *path,
 // If an attribute is not found, nothing happens.
 //
 // Returns a negative error code on failure.
-int lfs2_removeattr(lfs2_t *lfs2, const char *path, uint8_t type);
+MAYBE_CUDA int lfs2_removeattr(lfs2_t *lfs2, const char *path, uint8_t type);
 #endif
 
 
@@ -571,7 +585,7 @@ int lfs2_removeattr(lfs2_t *lfs2, const char *path, uint8_t type);
 // are values from the enum lfs2_open_flags that are bitwise-ored together.
 //
 // Returns a negative error code on failure.
-int lfs2_file_open(lfs2_t *lfs2, lfs2_file_t *file,
+MAYBE_CUDA int lfs2_file_open(lfs2_t *lfs2, lfs2_file_t *file,
         const char *path, int flags);
 
 // if LFS2_NO_MALLOC is defined, lfs2_file_open() will fail with LFS2_ERR_NOMEM
@@ -588,7 +602,7 @@ int lfs2_file_open(lfs2_t *lfs2, lfs2_file_t *file,
 // the config struct must be zeroed for defaults and backwards compatibility.
 //
 // Returns a negative error code on failure.
-int lfs2_file_opencfg(lfs2_t *lfs2, lfs2_file_t *file,
+MAYBE_CUDA int lfs2_file_opencfg(lfs2_t *lfs2, lfs2_file_t *file,
         const char *path, int flags,
         const struct lfs2_file_config *config);
 
@@ -598,19 +612,19 @@ int lfs2_file_opencfg(lfs2_t *lfs2, lfs2_file_t *file,
 // sync had been called and releases any allocated resources.
 //
 // Returns a negative error code on failure.
-int lfs2_file_close(lfs2_t *lfs2, lfs2_file_t *file);
+MAYBE_CUDA int lfs2_file_close(lfs2_t *lfs2, lfs2_file_t *file);
 
 // Synchronize a file on storage
 //
 // Any pending writes are written out to storage.
 // Returns a negative error code on failure.
-int lfs2_file_sync(lfs2_t *lfs2, lfs2_file_t *file);
+MAYBE_CUDA int lfs2_file_sync(lfs2_t *lfs2, lfs2_file_t *file);
 
 // Read data from file
 //
 // Takes a buffer and size indicating where to store the read data.
 // Returns the number of bytes read, or a negative error code on failure.
-lfs2_ssize_t lfs2_file_read(lfs2_t *lfs2, lfs2_file_t *file,
+MAYBE_CUDA lfs2_ssize_t lfs2_file_read(lfs2_t *lfs2, lfs2_file_t *file,
         void *buffer, lfs2_size_t size);
 
 #ifndef LFS2_READONLY
@@ -620,7 +634,7 @@ lfs2_ssize_t lfs2_file_read(lfs2_t *lfs2, lfs2_file_t *file,
 // actually be updated on the storage until either sync or close is called.
 //
 // Returns the number of bytes written, or a negative error code on failure.
-lfs2_ssize_t lfs2_file_write(lfs2_t *lfs2, lfs2_file_t *file,
+MAYBE_CUDA lfs2_ssize_t lfs2_file_write(lfs2_t *lfs2, lfs2_file_t *file,
         const void *buffer, lfs2_size_t size);
 #endif
 
@@ -628,33 +642,33 @@ lfs2_ssize_t lfs2_file_write(lfs2_t *lfs2, lfs2_file_t *file,
 //
 // The change in position is determined by the offset and whence flag.
 // Returns the new position of the file, or a negative error code on failure.
-lfs2_soff_t lfs2_file_seek(lfs2_t *lfs2, lfs2_file_t *file,
+MAYBE_CUDA lfs2_soff_t lfs2_file_seek(lfs2_t *lfs2, lfs2_file_t *file,
         lfs2_soff_t off, int whence);
 
 #ifndef LFS2_READONLY
 // Truncates the size of the file to the specified size
 //
 // Returns a negative error code on failure.
-int lfs2_file_truncate(lfs2_t *lfs2, lfs2_file_t *file, lfs2_off_t size);
+MAYBE_CUDA int lfs2_file_truncate(lfs2_t *lfs2, lfs2_file_t *file, lfs2_off_t size);
 #endif
 
 // Return the position of the file
 //
 // Equivalent to lfs2_file_seek(lfs2, file, 0, LFS2_SEEK_CUR)
 // Returns the position of the file, or a negative error code on failure.
-lfs2_soff_t lfs2_file_tell(lfs2_t *lfs2, lfs2_file_t *file);
+MAYBE_CUDA lfs2_soff_t lfs2_file_tell(lfs2_t *lfs2, lfs2_file_t *file);
 
 // Change the position of the file to the beginning of the file
 //
 // Equivalent to lfs2_file_seek(lfs2, file, 0, LFS2_SEEK_SET)
 // Returns a negative error code on failure.
-int lfs2_file_rewind(lfs2_t *lfs2, lfs2_file_t *file);
+MAYBE_CUDA int lfs2_file_rewind(lfs2_t *lfs2, lfs2_file_t *file);
 
 // Return the size of the file
 //
 // Similar to lfs2_file_seek(lfs2, file, 0, LFS2_SEEK_END)
 // Returns the size of the file, or a negative error code on failure.
-lfs2_soff_t lfs2_file_size(lfs2_t *lfs2, lfs2_file_t *file);
+MAYBE_CUDA lfs2_soff_t lfs2_file_size(lfs2_t *lfs2, lfs2_file_t *file);
 
 
 /// Directory operations ///
@@ -663,27 +677,27 @@ lfs2_soff_t lfs2_file_size(lfs2_t *lfs2, lfs2_file_t *file);
 // Create a directory
 //
 // Returns a negative error code on failure.
-int lfs2_mkdir(lfs2_t *lfs2, const char *path);
+MAYBE_CUDA int lfs2_mkdir(lfs2_t *lfs2, const char *path);
 #endif
 
 // Open a directory
 //
 // Once open a directory can be used with read to iterate over files.
 // Returns a negative error code on failure.
-int lfs2_dir_open(lfs2_t *lfs2, lfs2_dir_t *dir, const char *path);
+MAYBE_CUDA int lfs2_dir_open(lfs2_t *lfs2, lfs2_dir_t *dir, const char *path);
 
 // Close a directory
 //
 // Releases any allocated resources.
 // Returns a negative error code on failure.
-int lfs2_dir_close(lfs2_t *lfs2, lfs2_dir_t *dir);
+MAYBE_CUDA int lfs2_dir_close(lfs2_t *lfs2, lfs2_dir_t *dir);
 
 // Read an entry in the directory
 //
 // Fills out the info structure, based on the specified file or directory.
 // Returns a positive value on success, 0 at the end of directory,
 // or a negative error code on failure.
-int lfs2_dir_read(lfs2_t *lfs2, lfs2_dir_t *dir, struct lfs2_info *info);
+MAYBE_CUDA int lfs2_dir_read(lfs2_t *lfs2, lfs2_dir_t *dir, struct lfs2_info *info);
 
 // Change the position of the directory
 //
@@ -691,7 +705,7 @@ int lfs2_dir_read(lfs2_t *lfs2, lfs2_dir_t *dir, struct lfs2_info *info);
 // an absolute offset in the directory seek.
 //
 // Returns a negative error code on failure.
-int lfs2_dir_seek(lfs2_t *lfs2, lfs2_dir_t *dir, lfs2_off_t off);
+MAYBE_CUDA int lfs2_dir_seek(lfs2_t *lfs2, lfs2_dir_t *dir, lfs2_off_t off);
 
 // Return the position of the directory
 //
@@ -699,12 +713,12 @@ int lfs2_dir_seek(lfs2_t *lfs2, lfs2_dir_t *dir, lfs2_off_t off);
 // sense, but does indicate the current position in the directory iteration.
 //
 // Returns the position of the directory, or a negative error code on failure.
-lfs2_soff_t lfs2_dir_tell(lfs2_t *lfs2, lfs2_dir_t *dir);
+MAYBE_CUDA lfs2_soff_t lfs2_dir_tell(lfs2_t *lfs2, lfs2_dir_t *dir);
 
 // Change the position of the directory to the beginning of the directory
 //
 // Returns a negative error code on failure.
-int lfs2_dir_rewind(lfs2_t *lfs2, lfs2_dir_t *dir);
+MAYBE_CUDA int lfs2_dir_rewind(lfs2_t *lfs2, lfs2_dir_t *dir);
 
 
 /// Filesystem-level filesystem operations
@@ -713,7 +727,7 @@ int lfs2_dir_rewind(lfs2_t *lfs2, lfs2_dir_t *dir);
 //
 // Fills out the fsinfo structure based on the filesystem found on-disk.
 // Returns a negative error code on failure.
-int lfs2_fs_stat(lfs2_t *lfs2, struct lfs2_fsinfo *fsinfo);
+MAYBE_CUDA int lfs2_fs_stat(lfs2_t *lfs2, struct lfs2_fsinfo *fsinfo);
 
 // Finds the current size of the filesystem
 //
@@ -721,7 +735,7 @@ int lfs2_fs_stat(lfs2_t *lfs2, struct lfs2_fsinfo *fsinfo);
 // size may be larger than the filesystem actually is.
 //
 // Returns the number of allocated blocks, or a negative error code on failure.
-lfs2_ssize_t lfs2_fs_size(lfs2_t *lfs2);
+MAYBE_CUDA lfs2_ssize_t lfs2_fs_size(lfs2_t *lfs2);
 
 // Traverse through all blocks in use by the filesystem
 //
@@ -730,7 +744,7 @@ lfs2_ssize_t lfs2_fs_size(lfs2_t *lfs2);
 // blocks are in use or how much of the storage is available.
 //
 // Returns a negative error code on failure.
-int lfs2_fs_traverse(lfs2_t *lfs2, int (*cb)(void*, lfs2_block_t), void *data);
+MAYBE_CUDA int lfs2_fs_traverse(lfs2_t *lfs2, int (*cb)(void*, lfs2_block_t), void *data);
 
 #ifndef LFS2_READONLY
 // Attempt to make the filesystem consistent and ready for writing
@@ -741,7 +755,7 @@ int lfs2_fs_traverse(lfs2_t *lfs2, int (*cb)(void*, lfs2_block_t), void *data);
 // filesystem changes.
 //
 // Returns a negative error code on failure.
-int lfs2_fs_mkconsistent(lfs2_t *lfs2);
+MAYBE_CUDA int lfs2_fs_mkconsistent(lfs2_t *lfs2);
 #endif
 
 #ifndef LFS2_READONLY
@@ -759,7 +773,7 @@ int lfs2_fs_mkconsistent(lfs2_t *lfs2);
 //
 // Returns a negative error code on failure. Accomplishing nothing is not
 // an error.
-int lfs2_fs_gc(lfs2_t *lfs2);
+MAYBE_CUDA int lfs2_fs_gc(lfs2_t *lfs2);
 #endif
 
 #ifndef LFS2_READONLY
@@ -773,7 +787,7 @@ int lfs2_fs_gc(lfs2_t *lfs2);
 // this is very unlikely to work in the general case.
 //
 // Returns a negative error code on failure.
-int lfs2_fs_grow(lfs2_t *lfs2, lfs2_size_t block_count);
+MAYBE_CUDA int lfs2_fs_grow(lfs2_t *lfs2, lfs2_size_t block_count);
 #endif
 
 #ifndef LFS2_READONLY
@@ -789,7 +803,7 @@ int lfs2_fs_grow(lfs2_t *lfs2, lfs2_size_t block_count);
 // be zeroed for defaults and backwards compatibility.
 //
 // Returns a negative error code on failure.
-int lfs2_migrate(lfs2_t *lfs2, const struct lfs2_config *cfg);
+MAYBE_CUDA int lfs2_migrate(lfs2_t *lfs2, const struct lfs2_config *cfg);
 #endif
 #endif
 

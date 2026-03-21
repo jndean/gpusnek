@@ -150,7 +150,7 @@ static mp_obj_t hashlib_sha256_digest(mp_obj_t self_in) {
 static MP_DEFINE_CONST_FUN_OBJ_2(hashlib_sha256_update_obj, hashlib_sha256_update);
 static MP_DEFINE_CONST_FUN_OBJ_1(hashlib_sha256_digest_obj, hashlib_sha256_digest);
 
-static const mp_rom_map_elem_t hashlib_sha256_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t hashlib_sha256_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_update), MP_ROM_PTR(&hashlib_sha256_update_obj) },
     { MP_ROM_QSTR(MP_QSTR_digest), MP_ROM_PTR(&hashlib_sha256_digest_obj) },
 };
@@ -245,7 +245,7 @@ static mp_obj_t hashlib_sha1_digest(mp_obj_t self_in) {
 static MP_DEFINE_CONST_FUN_OBJ_2(hashlib_sha1_update_obj, hashlib_sha1_update);
 static MP_DEFINE_CONST_FUN_OBJ_1(hashlib_sha1_digest_obj, hashlib_sha1_digest);
 
-static const mp_rom_map_elem_t hashlib_sha1_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t hashlib_sha1_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_update), MP_ROM_PTR(&hashlib_sha1_update_obj) },
     { MP_ROM_QSTR(MP_QSTR_digest), MP_ROM_PTR(&hashlib_sha1_digest_obj) },
 };
@@ -339,7 +339,7 @@ static mp_obj_t hashlib_md5_digest(mp_obj_t self_in) {
 static MP_DEFINE_CONST_FUN_OBJ_2(hashlib_md5_update_obj, hashlib_md5_update);
 static MP_DEFINE_CONST_FUN_OBJ_1(hashlib_md5_digest_obj, hashlib_md5_digest);
 
-static const mp_rom_map_elem_t hashlib_md5_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t hashlib_md5_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_update), MP_ROM_PTR(&hashlib_md5_update_obj) },
     { MP_ROM_QSTR(MP_QSTR_digest), MP_ROM_PTR(&hashlib_md5_digest_obj) },
 };
@@ -354,7 +354,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
     );
 #endif // MICROPY_PY_HASHLIB_MD5
 
-static const mp_rom_map_elem_t mp_module_hashlib_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_hashlib_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_hashlib) },
     #if MICROPY_PY_HASHLIB_SHA256
     { MP_ROM_QSTR(MP_QSTR_sha256), MP_ROM_PTR(&hashlib_sha256_type) },

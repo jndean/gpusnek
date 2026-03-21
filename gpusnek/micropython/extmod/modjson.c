@@ -367,7 +367,7 @@ static mp_obj_t mod_json_loads(mp_obj_t obj) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(mod_json_loads_obj, mod_json_loads);
 
-static const mp_rom_map_elem_t mp_module_json_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_json_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_json) },
     { MP_ROM_QSTR(MP_QSTR_dump), MP_ROM_PTR(&mod_json_dump_obj) },
     { MP_ROM_QSTR(MP_QSTR_dumps), MP_ROM_PTR(&mod_json_dumps_obj) },

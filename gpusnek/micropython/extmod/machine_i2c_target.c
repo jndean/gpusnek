@@ -353,7 +353,7 @@ static mp_obj_t machine_i2c_target_irq(size_t n_args, const mp_obj_t *pos_args, 
 }
 static MP_DEFINE_CONST_FUN_OBJ_KW(machine_i2c_target_irq_obj, 1, machine_i2c_target_irq);
 
-static const mp_rom_map_elem_t machine_i2c_target_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t machine_i2c_target_locals_dict_table[] = {
     #if MICROPY_PY_MACHINE_I2C_TARGET_FINALISER
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&machine_i2c_target_deinit_obj) },
     #endif

@@ -35,7 +35,7 @@
 
 enum { LFS_MAKE_ARG_bdev, LFS_MAKE_ARG_readsize, LFS_MAKE_ARG_progsize, LFS_MAKE_ARG_lookahead, LFS_MAKE_ARG_mtime };
 
-static const mp_arg_t lfs_make_allowed_args[] = {
+static MAYBE_CUDA const mp_arg_t lfs_make_allowed_args[] = {
     { MP_QSTR_, MP_ARG_REQUIRED | MP_ARG_OBJ, {.u_obj = MP_OBJ_NULL} },
     { MP_QSTR_readsize, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 32} },
     { MP_QSTR_progsize, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 32} },
@@ -72,8 +72,8 @@ typedef struct _mp_obj_vfs_lfs1_file_t {
     uint8_t file_buffer[0];
 } mp_obj_vfs_lfs1_file_t;
 
-const char *mp_vfs_lfs1_make_path(mp_obj_vfs_lfs1_t *self, mp_obj_t path_in);
-mp_obj_t mp_vfs_lfs1_file_open(mp_obj_t self_in, mp_obj_t path_in, mp_obj_t mode_in);
+MAYBE_CUDA const char *mp_vfs_lfs1_make_path(mp_obj_vfs_lfs1_t *self, mp_obj_t path_in);
+MAYBE_CUDA mp_obj_t mp_vfs_lfs1_file_open(mp_obj_t self_in, mp_obj_t path_in, mp_obj_t mode_in);
 
 #include "extmod/vfs_lfsx.c"
 #include "extmod/vfs_lfsx_file.c"
@@ -124,10 +124,10 @@ typedef struct _mp_obj_vfs_lfs2_file_t {
     uint8_t file_buffer[0];
 } mp_obj_vfs_lfs2_file_t;
 
-const char *mp_vfs_lfs2_make_path(mp_obj_vfs_lfs2_t *self, mp_obj_t path_in);
-mp_obj_t mp_vfs_lfs2_file_open(mp_obj_t self_in, mp_obj_t path_in, mp_obj_t mode_in);
+MAYBE_CUDA const char *mp_vfs_lfs2_make_path(mp_obj_vfs_lfs2_t *self, mp_obj_t path_in);
+MAYBE_CUDA mp_obj_t mp_vfs_lfs2_file_open(mp_obj_t self_in, mp_obj_t path_in, mp_obj_t mode_in);
 
-static void lfs_get_mtime(uint8_t buf[8]) {
+static MAYBE_CUDA void lfs_get_mtime(uint8_t buf[8]) {
     // On-disk storage of timestamps uses 1970 as the Epoch, so convert from host's Epoch.
     uint64_t ns = timeutils_nanoseconds_since_epoch_to_nanoseconds_since_1970(mp_hal_time_ns());
     // Store "ns" to "buf" in little-endian format (essentially htole64).

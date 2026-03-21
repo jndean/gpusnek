@@ -209,7 +209,7 @@ static mp_obj_t ssl_context_wrap_socket(size_t n_args, const mp_obj_t *pos_args,
 }
 static MP_DEFINE_CONST_FUN_OBJ_KW(ssl_context_wrap_socket_obj, 2, ssl_context_wrap_socket);
 
-static const mp_rom_map_elem_t ssl_context_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t ssl_context_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_load_cert_chain), MP_ROM_PTR(&ssl_context_load_cert_chain_obj)},
     { MP_ROM_QSTR(MP_QSTR_wrap_socket), MP_ROM_PTR(&ssl_context_wrap_socket_obj) },
 };
@@ -412,7 +412,7 @@ static mp_obj_t ssl_socket_setblocking(mp_obj_t self_in, mp_obj_t flag_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_2(ssl_socket_setblocking_obj, ssl_socket_setblocking);
 
-static const mp_rom_map_elem_t ssl_socket_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t ssl_socket_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
     { MP_ROM_QSTR(MP_QSTR_readinto), MP_ROM_PTR(&mp_stream_readinto_obj) },
     { MP_ROM_QSTR(MP_QSTR_readline), MP_ROM_PTR(&mp_stream_unbuffered_readline_obj) },
@@ -442,7 +442,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
 /******************************************************************************/
 // ssl module.
 
-static const mp_rom_map_elem_t mp_module_tls_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_tls_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_tls) },
 
     // Classes.

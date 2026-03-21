@@ -338,7 +338,7 @@ static MAYBE_CUDA mp_obj_t array_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, m
                 }
                 array_get_buffer(lhs_in, &lhs_bufinfo, MP_BUFFER_READ);
                 return mp_obj_new_bool(
-                    find_subbytes(lhs_bufinfo.buf, lhs_bufinfo.len, rhs_bufinfo.buf, rhs_bufinfo.len, 1) != NULL);
+                    find_subbytes((const byte *)lhs_bufinfo.buf, lhs_bufinfo.len, (const byte *)rhs_bufinfo.buf, rhs_bufinfo.len, 1) != NULL);
             }
             #endif
 
@@ -468,19 +468,18 @@ static MAYBE_CUDA mp_obj_t array_subscr(mp_obj_t self_in, mp_obj_t index_in, mp_
             if (value != MP_OBJ_SENTINEL) {
                 #if MICROPY_PY_ARRAY_SLICE_ASSIGN
                 // Assign
-                size_t src_len;
-                uint8_t *src_items;
+                size_t src_len = 0;
+                uint8_t *src_items = NULL;
                 size_t src_offs = 0;
                 size_t item_sz = mp_binary_get_size('@', o->typecode & TYPECODE_MASK, NULL);
                 if (mp_obj_is_obj(value) && MP_OBJ_TYPE_GET_SLOT_OR_NULL(((mp_obj_base_t *)MP_OBJ_TO_PTR(value))->type, subscr) == array_subscr) {
                     // value is array, bytearray or memoryview
-                    mp_obj_array_t *src_slice = MP_OBJ_TO_PTR(value);
+                    mp_obj_array_t *src_slice = (mp_obj_array_t *)MP_OBJ_TO_PTR(value);
                     if (item_sz != mp_binary_get_size('@', src_slice->typecode & TYPECODE_MASK, NULL)) {
-                    compat_error:
                         mp_raise_ValueError(MP_ERROR_TEXT("lhs and rhs should be compatible"));
                     }
                     src_len = src_slice->len;
-                    src_items = src_slice->items;
+                    src_items = (uint8_t *)src_slice->items;
                     #if MICROPY_PY_BUILTINS_MEMORYVIEW
                     if (mp_obj_is_type(value, &mp_type_memoryview)) {
                         src_offs = src_slice->memview_offset * item_sz;
@@ -488,19 +487,19 @@ static MAYBE_CUDA mp_obj_t array_subscr(mp_obj_t self_in, mp_obj_t index_in, mp_
                     #endif
                 } else if (mp_obj_is_type(value, &mp_type_bytes)) {
                     if (item_sz != 1) {
-                        goto compat_error;
+                        mp_raise_ValueError(MP_ERROR_TEXT("lhs and rhs should be compatible"));
                     }
                     mp_buffer_info_t bufinfo;
                     mp_get_buffer_raise(value, &bufinfo, MP_BUFFER_READ);
                     src_len = bufinfo.len;
-                    src_items = bufinfo.buf;
+                    src_items = (uint8_t *)bufinfo.buf;
                 } else {
                     mp_raise_NotImplementedError(MP_ERROR_TEXT("array/bytes required on right side"));
                 }
 
                 // TODO: check src/dst compat
                 mp_int_t len_adj = src_len - (slice.stop - slice.start);
-                uint8_t *dest_items = o->items;
+                uint8_t *dest_items = (uint8_t *)o->items;
                 #if MICROPY_PY_BUILTINS_MEMORYVIEW
                 if (o->base.type == &mp_type_memoryview) {
                     if (!(o->typecode & MP_OBJ_ARRAY_TYPECODE_FLAG_RW)) {
@@ -508,7 +507,7 @@ static MAYBE_CUDA mp_obj_t array_subscr(mp_obj_t self_in, mp_obj_t index_in, mp_
                         return MP_OBJ_NULL;
                     }
                     if (len_adj != 0) {
-                        goto compat_error;
+                        mp_raise_ValueError(MP_ERROR_TEXT("lhs and rhs should be compatible"));
                     }
                     dest_items += o->memview_offset * item_sz;
                 }
@@ -520,9 +519,9 @@ static MAYBE_CUDA mp_obj_t array_subscr(mp_obj_t self_in, mp_obj_t index_in, mp_
                         o->free = len_adj;
                         // m_renew may have moved o->items
                         if (src_items == dest_items) {
-                            src_items = o->items;
+                            src_items = (uint8_t *)o->items;
                         }
-                        dest_items = o->items;
+                        dest_items = (uint8_t *)o->items;
                     }
                     mp_seq_replace_slice_grow_inplace(dest_items, o->len,
                         slice.start, slice.stop, src_items + src_offs, src_len, len_adj, item_sz);

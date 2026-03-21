@@ -32,7 +32,7 @@
 
 #if MICROPY_VFS
 
-void mp_vfs_blockdev_init(mp_vfs_blockdev_t *self, mp_obj_t bdev) {
+MAYBE_CUDA void mp_vfs_blockdev_init(mp_vfs_blockdev_t *self, mp_obj_t bdev) {
     mp_load_method(bdev, MP_QSTR_readblocks, self->readblocks);
     mp_load_method_maybe(bdev, MP_QSTR_writeblocks, self->writeblocks);
     mp_load_method_maybe(bdev, MP_QSTR_ioctl, self->u.ioctl);
@@ -48,7 +48,7 @@ void mp_vfs_blockdev_init(mp_vfs_blockdev_t *self, mp_obj_t bdev) {
 
 // Helper function to minimise code size of read/write functions
 // note the n_args argument is moved to the end for further code size reduction (args keep same position in caller and callee).
-static int mp_vfs_blockdev_call_rw(mp_obj_t *args, size_t block_num, size_t block_off, size_t len, void *buf, size_t n_args) {
+MAYBE_CUDA static int mp_vfs_blockdev_call_rw(mp_obj_t *args, size_t block_num, size_t block_off, size_t len, void *buf, size_t n_args) {
     mp_obj_array_t ar = {{&mp_type_bytearray}, BYTEARRAY_TYPECODE, 0, len, buf};
     args[2] = MP_OBJ_NEW_SMALL_INT(block_num);
     args[3] = MP_OBJ_FROM_PTR(&ar);
@@ -74,34 +74,37 @@ static int mp_vfs_blockdev_call_rw(mp_obj_t *args, size_t block_num, size_t bloc
     }
 }
 
-int mp_vfs_blockdev_read(mp_vfs_blockdev_t *self, size_t block_num, size_t num_blocks, uint8_t *buf) {
+typedef mp_uint_t (*readblock_fn_t)(uint8_t *, uint32_t, uint32_t);
+typedef mp_uint_t (*writeblock_fn_t)(const uint8_t *, uint32_t, uint32_t);
+
+MAYBE_CUDA int mp_vfs_blockdev_read(mp_vfs_blockdev_t *self, size_t block_num, size_t num_blocks, uint8_t *buf) {
     if (self->flags & MP_BLOCKDEV_FLAG_NATIVE) {
-        mp_uint_t (*f)(uint8_t *, uint32_t, uint32_t) = (void *)(uintptr_t)self->readblocks[2];
+        readblock_fn_t f = (readblock_fn_t)(uintptr_t)self->readblocks[2];
         return f(buf, block_num, num_blocks);
     } else {
         return mp_vfs_blockdev_call_rw(self->readblocks, block_num, 0, num_blocks * self->block_size, buf, 2);
     }
 }
 
-int mp_vfs_blockdev_read_ext(mp_vfs_blockdev_t *self, size_t block_num, size_t block_off, size_t len, uint8_t *buf) {
+MAYBE_CUDA int mp_vfs_blockdev_read_ext(mp_vfs_blockdev_t *self, size_t block_num, size_t block_off, size_t len, uint8_t *buf) {
     return mp_vfs_blockdev_call_rw(self->readblocks, block_num, block_off, len, buf, 3);
 }
 
-int mp_vfs_blockdev_write(mp_vfs_blockdev_t *self, size_t block_num, size_t num_blocks, const uint8_t *buf) {
+MAYBE_CUDA int mp_vfs_blockdev_write(mp_vfs_blockdev_t *self, size_t block_num, size_t num_blocks, const uint8_t *buf) {
     if (self->writeblocks[0] == MP_OBJ_NULL) {
         // read-only block device
         return -MP_EROFS;
     }
 
     if (self->flags & MP_BLOCKDEV_FLAG_NATIVE) {
-        mp_uint_t (*f)(const uint8_t *, uint32_t, uint32_t) = (void *)(uintptr_t)self->writeblocks[2];
+        writeblock_fn_t f = (writeblock_fn_t)(uintptr_t)self->writeblocks[2];
         return f(buf, block_num, num_blocks);
     } else {
         return mp_vfs_blockdev_call_rw(self->writeblocks, block_num, 0, num_blocks * self->block_size, (void *)buf, 2);
     }
 }
 
-int mp_vfs_blockdev_write_ext(mp_vfs_blockdev_t *self, size_t block_num, size_t block_off, size_t len, const uint8_t *buf) {
+MAYBE_CUDA int mp_vfs_blockdev_write_ext(mp_vfs_blockdev_t *self, size_t block_num, size_t block_off, size_t len, const uint8_t *buf) {
     if (self->writeblocks[0] == MP_OBJ_NULL) {
         // read-only block device
         return -MP_EROFS;
@@ -109,7 +112,7 @@ int mp_vfs_blockdev_write_ext(mp_vfs_blockdev_t *self, size_t block_num, size_t 
     return mp_vfs_blockdev_call_rw(self->writeblocks, block_num, block_off, len, (void *)buf, 3);
 }
 
-mp_obj_t mp_vfs_blockdev_ioctl(mp_vfs_blockdev_t *self, uintptr_t cmd, uintptr_t arg) {
+MAYBE_CUDA mp_obj_t mp_vfs_blockdev_ioctl(mp_vfs_blockdev_t *self, uintptr_t cmd, uintptr_t arg) {
     if (self->flags & MP_BLOCKDEV_FLAG_HAVE_IOCTL) {
         // New protocol with ioctl
         self->u.ioctl[2] = MP_OBJ_NEW_SMALL_INT(cmd);

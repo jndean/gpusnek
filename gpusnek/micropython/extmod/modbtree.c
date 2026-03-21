@@ -349,7 +349,7 @@ static mp_obj_t btree_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs
 }
 
 #if !MICROPY_ENABLE_DYNRUNTIME
-static const mp_rom_map_elem_t btree_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t btree_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&btree_close_obj) },
     { MP_ROM_QSTR(MP_QSTR_flush), MP_ROM_PTR(&btree_flush_obj) },
     { MP_ROM_QSTR(MP_QSTR_get), MP_ROM_PTR(&btree_get_obj) },
@@ -421,7 +421,7 @@ static mp_obj_t mod_btree_open(size_t n_args, const mp_obj_t *pos_args, mp_map_t
 }
 static MP_DEFINE_CONST_FUN_OBJ_KW(mod_btree_open_obj, 1, mod_btree_open);
 
-static const mp_rom_map_elem_t mp_module_btree_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_btree_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_btree) },
     { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mod_btree_open_obj) },
     { MP_ROM_QSTR(MP_QSTR_INCL), MP_ROM_INT(FLAG_END_KEY_INCL) },

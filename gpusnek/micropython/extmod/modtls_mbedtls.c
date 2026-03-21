@@ -521,7 +521,7 @@ static mp_obj_t ssl_context_wrap_socket(size_t n_args, const mp_obj_t *pos_args,
 }
 static MP_DEFINE_CONST_FUN_OBJ_KW(ssl_context_wrap_socket_obj, 2, ssl_context_wrap_socket);
 
-static const mp_rom_map_elem_t ssl_context_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t ssl_context_locals_dict_table[] = {
     #if MICROPY_PY_SSL_FINALISER
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&ssl_context___del___obj) },
     #endif
@@ -889,7 +889,7 @@ static mp_uint_t socket_ioctl(mp_obj_t o_in, mp_uint_t request, uintptr_t arg, i
     return ret;
 }
 
-static const mp_rom_map_elem_t ssl_socket_locals_dict_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t ssl_socket_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&mp_stream_read_obj) },
     { MP_ROM_QSTR(MP_QSTR_readinto), MP_ROM_PTR(&mp_stream_readinto_obj) },
     { MP_ROM_QSTR(MP_QSTR_readline), MP_ROM_PTR(&mp_stream_unbuffered_readline_obj) },
@@ -983,7 +983,7 @@ int micropy_mbedtls_ecdsa_sign_alt(const mbedtls_mpi *d, const unsigned char *ha
 }
 #endif
 
-static const mp_rom_map_elem_t mp_module_tls_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mp_module_tls_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_tls) },
 
     // Classes.

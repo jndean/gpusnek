@@ -58,7 +58,7 @@
 // object (starts with / if an absolute path).
 // Returns MP_VFS_ROOT for root dir (and then path_out is undefined) and
 // MP_VFS_NONE for path not found.
-mp_vfs_mount_t *mp_vfs_lookup_path(const char *path, const char **path_out) {
+MAYBE_CUDA mp_vfs_mount_t *mp_vfs_lookup_path(const char *path, const char **path_out) {
     if (*path == '/' || MP_STATE_VM(vfs_cur) == MP_VFS_ROOT) {
         // an absolute path, or the current volume is root, so search root dir
         bool is_abs = 0;
@@ -97,7 +97,7 @@ mp_vfs_mount_t *mp_vfs_lookup_path(const char *path, const char **path_out) {
 }
 
 // Version of mp_vfs_lookup_path that takes and returns MicroPython string objects.
-static mp_vfs_mount_t *lookup_path(mp_obj_t path_in, mp_obj_t *path_out) {
+static MAYBE_CUDA mp_vfs_mount_t *lookup_path(mp_obj_t path_in, mp_obj_t *path_out) {
     const char *path = mp_obj_str_get_str(path_in);
     const char *p_out;
     mp_vfs_mount_t *vfs = mp_vfs_lookup_path(path, &p_out);
@@ -110,7 +110,7 @@ static mp_vfs_mount_t *lookup_path(mp_obj_t path_in, mp_obj_t *path_out) {
     return vfs;
 }
 
-static mp_obj_t mp_vfs_proxy_call(mp_vfs_mount_t *vfs, qstr meth_name, size_t n_args, const mp_obj_t *args) {
+static MAYBE_CUDA mp_obj_t mp_vfs_proxy_call(mp_vfs_mount_t *vfs, qstr meth_name, size_t n_args, const mp_obj_t *args) {
     assert(n_args <= PROXY_MAX_ARGS);
     if (vfs == MP_VFS_NONE) {
         // mount point not found
@@ -128,7 +128,7 @@ static mp_obj_t mp_vfs_proxy_call(mp_vfs_mount_t *vfs, qstr meth_name, size_t n_
     return mp_call_method_n_kw(n_args, 0, meth);
 }
 
-mp_import_stat_t mp_vfs_import_stat(const char *path) {
+MAYBE_CUDA mp_import_stat_t mp_vfs_import_stat(const char *path) {
     const char *path_out;
     mp_vfs_mount_t *vfs = mp_vfs_lookup_path(path, &path_out);
     if (vfs == MP_VFS_NONE || vfs == MP_VFS_ROOT) {
@@ -138,7 +138,7 @@ mp_import_stat_t mp_vfs_import_stat(const char *path) {
     // If the mounted object has the VFS protocol, call its import_stat helper
     const mp_obj_type_t *type = mp_obj_get_type(vfs->obj);
     if (MP_OBJ_TYPE_HAS_SLOT(type, protocol)) {
-        const mp_vfs_proto_t *proto = MP_OBJ_TYPE_GET_SLOT(type, protocol);
+        const mp_vfs_proto_t *proto = (const mp_vfs_proto_t *)MP_OBJ_TYPE_GET_SLOT(type, protocol);
         return proto->import_stat(MP_OBJ_TO_PTR(vfs->obj), path_out);
     }
 
@@ -163,7 +163,7 @@ mp_import_stat_t mp_vfs_import_stat(const char *path) {
     }
 }
 
-static mp_obj_t mp_vfs_autodetect(mp_obj_t bdev_obj) {
+static MAYBE_CUDA mp_obj_t mp_vfs_autodetect(mp_obj_t bdev_obj) {
     #if MICROPY_VFS_LFS1 || MICROPY_VFS_LFS2
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {
@@ -205,7 +205,7 @@ static mp_obj_t mp_vfs_autodetect(mp_obj_t bdev_obj) {
     mp_raise_OSError(MP_ENODEV);
 }
 
-mp_obj_t mp_vfs_mount(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+MAYBE_CUDA mp_obj_t mp_vfs_mount(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     if (n_args == 0) {
         // zero-args, output a table of all current mountpoints
         mp_obj_t mount_list = mp_obj_new_list(0, NULL);
@@ -284,7 +284,7 @@ mp_obj_t mp_vfs_mount(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args
 }
 MP_DEFINE_CONST_FUN_OBJ_KW(mp_vfs_mount_obj, 0, mp_vfs_mount);
 
-mp_obj_t mp_vfs_umount(mp_obj_t mnt_in) {
+MAYBE_CUDA mp_obj_t mp_vfs_umount(mp_obj_t mnt_in) {
     // remove vfs from the mount table
     mp_vfs_mount_t *vfs = NULL;
     size_t mnt_len;
@@ -317,7 +317,7 @@ mp_obj_t mp_vfs_umount(mp_obj_t mnt_in) {
 MP_DEFINE_CONST_FUN_OBJ_1(mp_vfs_umount_obj, mp_vfs_umount);
 
 // Note: buffering and encoding args are currently ignored
-mp_obj_t mp_vfs_open(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+MAYBE_CUDA mp_obj_t mp_vfs_open(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_file, ARG_mode, ARG_encoding };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_file, MP_ARG_OBJ | MP_ARG_REQUIRED, {.u_rom_obj = MP_ROM_NONE} },
@@ -342,7 +342,7 @@ mp_obj_t mp_vfs_open(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args)
 }
 MP_DEFINE_CONST_FUN_OBJ_KW(mp_vfs_open_obj, 0, mp_vfs_open);
 
-mp_obj_t mp_vfs_chdir(mp_obj_t path_in) {
+MAYBE_CUDA mp_obj_t mp_vfs_chdir(mp_obj_t path_in) {
     mp_obj_t path_out;
     mp_vfs_mount_t *vfs = lookup_path(path_in, &path_out);
     if (vfs == MP_VFS_ROOT) {
@@ -365,7 +365,7 @@ mp_obj_t mp_vfs_chdir(mp_obj_t path_in) {
 }
 MP_DEFINE_CONST_FUN_OBJ_1(mp_vfs_chdir_obj, mp_vfs_chdir);
 
-mp_obj_t mp_vfs_getcwd(void) {
+MAYBE_CUDA mp_obj_t mp_vfs_getcwd(void) {
     if (MP_STATE_VM(vfs_cur) == MP_VFS_ROOT) {
         return MP_OBJ_NEW_QSTR(MP_QSTR__slash_);
     }
@@ -396,8 +396,8 @@ typedef struct _mp_vfs_ilistdir_it_t {
     bool is_iter;
 } mp_vfs_ilistdir_it_t;
 
-static mp_obj_t mp_vfs_ilistdir_it_iternext(mp_obj_t self_in) {
-    mp_vfs_ilistdir_it_t *self = MP_OBJ_TO_PTR(self_in);
+static MAYBE_CUDA mp_obj_t mp_vfs_ilistdir_it_iternext(mp_obj_t self_in) {
+    mp_vfs_ilistdir_it_t *self = (mp_vfs_ilistdir_it_t *)MP_OBJ_TO_PTR(self_in);
     if (self->is_iter) {
         // continue delegating to root dir
         return mp_iternext(self->cur.iter);
@@ -416,7 +416,7 @@ static mp_obj_t mp_vfs_ilistdir_it_iternext(mp_obj_t self_in) {
             return mp_iternext(self->cur.iter);
         } else {
             // a mounted directory
-            mp_obj_tuple_t *t = MP_OBJ_TO_PTR(mp_obj_new_tuple(3, NULL));
+            mp_obj_tuple_t *t = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(mp_obj_new_tuple(3, NULL));
             t->items[0] = mp_obj_new_str_of_type(
                 self->is_str ? &mp_type_str : &mp_type_bytes,
                 (const byte *)vfs->str + 1, vfs->len - 1);
@@ -427,7 +427,7 @@ static mp_obj_t mp_vfs_ilistdir_it_iternext(mp_obj_t self_in) {
     }
 }
 
-mp_obj_t mp_vfs_ilistdir(size_t n_args, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_vfs_ilistdir(size_t n_args, const mp_obj_t *args) {
     mp_obj_t path_in;
     if (n_args == 1) {
         path_in = args[0];
@@ -452,7 +452,7 @@ mp_obj_t mp_vfs_ilistdir(size_t n_args, const mp_obj_t *args) {
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_vfs_ilistdir_obj, 0, 1, mp_vfs_ilistdir);
 
-mp_obj_t mp_vfs_listdir(size_t n_args, const mp_obj_t *args) {
+MAYBE_CUDA mp_obj_t mp_vfs_listdir(size_t n_args, const mp_obj_t *args) {
     mp_obj_t iter = mp_vfs_ilistdir(n_args, args);
     mp_obj_t dir_list = mp_obj_new_list(0, NULL);
     mp_obj_t next;
@@ -465,7 +465,7 @@ MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_vfs_listdir_obj, 0, 1, mp_vfs_listdir);
 
 #if MICROPY_VFS_WRITABLE
 
-mp_obj_t mp_vfs_mkdir(mp_obj_t path_in) {
+MAYBE_CUDA mp_obj_t mp_vfs_mkdir(mp_obj_t path_in) {
     mp_obj_t path_out;
     mp_vfs_mount_t *vfs = lookup_path(path_in, &path_out);
     if (vfs == MP_VFS_ROOT || (vfs != MP_VFS_NONE && !strcmp(mp_obj_str_get_str(path_out), "/"))) {
@@ -475,14 +475,14 @@ mp_obj_t mp_vfs_mkdir(mp_obj_t path_in) {
 }
 MP_DEFINE_CONST_FUN_OBJ_1(mp_vfs_mkdir_obj, mp_vfs_mkdir);
 
-mp_obj_t mp_vfs_remove(mp_obj_t path_in) {
+MAYBE_CUDA mp_obj_t mp_vfs_remove(mp_obj_t path_in) {
     mp_obj_t path_out;
     mp_vfs_mount_t *vfs = lookup_path(path_in, &path_out);
     return mp_vfs_proxy_call(vfs, MP_QSTR_remove, 1, &path_out);
 }
 MP_DEFINE_CONST_FUN_OBJ_1(mp_vfs_remove_obj, mp_vfs_remove);
 
-mp_obj_t mp_vfs_rename(mp_obj_t old_path_in, mp_obj_t new_path_in) {
+MAYBE_CUDA mp_obj_t mp_vfs_rename(mp_obj_t old_path_in, mp_obj_t new_path_in) {
     mp_obj_t args[2];
     mp_vfs_mount_t *old_vfs = lookup_path(old_path_in, &args[0]);
     mp_vfs_mount_t *new_vfs = lookup_path(new_path_in, &args[1]);
@@ -494,7 +494,7 @@ mp_obj_t mp_vfs_rename(mp_obj_t old_path_in, mp_obj_t new_path_in) {
 }
 MP_DEFINE_CONST_FUN_OBJ_2(mp_vfs_rename_obj, mp_vfs_rename);
 
-mp_obj_t mp_vfs_rmdir(mp_obj_t path_in) {
+MAYBE_CUDA mp_obj_t mp_vfs_rmdir(mp_obj_t path_in) {
     mp_obj_t path_out;
     mp_vfs_mount_t *vfs = lookup_path(path_in, &path_out);
     return mp_vfs_proxy_call(vfs, MP_QSTR_rmdir, 1, &path_out);
@@ -503,11 +503,11 @@ MP_DEFINE_CONST_FUN_OBJ_1(mp_vfs_rmdir_obj, mp_vfs_rmdir);
 
 #endif // MICROPY_VFS_WRITABLE
 
-mp_obj_t mp_vfs_stat(mp_obj_t path_in) {
+MAYBE_CUDA mp_obj_t mp_vfs_stat(mp_obj_t path_in) {
     mp_obj_t path_out;
     mp_vfs_mount_t *vfs = lookup_path(path_in, &path_out);
     if (vfs == MP_VFS_ROOT) {
-        mp_obj_tuple_t *t = MP_OBJ_TO_PTR(mp_obj_new_tuple(10, NULL));
+        mp_obj_tuple_t *t = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(mp_obj_new_tuple(10, NULL));
         t->items[0] = MP_OBJ_NEW_SMALL_INT(MP_S_IFDIR); // st_mode
         for (int i = 1; i <= 9; ++i) {
             t->items[i] = MP_OBJ_NEW_SMALL_INT(0); // dev, nlink, uid, gid, size, atime, mtime, ctime
@@ -518,7 +518,7 @@ mp_obj_t mp_vfs_stat(mp_obj_t path_in) {
 }
 MP_DEFINE_CONST_FUN_OBJ_1(mp_vfs_stat_obj, mp_vfs_stat);
 
-mp_obj_t mp_vfs_statvfs(mp_obj_t path_in) {
+MAYBE_CUDA mp_obj_t mp_vfs_statvfs(mp_obj_t path_in) {
     mp_obj_t path_out;
     mp_vfs_mount_t *vfs = lookup_path(path_in, &path_out);
     if (vfs == MP_VFS_ROOT) {
@@ -531,7 +531,7 @@ mp_obj_t mp_vfs_statvfs(mp_obj_t path_in) {
 
         // If there's nothing mounted at root then return a mostly-empty tuple
         if (vfs == NULL) {
-            mp_obj_tuple_t *t = MP_OBJ_TO_PTR(mp_obj_new_tuple(10, NULL));
+            mp_obj_tuple_t *t = (mp_obj_tuple_t *)MP_OBJ_TO_PTR(mp_obj_new_tuple(10, NULL));
 
             // fill in: bsize, frsize, blocks, bfree, bavail, files, ffree, favail, flags
             for (int i = 0; i <= 8; ++i) {
@@ -552,7 +552,7 @@ mp_obj_t mp_vfs_statvfs(mp_obj_t path_in) {
 MP_DEFINE_CONST_FUN_OBJ_1(mp_vfs_statvfs_obj, mp_vfs_statvfs);
 
 // This is a C-level helper function for ports to use if needed.
-int mp_vfs_mount_and_chdir_protected(mp_obj_t bdev, mp_obj_t mount_point) {
+MAYBE_CUDA int mp_vfs_mount_and_chdir_protected(mp_obj_t bdev, mp_obj_t mount_point) {
     nlr_buf_t nlr;
     mp_int_t ret = -MP_EIO;
     if (nlr_push(&nlr) == 0) {
@@ -562,7 +562,7 @@ int mp_vfs_mount_and_chdir_protected(mp_obj_t bdev, mp_obj_t mount_point) {
         ret = 0; // success
         nlr_pop();
     } else {
-        mp_obj_base_t *exc = nlr.ret_val;
+        mp_obj_base_t *exc = (mp_obj_base_t *)nlr.ret_val;
         if (mp_obj_is_subclass_fast(MP_OBJ_FROM_PTR(exc->type), MP_OBJ_FROM_PTR(&mp_type_OSError))) {
             mp_obj_t v = mp_obj_exception_get_value(MP_OBJ_FROM_PTR(exc));
             mp_obj_get_int_maybe(v, &ret); // get errno value
@@ -574,7 +574,7 @@ int mp_vfs_mount_and_chdir_protected(mp_obj_t bdev, mp_obj_t mount_point) {
 
 #if MICROPY_VFS_ROM && MICROPY_VFS_ROM_IOCTL
 
-int mp_vfs_mount_romfs_protected(void) {
+MAYBE_CUDA int mp_vfs_mount_romfs_protected(void) {
     int ret;
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {

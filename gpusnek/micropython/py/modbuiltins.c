@@ -601,166 +601,165 @@ MP_DEFINE_CONST_FUN_OBJ_1(mp_builtin_id_obj, mp_obj_id);
 MP_DEFINE_CONST_FUN_OBJ_1(mp_builtin_len_obj, mp_obj_len);
 
 // Fix for CUDA dynamic initialization: cast const pointers to mp_obj_t
-#undef MP_ROM_PTR
-#define MP_ROM_PTR(p) ((mp_obj_t)(p))
+#define MP_CUDA_ROM_PTR(p) ((mp_obj_t)(p))
 
 static MAYBE_CUDA const mp_map_elem_t mp_module_builtins_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_builtins) },
 
     // built-in core functions
-    { MP_ROM_QSTR(MP_QSTR___build_class__), MP_ROM_PTR(&mp_builtin___build_class___obj) },
-    { MP_ROM_QSTR(MP_QSTR___import__), MP_ROM_PTR(&mp_builtin___import___obj) },
-    { MP_ROM_QSTR(MP_QSTR___repl_print__), MP_ROM_PTR(&mp_builtin___repl_print___obj) },
+    { MP_ROM_QSTR(MP_QSTR___build_class__), MP_CUDA_ROM_PTR(&mp_builtin___build_class___obj) },
+    { MP_ROM_QSTR(MP_QSTR___import__), MP_CUDA_ROM_PTR(&mp_builtin___import___obj) },
+    { MP_ROM_QSTR(MP_QSTR___repl_print__), MP_CUDA_ROM_PTR(&mp_builtin___repl_print___obj) },
 
     // built-in types
-    { MP_ROM_QSTR(MP_QSTR_bool), MP_ROM_PTR(&mp_type_bool) },
-    { MP_ROM_QSTR(MP_QSTR_bytes), MP_ROM_PTR(&mp_type_bytes) },
+    { MP_ROM_QSTR(MP_QSTR_bool), MP_CUDA_ROM_PTR(&mp_type_bool) },
+    { MP_ROM_QSTR(MP_QSTR_bytes), MP_CUDA_ROM_PTR(&mp_type_bytes) },
     #if MICROPY_PY_BUILTINS_BYTEARRAY
-    { MP_ROM_QSTR(MP_QSTR_bytearray), MP_ROM_PTR(&mp_type_bytearray) },
+    { MP_ROM_QSTR(MP_QSTR_bytearray), MP_CUDA_ROM_PTR(&mp_type_bytearray) },
     #endif
     #if MICROPY_PY_BUILTINS_COMPLEX
-    { MP_ROM_QSTR(MP_QSTR_complex), MP_ROM_PTR(&mp_type_complex) },
+    { MP_ROM_QSTR(MP_QSTR_complex), MP_CUDA_ROM_PTR(&mp_type_complex) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_dict), MP_ROM_PTR(&mp_type_dict) },
+    { MP_ROM_QSTR(MP_QSTR_dict), MP_CUDA_ROM_PTR(&mp_type_dict) },
     #if MICROPY_PY_BUILTINS_ENUMERATE
-    { MP_ROM_QSTR(MP_QSTR_enumerate), MP_ROM_PTR(&mp_type_enumerate) },
+    { MP_ROM_QSTR(MP_QSTR_enumerate), MP_CUDA_ROM_PTR(&mp_type_enumerate) },
     #endif
     #if MICROPY_PY_BUILTINS_FILTER
-    { MP_ROM_QSTR(MP_QSTR_filter), MP_ROM_PTR(&mp_type_filter) },
+    { MP_ROM_QSTR(MP_QSTR_filter), MP_CUDA_ROM_PTR(&mp_type_filter) },
     #endif
     #if MICROPY_PY_BUILTINS_FLOAT
-    { MP_ROM_QSTR(MP_QSTR_float), MP_ROM_PTR(&mp_type_float) },
+    { MP_ROM_QSTR(MP_QSTR_float), MP_CUDA_ROM_PTR(&mp_type_float) },
     #endif
     #if MICROPY_PY_BUILTINS_SET && MICROPY_PY_BUILTINS_FROZENSET
-    { MP_ROM_QSTR(MP_QSTR_frozenset), MP_ROM_PTR(&mp_type_frozenset) },
+    { MP_ROM_QSTR(MP_QSTR_frozenset), MP_CUDA_ROM_PTR(&mp_type_frozenset) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_int), MP_ROM_PTR(&mp_type_int) },
-    { MP_ROM_QSTR(MP_QSTR_list), MP_ROM_PTR(&mp_type_list) },
-    { MP_ROM_QSTR(MP_QSTR_map), MP_ROM_PTR(&mp_type_map) },
+    { MP_ROM_QSTR(MP_QSTR_int), MP_CUDA_ROM_PTR(&mp_type_int) },
+    { MP_ROM_QSTR(MP_QSTR_list), MP_CUDA_ROM_PTR(&mp_type_list) },
+    { MP_ROM_QSTR(MP_QSTR_map), MP_CUDA_ROM_PTR(&mp_type_map) },
     #if MICROPY_PY_BUILTINS_MEMORYVIEW
-    { MP_ROM_QSTR(MP_QSTR_memoryview), MP_ROM_PTR(&mp_type_memoryview) },
+    { MP_ROM_QSTR(MP_QSTR_memoryview), MP_CUDA_ROM_PTR(&mp_type_memoryview) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_object), MP_ROM_PTR(&mp_type_object) },
+    { MP_ROM_QSTR(MP_QSTR_object), MP_CUDA_ROM_PTR(&mp_type_object) },
     #if MICROPY_PY_BUILTINS_PROPERTY
-    { MP_ROM_QSTR(MP_QSTR_property), MP_ROM_PTR(&mp_type_property) },
+    { MP_ROM_QSTR(MP_QSTR_property), MP_CUDA_ROM_PTR(&mp_type_property) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_range), MP_ROM_PTR(&mp_type_range) },
+    { MP_ROM_QSTR(MP_QSTR_range), MP_CUDA_ROM_PTR(&mp_type_range) },
     #if MICROPY_PY_BUILTINS_REVERSED
-    { MP_ROM_QSTR(MP_QSTR_reversed), MP_ROM_PTR(&mp_type_reversed) },
+    { MP_ROM_QSTR(MP_QSTR_reversed), MP_CUDA_ROM_PTR(&mp_type_reversed) },
     #endif
     #if MICROPY_PY_BUILTINS_SET
-    { MP_ROM_QSTR(MP_QSTR_set), MP_ROM_PTR(&mp_type_set) },
+    { MP_ROM_QSTR(MP_QSTR_set), MP_CUDA_ROM_PTR(&mp_type_set) },
     #endif
     #if MICROPY_PY_BUILTINS_SLICE
-    { MP_ROM_QSTR(MP_QSTR_slice), MP_ROM_PTR(&mp_type_slice) },
+    { MP_ROM_QSTR(MP_QSTR_slice), MP_CUDA_ROM_PTR(&mp_type_slice) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_str), MP_ROM_PTR(&mp_type_str) },
-    { MP_ROM_QSTR(MP_QSTR_super), MP_ROM_PTR(&mp_type_super) },
-    { MP_ROM_QSTR(MP_QSTR_tuple), MP_ROM_PTR(&mp_type_tuple) },
-    { MP_ROM_QSTR(MP_QSTR_type), MP_ROM_PTR(&mp_type_type) },
-    { MP_ROM_QSTR(MP_QSTR_zip), MP_ROM_PTR(&mp_type_zip) },
+    { MP_ROM_QSTR(MP_QSTR_str), MP_CUDA_ROM_PTR(&mp_type_str) },
+    { MP_ROM_QSTR(MP_QSTR_super), MP_CUDA_ROM_PTR(&mp_type_super) },
+    { MP_ROM_QSTR(MP_QSTR_tuple), MP_CUDA_ROM_PTR(&mp_type_tuple) },
+    { MP_ROM_QSTR(MP_QSTR_type), MP_CUDA_ROM_PTR(&mp_type_type) },
+    { MP_ROM_QSTR(MP_QSTR_zip), MP_CUDA_ROM_PTR(&mp_type_zip) },
 
-    { MP_ROM_QSTR(MP_QSTR_classmethod), MP_ROM_PTR(&mp_type_classmethod) },
-    { MP_ROM_QSTR(MP_QSTR_staticmethod), MP_ROM_PTR(&mp_type_staticmethod) },
+    { MP_ROM_QSTR(MP_QSTR_classmethod), MP_CUDA_ROM_PTR(&mp_type_classmethod) },
+    { MP_ROM_QSTR(MP_QSTR_staticmethod), MP_CUDA_ROM_PTR(&mp_type_staticmethod) },
 
     // built-in objects
-    { MP_ROM_QSTR(MP_QSTR_Ellipsis), MP_ROM_PTR(&mp_const_ellipsis_obj) },
+    { MP_ROM_QSTR(MP_QSTR_Ellipsis), MP_CUDA_ROM_PTR(&mp_const_ellipsis_obj) },
     #if MICROPY_PY_BUILTINS_NOTIMPLEMENTED
-    { MP_ROM_QSTR(MP_QSTR_NotImplemented), MP_ROM_PTR(&mp_const_notimplemented_obj) },
+    { MP_ROM_QSTR(MP_QSTR_NotImplemented), MP_CUDA_ROM_PTR(&mp_const_notimplemented_obj) },
     #endif
 
     // built-in user functions
-    { MP_ROM_QSTR(MP_QSTR_abs), MP_ROM_PTR(&mp_builtin_abs_obj) },
-    { MP_ROM_QSTR(MP_QSTR_all), MP_ROM_PTR(&mp_builtin_all_obj) },
-    { MP_ROM_QSTR(MP_QSTR_any), MP_ROM_PTR(&mp_builtin_any_obj) },
-    { MP_ROM_QSTR(MP_QSTR_bin), MP_ROM_PTR(&mp_builtin_bin_obj) },
-    { MP_ROM_QSTR(MP_QSTR_callable), MP_ROM_PTR(&mp_builtin_callable_obj) },
+    { MP_ROM_QSTR(MP_QSTR_abs), MP_CUDA_ROM_PTR(&mp_builtin_abs_obj) },
+    { MP_ROM_QSTR(MP_QSTR_all), MP_CUDA_ROM_PTR(&mp_builtin_all_obj) },
+    { MP_ROM_QSTR(MP_QSTR_any), MP_CUDA_ROM_PTR(&mp_builtin_any_obj) },
+    { MP_ROM_QSTR(MP_QSTR_bin), MP_CUDA_ROM_PTR(&mp_builtin_bin_obj) },
+    { MP_ROM_QSTR(MP_QSTR_callable), MP_CUDA_ROM_PTR(&mp_builtin_callable_obj) },
     #if MICROPY_PY_BUILTINS_COMPILE
-    { MP_ROM_QSTR(MP_QSTR_compile), MP_ROM_PTR(&mp_builtin_compile_obj) },
+    { MP_ROM_QSTR(MP_QSTR_compile), MP_CUDA_ROM_PTR(&mp_builtin_compile_obj) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_chr), MP_ROM_PTR(&mp_builtin_chr_obj) },
+    { MP_ROM_QSTR(MP_QSTR_chr), MP_CUDA_ROM_PTR(&mp_builtin_chr_obj) },
     #if MICROPY_CPYTHON_COMPAT
-    { MP_ROM_QSTR(MP_QSTR_delattr), MP_ROM_PTR(&mp_builtin_delattr_obj) },
+    { MP_ROM_QSTR(MP_QSTR_delattr), MP_CUDA_ROM_PTR(&mp_builtin_delattr_obj) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_dir), MP_ROM_PTR(&mp_builtin_dir_obj) },
-    { MP_ROM_QSTR(MP_QSTR_divmod), MP_ROM_PTR(&mp_builtin_divmod_obj) },
+    { MP_ROM_QSTR(MP_QSTR_dir), MP_CUDA_ROM_PTR(&mp_builtin_dir_obj) },
+    { MP_ROM_QSTR(MP_QSTR_divmod), MP_CUDA_ROM_PTR(&mp_builtin_divmod_obj) },
     #if MICROPY_PY_BUILTINS_EVAL_EXEC
-    { MP_ROM_QSTR(MP_QSTR_eval), MP_ROM_PTR(&mp_builtin_eval_obj) },
-    { MP_ROM_QSTR(MP_QSTR_exec), MP_ROM_PTR(&mp_builtin_exec_obj) },
+    { MP_ROM_QSTR(MP_QSTR_eval), MP_CUDA_ROM_PTR(&mp_builtin_eval_obj) },
+    { MP_ROM_QSTR(MP_QSTR_exec), MP_CUDA_ROM_PTR(&mp_builtin_exec_obj) },
     #endif
     #if MICROPY_PY_BUILTINS_EXECFILE
-    { MP_ROM_QSTR(MP_QSTR_execfile), MP_ROM_PTR(&mp_builtin_execfile_obj) },
+    { MP_ROM_QSTR(MP_QSTR_execfile), MP_CUDA_ROM_PTR(&mp_builtin_execfile_obj) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_getattr), MP_ROM_PTR(&mp_builtin_getattr_obj) },
-    { MP_ROM_QSTR(MP_QSTR_setattr), MP_ROM_PTR(&mp_builtin_setattr_obj) },
-    { MP_ROM_QSTR(MP_QSTR_globals), MP_ROM_PTR(&mp_builtin_globals_obj) },
-    { MP_ROM_QSTR(MP_QSTR_hasattr), MP_ROM_PTR(&mp_builtin_hasattr_obj) },
-    { MP_ROM_QSTR(MP_QSTR_hash), MP_ROM_PTR(&mp_builtin_hash_obj) },
+    { MP_ROM_QSTR(MP_QSTR_getattr), MP_CUDA_ROM_PTR(&mp_builtin_getattr_obj) },
+    { MP_ROM_QSTR(MP_QSTR_setattr), MP_CUDA_ROM_PTR(&mp_builtin_setattr_obj) },
+    { MP_ROM_QSTR(MP_QSTR_globals), MP_CUDA_ROM_PTR(&mp_builtin_globals_obj) },
+    { MP_ROM_QSTR(MP_QSTR_hasattr), MP_CUDA_ROM_PTR(&mp_builtin_hasattr_obj) },
+    { MP_ROM_QSTR(MP_QSTR_hash), MP_CUDA_ROM_PTR(&mp_builtin_hash_obj) },
     #if MICROPY_PY_BUILTINS_HELP
-    { MP_ROM_QSTR(MP_QSTR_help), MP_ROM_PTR(&mp_builtin_help_obj) },
+    { MP_ROM_QSTR(MP_QSTR_help), MP_CUDA_ROM_PTR(&mp_builtin_help_obj) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_hex), MP_ROM_PTR(&mp_builtin_hex_obj) },
-    { MP_ROM_QSTR(MP_QSTR_id), MP_ROM_PTR(&mp_builtin_id_obj) },
+    { MP_ROM_QSTR(MP_QSTR_hex), MP_CUDA_ROM_PTR(&mp_builtin_hex_obj) },
+    { MP_ROM_QSTR(MP_QSTR_id), MP_CUDA_ROM_PTR(&mp_builtin_id_obj) },
     #if MICROPY_PY_BUILTINS_INPUT
-    { MP_ROM_QSTR(MP_QSTR_input), MP_ROM_PTR(&mp_builtin_input_obj) },
+    { MP_ROM_QSTR(MP_QSTR_input), MP_CUDA_ROM_PTR(&mp_builtin_input_obj) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_isinstance), MP_ROM_PTR(&mp_builtin_isinstance_obj) },
-    { MP_ROM_QSTR(MP_QSTR_issubclass), MP_ROM_PTR(&mp_builtin_issubclass_obj) },
-    { MP_ROM_QSTR(MP_QSTR_iter), MP_ROM_PTR(&mp_builtin_iter_obj) },
-    { MP_ROM_QSTR(MP_QSTR_len), MP_ROM_PTR(&mp_builtin_len_obj) },
-    { MP_ROM_QSTR(MP_QSTR_locals), MP_ROM_PTR(&mp_builtin_locals_obj) },
+    { MP_ROM_QSTR(MP_QSTR_isinstance), MP_CUDA_ROM_PTR(&mp_builtin_isinstance_obj) },
+    { MP_ROM_QSTR(MP_QSTR_issubclass), MP_CUDA_ROM_PTR(&mp_builtin_issubclass_obj) },
+    { MP_ROM_QSTR(MP_QSTR_iter), MP_CUDA_ROM_PTR(&mp_builtin_iter_obj) },
+    { MP_ROM_QSTR(MP_QSTR_len), MP_CUDA_ROM_PTR(&mp_builtin_len_obj) },
+    { MP_ROM_QSTR(MP_QSTR_locals), MP_CUDA_ROM_PTR(&mp_builtin_locals_obj) },
     #if MICROPY_PY_BUILTINS_MIN_MAX
-    { MP_ROM_QSTR(MP_QSTR_max), MP_ROM_PTR(&mp_builtin_max_obj) },
-    { MP_ROM_QSTR(MP_QSTR_min), MP_ROM_PTR(&mp_builtin_min_obj) },
+    { MP_ROM_QSTR(MP_QSTR_max), MP_CUDA_ROM_PTR(&mp_builtin_max_obj) },
+    { MP_ROM_QSTR(MP_QSTR_min), MP_CUDA_ROM_PTR(&mp_builtin_min_obj) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_next), MP_ROM_PTR(&mp_builtin_next_obj) },
-    { MP_ROM_QSTR(MP_QSTR_oct), MP_ROM_PTR(&mp_builtin_oct_obj) },
+    { MP_ROM_QSTR(MP_QSTR_next), MP_CUDA_ROM_PTR(&mp_builtin_next_obj) },
+    { MP_ROM_QSTR(MP_QSTR_oct), MP_CUDA_ROM_PTR(&mp_builtin_oct_obj) },
     #if MICROPY_PY_IO
-    { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
+    { MP_ROM_QSTR(MP_QSTR_open), MP_CUDA_ROM_PTR(&mp_builtin_open_obj) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_ord), MP_ROM_PTR(&mp_builtin_ord_obj) },
-    { MP_ROM_QSTR(MP_QSTR_pow), MP_ROM_PTR(&mp_builtin_pow_obj) },
-    { MP_ROM_QSTR(MP_QSTR_print), MP_ROM_PTR(&mp_builtin_print_obj) },
-    { MP_ROM_QSTR(MP_QSTR_repr), MP_ROM_PTR(&mp_builtin_repr_obj) },
-    { MP_ROM_QSTR(MP_QSTR_round), MP_ROM_PTR(&mp_builtin_round_obj) },
-    { MP_ROM_QSTR(MP_QSTR_sorted), MP_ROM_PTR(&mp_builtin_sorted_obj) },
-    { MP_ROM_QSTR(MP_QSTR_sum), MP_ROM_PTR(&mp_builtin_sum_obj) },
+    { MP_ROM_QSTR(MP_QSTR_ord), MP_CUDA_ROM_PTR(&mp_builtin_ord_obj) },
+    { MP_ROM_QSTR(MP_QSTR_pow), MP_CUDA_ROM_PTR(&mp_builtin_pow_obj) },
+    { MP_ROM_QSTR(MP_QSTR_print), MP_CUDA_ROM_PTR(&mp_builtin_print_obj) },
+    { MP_ROM_QSTR(MP_QSTR_repr), MP_CUDA_ROM_PTR(&mp_builtin_repr_obj) },
+    { MP_ROM_QSTR(MP_QSTR_round), MP_CUDA_ROM_PTR(&mp_builtin_round_obj) },
+    { MP_ROM_QSTR(MP_QSTR_sorted), MP_CUDA_ROM_PTR(&mp_builtin_sorted_obj) },
+    { MP_ROM_QSTR(MP_QSTR_sum), MP_CUDA_ROM_PTR(&mp_builtin_sum_obj) },
 
     // built-in exceptions
-    { MP_ROM_QSTR(MP_QSTR_BaseException), MP_ROM_PTR(&mp_type_BaseException) },
-    { MP_ROM_QSTR(MP_QSTR_ArithmeticError), MP_ROM_PTR(&mp_type_ArithmeticError) },
-    { MP_ROM_QSTR(MP_QSTR_AssertionError), MP_ROM_PTR(&mp_type_AssertionError) },
-    { MP_ROM_QSTR(MP_QSTR_AttributeError), MP_ROM_PTR(&mp_type_AttributeError) },
-    { MP_ROM_QSTR(MP_QSTR_EOFError), MP_ROM_PTR(&mp_type_EOFError) },
-    { MP_ROM_QSTR(MP_QSTR_Exception), MP_ROM_PTR(&mp_type_Exception) },
-    { MP_ROM_QSTR(MP_QSTR_GeneratorExit), MP_ROM_PTR(&mp_type_GeneratorExit) },
-    { MP_ROM_QSTR(MP_QSTR_ImportError), MP_ROM_PTR(&mp_type_ImportError) },
-    { MP_ROM_QSTR(MP_QSTR_IndentationError), MP_ROM_PTR(&mp_type_IndentationError) },
-    { MP_ROM_QSTR(MP_QSTR_IndexError), MP_ROM_PTR(&mp_type_IndexError) },
-    { MP_ROM_QSTR(MP_QSTR_KeyboardInterrupt), MP_ROM_PTR(&mp_type_KeyboardInterrupt) },
-    { MP_ROM_QSTR(MP_QSTR_KeyError), MP_ROM_PTR(&mp_type_KeyError) },
-    { MP_ROM_QSTR(MP_QSTR_LookupError), MP_ROM_PTR(&mp_type_LookupError) },
-    { MP_ROM_QSTR(MP_QSTR_MemoryError), MP_ROM_PTR(&mp_type_MemoryError) },
-    { MP_ROM_QSTR(MP_QSTR_NameError), MP_ROM_PTR(&mp_type_NameError) },
-    { MP_ROM_QSTR(MP_QSTR_NotImplementedError), MP_ROM_PTR(&mp_type_NotImplementedError) },
-    { MP_ROM_QSTR(MP_QSTR_OSError), MP_ROM_PTR(&mp_type_OSError) },
-    { MP_ROM_QSTR(MP_QSTR_OverflowError), MP_ROM_PTR(&mp_type_OverflowError) },
-    { MP_ROM_QSTR(MP_QSTR_RuntimeError), MP_ROM_PTR(&mp_type_RuntimeError) },
+    { MP_ROM_QSTR(MP_QSTR_BaseException), MP_CUDA_ROM_PTR(&mp_type_BaseException) },
+    { MP_ROM_QSTR(MP_QSTR_ArithmeticError), MP_CUDA_ROM_PTR(&mp_type_ArithmeticError) },
+    { MP_ROM_QSTR(MP_QSTR_AssertionError), MP_CUDA_ROM_PTR(&mp_type_AssertionError) },
+    { MP_ROM_QSTR(MP_QSTR_AttributeError), MP_CUDA_ROM_PTR(&mp_type_AttributeError) },
+    { MP_ROM_QSTR(MP_QSTR_EOFError), MP_CUDA_ROM_PTR(&mp_type_EOFError) },
+    { MP_ROM_QSTR(MP_QSTR_Exception), MP_CUDA_ROM_PTR(&mp_type_Exception) },
+    { MP_ROM_QSTR(MP_QSTR_GeneratorExit), MP_CUDA_ROM_PTR(&mp_type_GeneratorExit) },
+    { MP_ROM_QSTR(MP_QSTR_ImportError), MP_CUDA_ROM_PTR(&mp_type_ImportError) },
+    { MP_ROM_QSTR(MP_QSTR_IndentationError), MP_CUDA_ROM_PTR(&mp_type_IndentationError) },
+    { MP_ROM_QSTR(MP_QSTR_IndexError), MP_CUDA_ROM_PTR(&mp_type_IndexError) },
+    { MP_ROM_QSTR(MP_QSTR_KeyboardInterrupt), MP_CUDA_ROM_PTR(&mp_type_KeyboardInterrupt) },
+    { MP_ROM_QSTR(MP_QSTR_KeyError), MP_CUDA_ROM_PTR(&mp_type_KeyError) },
+    { MP_ROM_QSTR(MP_QSTR_LookupError), MP_CUDA_ROM_PTR(&mp_type_LookupError) },
+    { MP_ROM_QSTR(MP_QSTR_MemoryError), MP_CUDA_ROM_PTR(&mp_type_MemoryError) },
+    { MP_ROM_QSTR(MP_QSTR_NameError), MP_CUDA_ROM_PTR(&mp_type_NameError) },
+    { MP_ROM_QSTR(MP_QSTR_NotImplementedError), MP_CUDA_ROM_PTR(&mp_type_NotImplementedError) },
+    { MP_ROM_QSTR(MP_QSTR_OSError), MP_CUDA_ROM_PTR(&mp_type_OSError) },
+    { MP_ROM_QSTR(MP_QSTR_OverflowError), MP_CUDA_ROM_PTR(&mp_type_OverflowError) },
+    { MP_ROM_QSTR(MP_QSTR_RuntimeError), MP_CUDA_ROM_PTR(&mp_type_RuntimeError) },
     #if MICROPY_PY_ASYNC_AWAIT
-    { MP_ROM_QSTR(MP_QSTR_StopAsyncIteration), MP_ROM_PTR(&mp_type_StopAsyncIteration) },
+    { MP_ROM_QSTR(MP_QSTR_StopAsyncIteration), MP_CUDA_ROM_PTR(&mp_type_StopAsyncIteration) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_StopIteration), MP_ROM_PTR(&mp_type_StopIteration) },
-    { MP_ROM_QSTR(MP_QSTR_SyntaxError), MP_ROM_PTR(&mp_type_SyntaxError) },
-    { MP_ROM_QSTR(MP_QSTR_SystemExit), MP_ROM_PTR(&mp_type_SystemExit) },
-    { MP_ROM_QSTR(MP_QSTR_TypeError), MP_ROM_PTR(&mp_type_TypeError) },
+    { MP_ROM_QSTR(MP_QSTR_StopIteration), MP_CUDA_ROM_PTR(&mp_type_StopIteration) },
+    { MP_ROM_QSTR(MP_QSTR_SyntaxError), MP_CUDA_ROM_PTR(&mp_type_SyntaxError) },
+    { MP_ROM_QSTR(MP_QSTR_SystemExit), MP_CUDA_ROM_PTR(&mp_type_SystemExit) },
+    { MP_ROM_QSTR(MP_QSTR_TypeError), MP_CUDA_ROM_PTR(&mp_type_TypeError) },
     #if MICROPY_PY_BUILTINS_STR_UNICODE
-    { MP_ROM_QSTR(MP_QSTR_UnicodeError), MP_ROM_PTR(&mp_type_UnicodeError) },
+    { MP_ROM_QSTR(MP_QSTR_UnicodeError), MP_CUDA_ROM_PTR(&mp_type_UnicodeError) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_ValueError), MP_ROM_PTR(&mp_type_ValueError) },
+    { MP_ROM_QSTR(MP_QSTR_ValueError), MP_CUDA_ROM_PTR(&mp_type_ValueError) },
     #if MICROPY_EMIT_NATIVE
-    { MP_ROM_QSTR(MP_QSTR_ViperTypeError), MP_ROM_PTR(&mp_type_ViperTypeError) },
+    { MP_ROM_QSTR(MP_QSTR_ViperTypeError), MP_CUDA_ROM_PTR(&mp_type_ViperTypeError) },
     #endif
-    { MP_ROM_QSTR(MP_QSTR_ZeroDivisionError), MP_ROM_PTR(&mp_type_ZeroDivisionError) },
+    { MP_ROM_QSTR(MP_QSTR_ZeroDivisionError), MP_CUDA_ROM_PTR(&mp_type_ZeroDivisionError) },
 
     // Extra builtins as defined by a port
     MICROPY_PORT_BUILTINS

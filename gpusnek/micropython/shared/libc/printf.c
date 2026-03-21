@@ -38,7 +38,7 @@
 #endif
 
 #if MICROPY_DEBUG_PRINTERS
-int DEBUG_printf(const char *fmt, ...) {
+MAYBE_CUDA int DEBUG_printf(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     int ret = mp_vprintf(MICROPY_DEBUG_PRINTER, fmt, ap);
@@ -50,14 +50,14 @@ int DEBUG_printf(const char *fmt, ...) {
 #if MICROPY_USE_INTERNAL_PRINTF
 
 #undef putchar  // Some stdlibs have a #define for putchar
-int printf(const char *fmt, ...);
-int vprintf(const char *fmt, va_list ap);
-int putchar(int c);
-int puts(const char *s);
-int vsnprintf(char *str, size_t size, const char *fmt, va_list ap);
-int snprintf(char *str, size_t size, const char *fmt, ...);
+MAYBE_CUDA int printf(const char *fmt, ...);
+MAYBE_CUDA int vprintf(const char *fmt, va_list ap);
+MAYBE_CUDA int putchar(int c);
+MAYBE_CUDA int puts(const char *s);
+MAYBE_CUDA int vsnprintf(char *str, size_t size, const char *fmt, va_list ap);
+MAYBE_CUDA int snprintf(char *str, size_t size, const char *fmt, ...);
 
-int printf(const char *fmt, ...) {
+MAYBE_CUDA int printf(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     int ret = mp_vprintf(MICROPY_INTERNAL_PRINTF_PRINTER, fmt, ap);
@@ -65,19 +65,19 @@ int printf(const char *fmt, ...) {
     return ret;
 }
 
-int vprintf(const char *fmt, va_list ap) {
+MAYBE_CUDA int vprintf(const char *fmt, va_list ap) {
     return mp_vprintf(MICROPY_INTERNAL_PRINTF_PRINTER, fmt, ap);
 }
 
 // need this because gcc optimises printf("%c", c) -> putchar(c), and printf("a") -> putchar('a')
-int putchar(int c) {
+MAYBE_CUDA int putchar(int c) {
     char chr = c;
     MICROPY_INTERNAL_PRINTF_PRINTER->print_strn(MICROPY_INTERNAL_PRINTF_PRINTER->data, &chr, 1);
     return chr;
 }
 
 // need this because gcc optimises printf("string\n") -> puts("string")
-int puts(const char *s) {
+MAYBE_CUDA int puts(const char *s) {
     MICROPY_INTERNAL_PRINTF_PRINTER->print_strn(MICROPY_INTERNAL_PRINTF_PRINTER->data, s, strlen(s));
     return putchar('\n'); // will return 10, which is >0 per specs of puts
 }
@@ -87,8 +87,8 @@ typedef struct _strn_print_env_t {
     size_t remain;
 } strn_print_env_t;
 
-static void strn_print_strn(void *data, const char *str, size_t len) {
-    strn_print_env_t *strn_print_env = data;
+static MAYBE_CUDA void strn_print_strn(void *data, const char *str, size_t len) {
+    strn_print_env_t *strn_print_env = (strn_print_env_t *)data;
     if (len > strn_print_env->remain) {
         len = strn_print_env->remain;
     }
@@ -102,10 +102,10 @@ static void strn_print_strn(void *data, const char *str, size_t len) {
 // when linkings against it statically.
 // GCC 9 gives a warning about missing attributes so it's excluded until
 // uClibc+GCC9 support is needed.
-int __GI_vsnprintf(char *str, size_t size, const char *fmt, va_list ap) __attribute__((weak, alias("vsnprintf")));
+MAYBE_CUDA int __GI_vsnprintf(char *str, size_t size, const char *fmt, va_list ap) __attribute__((weak, alias("vsnprintf")));
 #endif
 
-int vsnprintf(char *str, size_t size, const char *fmt, va_list ap) {
+MAYBE_CUDA int vsnprintf(char *str, size_t size, const char *fmt, va_list ap) {
     strn_print_env_t strn_print_env = {str, size};
     mp_print_t print = {&strn_print_env, strn_print_strn};
     int len = mp_vprintf(&print, fmt, ap);
@@ -120,7 +120,7 @@ int vsnprintf(char *str, size_t size, const char *fmt, va_list ap) {
     return len;
 }
 
-int snprintf(char *str, size_t size, const char *fmt, ...) {
+MAYBE_CUDA int snprintf(char *str, size_t size, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     int ret = vsnprintf(str, size, fmt, ap);

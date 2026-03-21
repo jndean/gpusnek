@@ -70,7 +70,7 @@ static mp_obj_t marshal_loads(mp_obj_t data_in) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(marshal_loads_obj, marshal_loads);
 
-static const mp_rom_map_elem_t mod_marshal_globals_table[] = {
+static MAYBE_CUDA const mp_rom_map_elem_t mod_marshal_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_marshal) },
     { MP_ROM_QSTR(MP_QSTR_dumps), MP_ROM_PTR(&marshal_dumps_obj) },
     { MP_ROM_QSTR(MP_QSTR_loads), MP_ROM_PTR(&marshal_loads_obj) },
