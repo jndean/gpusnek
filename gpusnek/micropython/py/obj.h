@@ -102,19 +102,23 @@ MAYBE_CUDA static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
 #define MP_OBJ_NEW_IMMEDIATE_OBJ(val) ((mp_obj_t)(((val) << 3) | 6))
 
 #if MICROPY_PY_BUILTINS_FLOAT
-#define mp_const_float_e MP_ROM_PTR(&mp_const_float_e_obj)
-#define mp_const_float_pi MP_ROM_PTR(&mp_const_float_pi_obj)
+
+// Fix for CUDA dynamic initialization: cast const pointers to mp_obj_t
+#define MP_CUDA_ROM_PTR(p) ((mp_obj_t)(p))
+
+#define mp_const_float_e MP_CUDA_ROM_PTR(&mp_const_float_e_obj)
+#define mp_const_float_pi MP_CUDA_ROM_PTR(&mp_const_float_pi_obj)
 #if MICROPY_PY_MATH_CONSTANTS
-#define mp_const_float_tau MP_ROM_PTR(&mp_const_float_tau_obj)
-#define mp_const_float_inf MP_ROM_PTR(&mp_const_float_inf_obj)
-#define mp_const_float_nan MP_ROM_PTR(&mp_const_float_nan_obj)
+#define mp_const_float_tau MP_CUDA_ROM_PTR(&mp_const_float_tau_obj)
+#define mp_const_float_inf MP_CUDA_ROM_PTR(&mp_const_float_inf_obj)
+#define mp_const_float_nan MP_CUDA_ROM_PTR(&mp_const_float_nan_obj)
 #endif
-extern const struct _mp_obj_float_t mp_const_float_e_obj;
-extern const struct _mp_obj_float_t mp_const_float_pi_obj;
+extern MAYBE_CUDA const struct _mp_obj_float_t mp_const_float_e_obj;
+extern MAYBE_CUDA const struct _mp_obj_float_t mp_const_float_pi_obj;
 #if MICROPY_PY_MATH_CONSTANTS
-extern const struct _mp_obj_float_t mp_const_float_tau_obj;
-extern const struct _mp_obj_float_t mp_const_float_inf_obj;
-extern const struct _mp_obj_float_t mp_const_float_nan_obj;
+extern MAYBE_CUDA const struct _mp_obj_float_t mp_const_float_tau_obj;
+extern MAYBE_CUDA const struct _mp_obj_float_t mp_const_float_inf_obj;
+extern MAYBE_CUDA const struct _mp_obj_float_t mp_const_float_nan_obj;
 #endif
 
 #define mp_obj_is_float(o) mp_obj_is_type((o), &mp_type_float)
@@ -154,12 +158,12 @@ MAYBE_CUDA static inline bool mp_obj_is_immediate_obj(mp_const_obj_t o) {
 #define mp_const_float_inf MP_ROM_PTR(&mp_const_float_inf_obj)
 #define mp_const_float_nan MP_ROM_PTR(&mp_const_float_nan_obj)
 #endif
-extern const struct _mp_obj_float_t mp_const_float_e_obj;
-extern const struct _mp_obj_float_t mp_const_float_pi_obj;
+extern const MAYBE_CUDA struct _mp_obj_float_t mp_const_float_e_obj;
+extern const MAYBE_CUDA struct _mp_obj_float_t mp_const_float_pi_obj;
 #if MICROPY_PY_MATH_CONSTANTS
-extern const struct _mp_obj_float_t mp_const_float_tau_obj;
-extern const struct _mp_obj_float_t mp_const_float_inf_obj;
-extern const struct _mp_obj_float_t mp_const_float_nan_obj;
+extern const MAYBE_CUDA struct _mp_obj_float_t mp_const_float_tau_obj;
+extern const MAYBE_CUDA struct _mp_obj_float_t mp_const_float_inf_obj;
+extern const MAYBE_CUDA struct _mp_obj_float_t mp_const_float_nan_obj;
 #endif
 
 #define mp_obj_is_float(o) mp_obj_is_type((o), &mp_type_float)

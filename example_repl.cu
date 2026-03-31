@@ -23,6 +23,7 @@
 #endif
 
 #include "gpusnek/gpusnek.h"
+#include "utils_for_examples.h"
 #include "shared/runtime/pyexec.h"   // pyexec_event_repl_init, pyexec_event_repl_process_char
 
 #define N_THREADS_PER_BLOCK (256)
@@ -171,23 +172,11 @@ int main(void) {
     char *h_memory = NULL;
     int ret_code = 0;
     int done = 0;
-    cudaError_t err;
 
     printf("Allocating %0.2f GB for on-device interpreter memory\n", (double)N_THREADS * MEM_PER_THREAD / (1 << 30));
-    if (cudaMalloc((void **)&d_memory, (size_t)N_THREADS * MEM_PER_THREAD) != cudaSuccess) {
-        fprintf(stderr, "cudaMalloc for memory failed\n");
-        goto error;
-    }
-    
-    if (cudaMalloc((void **)&d_states, (size_t)N_THREADS * sizeof(mp_state_ctx_t)) != cudaSuccess) {
-        fprintf(stderr, "cudaMalloc for states failed\n");
-        goto error;
-    }
-
-    if (cudaMalloc((void **)&d_done, sizeof(int)) != cudaSuccess) {
-        fprintf(stderr, "cudaMalloc for done flag failed\n");
-        goto error;
-    }
+    catchError(cudaMalloc((void **)&d_memory, (size_t)N_THREADS * MEM_PER_THREAD));
+    catchError(cudaMalloc((void **)&d_states, (size_t)N_THREADS * sizeof(mp_state_ctx_t)));
+    catchError(cudaMalloc((void **)&d_done, sizeof(int)));
 
     h_memory = (char *)malloc((size_t)N_THREADS * STDOUT_SIZE);
     if (!h_memory) {
@@ -196,13 +185,17 @@ int main(void) {
     }
 
     setup_kernel<<<N_BLOCKS, N_THREADS_PER_BLOCK>>>(d_memory, d_states);
-    err = cudaDeviceSynchronize();
-    if (err != cudaSuccess) {
-        fprintf(stderr, "setup_kernel failed: %s\n", cudaGetErrorString(err));
-        goto error;
-    }
+    catchError(cudaDeviceSynchronize());
 
-    cudaMemcpy2D(h_memory, STDOUT_SIZE, d_memory + STDOUT_OFFSET, MEM_PER_THREAD, STDOUT_SIZE, N_THREADS, cudaMemcpyDeviceToHost);
+    catchError(cudaMemcpy2D(
+        h_memory,
+        STDOUT_SIZE,
+        d_memory + STDOUT_OFFSET,
+        MEM_PER_THREAD,
+        STDOUT_SIZE,
+        N_THREADS,
+        cudaMemcpyDeviceToHost
+    ));
     extract_and_print_output(h_memory);
 
     enable_raw_mode();
@@ -217,21 +210,15 @@ int main(void) {
 
         // Send byte to GPU REPL
         repl_kernel<<<N_BLOCKS, N_THREADS_PER_BLOCK>>>(c, d_done);
-        err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) {
-            // Restore terminal before printing error
-            restore_termios();
-            fprintf(stderr, "\nrepl_kernel error: %s\n", cudaGetErrorString(err));
-            goto error;
-        }
+        catchError(cudaDeviceSynchronize());
 
         // Read back any output the REPL produced and print it
-        cudaMemcpy2D(h_memory, STDOUT_SIZE, d_memory + STDOUT_OFFSET, MEM_PER_THREAD, STDOUT_SIZE, N_THREADS, cudaMemcpyDeviceToHost);
+        catchError(cudaMemcpy2D(h_memory, STDOUT_SIZE, d_memory + STDOUT_OFFSET, MEM_PER_THREAD, STDOUT_SIZE, N_THREADS, cudaMemcpyDeviceToHost));
         extract_and_print_output(h_memory);
 
         // Check if the REPL signalled exit (Ctrl-D soft-reset)
         int h_done = 0;
-        cudaMemcpy(&h_done, d_done, sizeof(int), cudaMemcpyDeviceToHost);
+        catchError(cudaMemcpy(&h_done, d_done, sizeof(int), cudaMemcpyDeviceToHost));
         if (h_done) {
             done = 1;
         }

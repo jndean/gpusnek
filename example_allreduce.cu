@@ -2,75 +2,76 @@
 #include <stdlib.h>
 
 #include "gpusnek/gpusnek.h"
+#include "utils_for_examples.h"
 
 #define HEAP_SIZE (5 * 1024)
 #define PYSTACK_SIZE (1 * 1024)
 #define PER_THREAD_MEMORY (PYSTACK_SIZE + HEAP_SIZE)
 
-#define N_THREADS 128
-#define N_ELEMENTS 1024
+#define N_ELEMENTS 256
 
 #ifdef __CUDACC__
 
-__global__ void allreduce_kernel(int *d_data, mp_state_ctx_t *states, char *memory) {
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void mean_kernel(float *d_data, mp_state_ctx_t *states, char *memory) {
+    int tid = threadIdx.x;
+    __shared__ float cache[N_ELEMENTS];
 
     char *thread_mem = memory + tid * PER_THREAD_MEMORY;
     gpusnek_init(states, thread_mem, PYSTACK_SIZE, HEAP_SIZE);
 
-    gpusnek_bind_memory("shared_arr", d_data, N_ELEMENTS, 'i');
+    gpusnek_bind_memory("data", d_data, N_ELEMENTS, 'f');
+    gpusnek_bind_memory("cache", cache, N_ELEMENTS, 'f');
     gpusnek_new_int("tid", tid);
-    gpusnek_do_str(
-        "for step in range(10):\n"
-        "    stride = 1 << step\n"
-        "    work_size = 512 >> step\n"
-        "    for w in range(tid, work_size, 128):\n"
-        "        idx = w * (stride * 2)\n"
-        "        shared_arr[idx] = shared_arr[idx] + shared_arr[idx + stride]\n"
-        "    syncthreads\n"
-    );
+    gpusnek_new_int("N", N_ELEMENTS);
+    gpusnek_do_str(R"(
+from math import log
+
+cache[tid] = data[tid]
+
+steps = int(log(N, 2))
+for i in range(steps):
+    offset = N >> (i + 1)
+    if tid < offset:
+        cache[tid] += cache[tid + offset]
+    syncthreads
+
+if tid == 0:
+    data[0] = cache[0] / len(data)
+)");
 }
 
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line) {
-   if (code != cudaSuccess) {
-      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-      exit(code);
-   }
-}
 
 int main(void) {
     printf(
         "Starting Parallel All-Reduce Example (%d elements / %d threads)\n",
-        N_ELEMENTS, N_THREADS
+        N_ELEMENTS, N_ELEMENTS
     );
 
-    int *d_data;
-    int *h_data = (int *)malloc(N_ELEMENTS * sizeof(int));
+    float *d_data;
+    float *h_data = (float *)malloc(N_ELEMENTS * sizeof(int));
     for (int i = 0; i < N_ELEMENTS; i++) {
         h_data[i] = i;
     }
-    int expected_sum = (N_ELEMENTS * (N_ELEMENTS - 1)) / 2;
+    float expected_mean = (N_ELEMENTS - 1) / 2.;
 
     mp_state_ctx_t *d_states;
     char *d_memory;
-    gpuErrchk(cudaMalloc(&d_states, N_THREADS * sizeof(mp_state_ctx_t)));
-    gpuErrchk(cudaMalloc(&d_memory, N_THREADS * (PYSTACK_SIZE + HEAP_SIZE)));
-    gpuErrchk(cudaMalloc(&d_data, N_ELEMENTS * sizeof(int)));
-    gpuErrchk(cudaMemcpy(d_data, h_data, N_ELEMENTS * sizeof(int), cudaMemcpyHostToDevice));
-    gpuErrchk(cudaDeviceSetLimit(cudaLimitStackSize, 5*1024));
+    catchError(cudaMalloc(&d_states, N_ELEMENTS * sizeof(mp_state_ctx_t)));
+    catchError(cudaMalloc(&d_memory, N_ELEMENTS * (PYSTACK_SIZE + HEAP_SIZE)));
+    catchError(cudaMalloc(&d_data, N_ELEMENTS * sizeof(float)));
+    catchError(cudaMemcpy(d_data, h_data, N_ELEMENTS * sizeof(float), cudaMemcpyHostToDevice));
+    catchError(cudaDeviceSetLimit(cudaLimitStackSize, 5*1024));
 
 
+    mean_kernel<<<1, N_ELEMENTS>>>(d_data, d_states, d_memory);
+    catchError(cudaGetLastError());
+    catchError(cudaDeviceSynchronize());
 
-    // Launch single block of 128 threads that will perform the parallel sum
-    allreduce_kernel<<<1, N_THREADS>>>(d_data, d_states, d_memory);
-    gpuErrchk(cudaDeviceSynchronize());
+    catchError(cudaMemcpy(h_data, d_data, sizeof(float), cudaMemcpyDeviceToHost));
+    printf("Result: %f\n", h_data[0]);
 
-    gpuErrchk(cudaMemcpy(h_data, d_data, sizeof(int), cudaMemcpyDeviceToHost));
-    printf("Result: %d\n", h_data[0]);
-
-    if (h_data[0] == expected_sum) printf("SUCCESS!\n");
-    else                           printf("FAILED!\n");
+    if (h_data[0] == expected_mean) printf("SUCCESS!\n");
+    else                           printf("FAILED! Expected %f\n", expected_mean);
 
     cudaFree(d_states);
     cudaFree(d_memory);
@@ -91,26 +92,42 @@ int main(void) {
 
 
 
-// __global__ void mean_var_kernel(float *data) {
-//     // Normal CUDA C++ loading data into L1 cache
-//     int threadId = threadIdx.x;
-//     __shared__ float sum_cache[1024];
-//     sum_cache[threadId] = data[threadId];
-//     __syncthreads();
-    
-//     // gpusnek for in-line python program processing the data
-//     gpusnek_bind_memory("sum_cache", sum_cache, 1024, 'f');
-//     gpusnek_new_int("threadId", threadId);
-//     gpusnek_do_str("
 
-// for iteration in range(10):
-//     top_thread = 512 >> iteration
-//     if threadId < top_thread:
-//         sum_cache[threadId] += sum_cache[threadId + top_thread]
+// __global__ 
+// void average_kernel(float *data) {
+//     int threadId = threadIdx.x;
+//     __shared__ float cache[NUM_THREADS];
+    
+//     gpusnek_bind_memory("cache", cache, NUM_THREADS, 'f');
+//     gpusnek_bind_memory("data", data, NUM_THREADS, 'f');
+//     gpusnek_new_int("tid", threadId);
+//     gpusnek_new_int("N", NUM_THREADS);
+//     gpusnek_do_str(R"(
+
+// from math import log
+
+// cache[tid] = data[tid]
+// syncthreads
+
+// steps = int(log(N, 2))
+// for i in range(steps):
+//     offset = N >> (i + 1)
+//     if tid < offset:
+//         cache[tid] += cache[tid + offset]
 //     syncthreads
 
-// if threadId == 0:
-//     print(sum_cache[0])
+// if tid == 0:
+//     data[0] = cache[0] / len(data)
+// )");
+// }
 
-//     ");
+
+
+
+// __global__
+// void my_kernel(char* mem, int per_thread_mem) {
+//     char* my_mem = &mem[threadIdx.x * per_thread_mem];
+//     gpusnek_init(my_mem, per_thread_mem);
+
+//     gpusnek_do_str("print('Hello World!')\n")
 // }

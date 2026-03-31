@@ -26,6 +26,7 @@
 #define MICROPY_PY_OS                   (1)  // Enable os module
 #define MICROPY_PY_VFS                  (1)  // Enable VFS module
 #define MICROPY_PY_IO                   (1)  // Enable open() builtin (via VFS)
+#define MICROPY_PY_MATH                 (1)  // math module
 // Compiler required for parsing Python code
 #define MICROPY_ENABLE_COMPILER         (1)
 
