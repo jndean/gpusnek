@@ -127,7 +127,7 @@ DEF_RULE_NC(augassign, RULE_or(13), tok(DEL_PLUS_EQUAL), tok(DEL_MINUS_EQUAL), t
 
 DEF_RULE(del_stmt, c(del_stmt), RULE_and(2), tok(KW_DEL), rule(exprlist))
 DEF_RULE(pass_stmt, c(generic_all_nodes), RULE_and(1), tok(KW_PASS))
-DEF_RULE(syncthreads_stmt, c(syncthreads_stmt), RULE_and(1), tok(KW_SYNCTHREADS))
+DEF_RULE(syncthreads_stmt, c(syncthreads_stmt), RULE_and(3), tok(KW_SYNCTHREADS), tok(DEL_PAREN_OPEN), tok(DEL_PAREN_CLOSE))
 DEF_RULE_NC(flow_stmt, RULE_or(5), rule(break_stmt), rule(continue_stmt), rule(return_stmt), rule(raise_stmt), rule(yield_stmt))
 DEF_RULE(break_stmt, c(break_cont_stmt), RULE_and(1), tok(KW_BREAK))
 DEF_RULE(continue_stmt, c(break_cont_stmt), RULE_and(1), tok(KW_CONTINUE))

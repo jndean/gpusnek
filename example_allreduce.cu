@@ -33,7 +33,7 @@ for i in range(steps):
     offset = N >> (i + 1)
     if tid < offset:
         cache[tid] += cache[tid + offset]
-    syncthreads
+    syncthreads()
 
 if tid == 0:
     data[0] = cache[0] / len(data)
@@ -107,14 +107,14 @@ int main(void) {
 // from math import log
 
 // cache[tid] = data[tid]
-// syncthreads
+// syncthreads()
 
 // steps = int(log(N, 2))
 // for i in range(steps):
 //     offset = N >> (i + 1)
 //     if tid < offset:
 //         cache[tid] += cache[tid + offset]
-//     syncthreads
+//     syncthreads()
 
 // if tid == 0:
 //     data[0] = cache[0] / len(data)

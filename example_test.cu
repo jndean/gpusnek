@@ -201,7 +201,7 @@ MAYBE_CUDA void run_micropython_tests(void) {
 
     // Test 16: syncthreads keyword
     TEST("Test 16: syncthreads keyword",
-        gpusnek_do_str("syncthreads\n");
+        gpusnek_do_str("syncthreads()\n");
     );
 
     // Test 17: gpusnek_new_int
