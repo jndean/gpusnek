@@ -33,7 +33,7 @@
 // Memory layout per interpreter
 #define PYSTACK_SIZE   (1 * 1024)
 #define HEAP_SIZE      (12 * 1024)
-#define STDOUT_SIZE    (256)
+#define STDOUT_SIZE    (1 * 1024)
 #define HEAP_OFFSET    (PYSTACK_SIZE)
 #define STDOUT_OFFSET  (HEAP_OFFSET + HEAP_SIZE)
 #define MEM_PER_THREAD (PYSTACK_SIZE + HEAP_SIZE + STDOUT_SIZE)
@@ -41,7 +41,8 @@
 
 // setup_kernel: called once to initialise the MicroPython interpreters.
 // Writes the MicroPython banner to the stdout buffer so the host can display it.
-__global__ void setup_kernel(char *memory, mp_state_ctx_t *states) {
+__global__ void setup_kernel(char *memory, mp_state_ctx_t *states,
+                             char *fs_buf, int fs_buf_len) {
     size_t tid = (size_t)blockIdx.x * blockDim.x + threadIdx.x;
     if (tid >= (size_t)N_THREADS) return;
 
@@ -58,6 +59,40 @@ __global__ void setup_kernel(char *memory, mp_state_ctx_t *states) {
 
     // Bind 'threadIdx' into each thread's global namespace to allow thread divergence
     gpusnek_new_int("threadIdx", tid);
+    gpusnek_new_int("numThreads", N_THREADS);
+
+    // Bind the shared filesystem buffer and mount the preformatted LFS2 image
+    if (fs_buf) {
+        gpusnek_bind_memory("__buf_for_filesystem", fs_buf, fs_buf_len, 'B');
+        gpusnek_do_str(R"(
+class RAMBlockDevice:
+    def __init__(self, block_size):
+        self.block_size = block_size
+        self.data = __buf_for_filesystem
+
+    def readblocks(self, block_num, buf, offset=0):
+        addr = block_num * self.block_size + offset
+        for i in range(len(buf)):
+            buf[i] = self.data[addr + i]
+
+    def writeblocks(self, block_num, buf, offset=None):
+        if offset is None:
+            for i in range(len(buf) // self.block_size):
+                self.ioctl(6, block_num + i)
+            offset = 0
+        addr = block_num * self.block_size + offset
+        for i in range(len(buf)):
+            self.data[addr + i] = buf[i]
+
+    def ioctl(self, op, arg):
+        if op == 4: return len(self.data) // self.block_size
+        if op == 5: return self.block_size
+        if op == 6: return 0
+
+import vfs
+vfs.mount(RAMBlockDevice(block_size=128), '/')
+)");
+    }
 
     // Initialise the event-driven friendly REPL — this prints the banner and
     // first prompt into the stdout buffer.
@@ -162,17 +197,43 @@ void extract_and_print_output(const char *h_memory) {
     fflush(stdout);
 }
 
-int main(void) {
+int main(int argc, char **argv) {
     // Allow enough stack for deep MicroPython recursion
-    cudaDeviceSetLimit(cudaLimitStackSize, 8 * 1024);
+    cudaDeviceSetLimit(cudaLimitStackSize, 6 * 1024);
 
     char *d_memory = NULL;
     mp_state_ctx_t *d_states = NULL;
     int *d_done = NULL;
     char *h_memory = NULL;
+    char *d_fsbuf = NULL;
+    long fsbuf_len = 0;
     int ret_code = 0;
     int done = 0;
 
+    // Optionally load a preformatted disk image from the first command-line argument
+    if (argc > 1) {
+        FILE *fp = fopen(argv[1], "rb");
+        if (fp) {
+            fseek(fp, 0, SEEK_END);
+            fsbuf_len = ftell(fp);
+            fseek(fp, 0, SEEK_SET);
+            char *h_fsbuf = (char *)malloc(fsbuf_len);
+            if (!h_fsbuf) {
+                fprintf(stderr, "malloc for disk image failed\n");
+                fclose(fp);
+                return 1;
+            }
+            fread(h_fsbuf, 1, fsbuf_len, fp);
+            fclose(fp);
+            printf("Loaded disk image %s: %ld bytes\n", argv[1], fsbuf_len);
+            catchError(cudaMalloc((void **)&d_fsbuf, fsbuf_len));
+            catchError(cudaMemcpy(d_fsbuf, h_fsbuf, fsbuf_len, cudaMemcpyHostToDevice));
+            free(h_fsbuf);
+        } else {
+            fprintf(stderr, "Failed to open %s\n", argv[1]);
+        }
+    }
+    
     printf("Allocating %0.2f GB for on-device interpreter memory\n", (double)N_THREADS * MEM_PER_THREAD / (1 << 30));
     catchError(cudaMalloc((void **)&d_memory, (size_t)N_THREADS * MEM_PER_THREAD));
     catchError(cudaMalloc((void **)&d_states, (size_t)N_THREADS * sizeof(mp_state_ctx_t)));
@@ -184,7 +245,7 @@ int main(void) {
         goto error;
     }
 
-    setup_kernel<<<N_BLOCKS, N_THREADS_PER_BLOCK>>>(d_memory, d_states);
+    setup_kernel<<<N_BLOCKS, N_THREADS_PER_BLOCK>>>(d_memory, d_states, d_fsbuf, (int)fsbuf_len);
     catchError(cudaDeviceSynchronize());
 
     catchError(cudaMemcpy2D(
@@ -231,10 +292,11 @@ int main(void) {
 error:
     ret_code = 1;
 cleanup:
-    if (h_memory) free(h_memory);
-    if (d_memory) cudaFree(d_memory);
-    if (d_states) cudaFree(d_states);
-    if (d_done)   cudaFree(d_done);
+    if (h_memory)   free(h_memory);
+    if (d_memory)    cudaFree(d_memory);
+    if (d_states)    cudaFree(d_states);
+    if (d_done)      cudaFree(d_done);
+    if (d_fsbuf)     cudaFree(d_fsbuf);
     
     return ret_code;
 }
