@@ -55,6 +55,11 @@ MAYBE_CUDA void gpusnek_deinit(void) {
 
 // Execute a Python string
 MAYBE_CUDA void gpusnek_do_str(const char *src) {
+    // Set the C stack top pointer so that gc_collect() can scan the correct
+    // range of the CUDA __local__ stack.
+    volatile int stack_anchor;
+    MP_STATE_THREAD(stack_top) = (char *)&stack_anchor;
+
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {
         mp_lexer_t *lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, src, strlen(src), 0);
