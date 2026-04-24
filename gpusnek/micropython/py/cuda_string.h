@@ -28,7 +28,8 @@ MAYBE_CUDA size_t __mp_strcspn(const char *s, const char *reject);
 MAYBE_CUDA size_t __mp_strspn(const char *s, const char *accept);
 MAYBE_CUDA unsigned long __mp_strtoul(const char *nptr, char **endptr, int base);
 
-// Redirect standard library calls to our implementations
+// Redirect standard library calls to our implementations (on device only).
+#ifdef __CUDA_ARCH__
 #undef strlen
 #undef strcmp
 #undef strncmp
@@ -53,5 +54,6 @@ MAYBE_CUDA unsigned long __mp_strtoul(const char *nptr, char **endptr, int base)
 #define strcspn(s, r) __mp_strcspn(s, r)
 #define strspn(s, a) __mp_strspn(s, a)
 #define strtoul(s, e, b) __mp_strtoul(s, e, b)
+#endif // __CUDA_ARCH__
 
 #endif // MICROPY_CUDA_STRING_H

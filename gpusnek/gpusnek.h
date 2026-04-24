@@ -7,6 +7,7 @@
 #include "py/runtime.h"
 
 
+
 // Initialize the GPU Snek environment
 MAYBE_CUDA void gpusnek_init(mp_state_ctx_t *ctx, void *memory, size_t stack_size, size_t heap_size);
 MAYBE_CUDA void gpusnek_deinit(void);
@@ -17,8 +18,10 @@ MAYBE_CUDA void gpusnek_deinit(void);
 MAYBE_CUDA void gpusnek_bind_memory(const char *name, void *start, int len, char typecode);
 MAYBE_CUDA void gpusnek_new_int(const char *name, int val);
 
-// Execute a Python string
 MAYBE_CUDA void gpusnek_do_str(const char *src);
+MAYBE_CUDA mp_obj_t gpusnek_compile(const char *src);
+MAYBE_CUDA void gpusnek_do_bytecode(mp_obj_t compiled_module);
+MAYBE_CUDA void gpusnek_do_mpy(const unsigned char *mpy, unsigned int mpy_len);
 
 // Configure per-thread stdin/stdout buffers.
 // Passing NULL disables buffered I/O for that stream and falls back to printf / -1.

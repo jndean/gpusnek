@@ -3,6 +3,7 @@
 
 #include "py/builtin.h"
 #include "py/compile.h"
+#include "py/persistentcode.h"
 #include "py/runtime.h"
 #include "py/gc.h"
 #include "py/mperrno.h"
@@ -53,10 +54,7 @@ MAYBE_CUDA void gpusnek_deinit(void) {
     mp_deinit();
 }
 
-// Execute a Python string
-MAYBE_CUDA void gpusnek_do_str(const char *src) {
-    // Set the C stack top pointer so that gc_collect() can scan the correct
-    // range of the CUDA __local__ stack.
+MAYBE_CUDA mp_obj_t gpusnek_compile(const char *src) {
     volatile int stack_anchor;
     MP_STATE_THREAD(stack_top) = (char *)&stack_anchor;
 
@@ -66,12 +64,55 @@ MAYBE_CUDA void gpusnek_do_str(const char *src) {
         qstr source_name = lex->source_name;
         mp_parse_tree_t parse_tree = mp_parse(lex, MP_PARSE_FILE_INPUT);
         mp_obj_t module_fun = mp_compile(&parse_tree, source_name, false);
-        mp_call_function_0(module_fun);
         nlr_pop();
+        return module_fun;
     } else {
-        printf("Exception occurred in gpusnek_do_str\n");
+        printf("Exception occurred in gpusnek_compile_str\n");
         // An exception (like MemoryError) during compilation might have jumped out
         // while the GC was locked. Reset lock depth so future allocations work.
+        MP_STATE_THREAD(gc_lock_depth) = 0;
+        return NULL;
+    }
+}
+
+MAYBE_CUDA void gpusnek_do_bytecode(mp_obj_t compiled_module) {
+    volatile int stack_anchor;
+    MP_STATE_THREAD(stack_top) = (char *)&stack_anchor;
+
+    nlr_buf_t nlr;
+    if (nlr_push(&nlr) == 0) {
+        mp_call_function_0(compiled_module);
+        nlr_pop();
+    } else {
+        printf("Exception occurred in gpusnek_do_bytecode\n");
+        // An exception (like MemoryError) during compilation might have jumped out
+        // while the GC was locked. Reset lock depth so future allocations work.
+        MP_STATE_THREAD(gc_lock_depth) = 0;
+    }
+}
+
+// Execute a Python string
+MAYBE_CUDA void gpusnek_do_str(const char *src) {
+    gpusnek_do_bytecode(gpusnek_compile(src));
+}
+
+// Execute precompiled .mpy bytecode from a memory buffer.
+MAYBE_CUDA void gpusnek_do_mpy(const unsigned char *mpy, unsigned int mpy_len) {
+    volatile int stack_anchor;
+    MP_STATE_THREAD(stack_top) = (char *)&stack_anchor;
+
+    nlr_buf_t nlr;
+    if (nlr_push(&nlr) == 0) {
+        mp_module_context_t *ctx = m_new_obj(mp_module_context_t);
+        ctx->module.globals = mp_globals_get();
+        mp_compiled_module_t cm;
+        cm.context = ctx;
+        mp_raw_code_load_mem(mpy, (size_t)mpy_len, &cm);
+        mp_obj_t f = mp_make_function_from_proto_fun(cm.rc, ctx, NULL);
+        mp_call_function_0(f);
+        nlr_pop();
+    } else {
+        printf("Exception occurred in gpusnek_do_mpy\n");
         MP_STATE_THREAD(gc_lock_depth) = 0;
     }
 }
