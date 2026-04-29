@@ -15,7 +15,7 @@
 #ifdef __CUDACC__
 
 // ---------- Pure CUDA C kernel ----------
-__global__ void sum_kernel_cuda(float *data, int num_rows, int num_threads) {
+__global__ void sum_kernel_cuda(float *data, int num_rows, int num_threads, int num_writes) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid >= num_threads) return;
 
@@ -23,7 +23,9 @@ __global__ void sum_kernel_cuda(float *data, int num_rows, int num_threads) {
     for (int row = 0; row < num_rows; row++) {
         acc += data[row * num_threads + tid];
     }
-    data[tid] = acc;  // write sum into row 0
+    for (int i = 0; i < num_writes; i++) {
+        data[i * num_threads + tid] = acc;
+    }
 }
 
 // ---------- Gpusnek kernel ----------
@@ -32,7 +34,7 @@ __global__ void sum_kernel_cuda(float *data, int num_rows, int num_threads) {
 template <bool DO_INIT, bool DO_COMPILE, bool DO_EXECUTE>
 __global__ void sum_kernel_gpusnek(float *data, int num_rows, int num_threads,
                                     mp_state_ctx_t *states, char *memory,
-                                    mp_obj_t *bytecode_slots) {
+                                    mp_obj_t *bytecode_slots, int num_writes) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid >= num_threads) return;
 
@@ -46,11 +48,13 @@ __global__ void sum_kernel_gpusnek(float *data, int num_rows, int num_threads,
         gpusnek_new_int("tid", tid);
         gpusnek_new_int("num_rows", num_rows);
         gpusnek_new_int("num_threads", num_threads);
+        gpusnek_new_int("num_writes", num_writes);
         mp_obj_t bc = gpusnek_compile(R"(
 acc = 0.0
 for row in range(num_rows):
     acc += data[row * num_threads + tid]
-data[tid] = acc
+for i in range(num_writes):
+    data[i * num_threads + tid] = acc
 )");
         bytecode_slots[tid] = bc;
     }
@@ -63,9 +67,10 @@ data[tid] = acc
 
 static void usage(const char *prog) {
     fprintf(stderr,
-        "Usage: %s [--num_rows N] [--mode MODE]\n"
+        "Usage: %s [--num_rows N] [--num_writes N] [--mode MODE]\n"
         "\n"
         "  --num_rows N   Number of rows to sum (default 256)\n"
+        "  --num_writes N Number of output writes (default 1)\n"
         "  --mode M       0 = baseline    (pure CUDA C kernel)\n"
         "                 1 = basic       (init+compile+run in one launch)\n"
         "                 2 = preinit     (launch1: init, launch2: compile+run)\n"
@@ -75,6 +80,7 @@ static void usage(const char *prog) {
 
 int main(int argc, char **argv) {
     long num_rows = 256;
+    int num_writes = 1;
     int mode = 1;
 
     // --- Parse command-line arguments ---
@@ -83,6 +89,12 @@ int main(int argc, char **argv) {
             num_rows = atol(argv[++i]);
             if (num_rows <= 0) {
                 fprintf(stderr, "Invalid --num_rows value: %s\n", argv[i]);
+                return 1;
+            }
+        } else if (strcmp(argv[i], "--num_writes") == 0 && i + 1 < argc) {
+            num_writes = atoi(argv[++i]);
+            if (num_writes <= 0) {
+                fprintf(stderr, "Invalid --num_writes value: %s\n", argv[i]);
                 return 1;
             }
         } else if (strcmp(argv[i], "--mode") == 0 && i + 1 < argc) {
@@ -99,8 +111,8 @@ int main(int argc, char **argv) {
 
     const char *mode_names[] = { "baseline", "basic", "preinit", "precompile" };
     long total_elements = (long)NUM_THREADS * num_rows;
-    printf("Sum Profiling: %d threads x %ld rows = %ld elements, mode=%d (%s)\n",
-           NUM_THREADS, num_rows, total_elements, mode, mode_names[mode]);
+    printf("Sum Profiling: %d threads x %ld rows = %ld elements, num_writes=%d, mode=%d (%s)\n",
+           NUM_THREADS, num_rows, total_elements, num_writes, mode, mode_names[mode]);
 
     // --- Allocate and fill host data ---
     size_t data_bytes = total_elements * sizeof(float);
@@ -134,38 +146,38 @@ int main(int argc, char **argv) {
     if (mode == 0) {
         // baseline: pure CUDA C kernel
         sum_kernel_cuda<<<num_blocks, threads_per_block>>>(
-            d_data, (int)num_rows, NUM_THREADS);
+            d_data, (int)num_rows, NUM_THREADS, num_writes);
         catchError(cudaGetLastError());
         catchError(cudaDeviceSynchronize());
 
     } else if (mode == 1) {
         // basic: single launch does init + compile + run
         sum_kernel_gpusnek<true, true, true><<<num_blocks, threads_per_block>>>(
-            d_data, (int)num_rows, NUM_THREADS, d_states, d_memory, d_bytecode_slots);
+            d_data, (int)num_rows, NUM_THREADS, d_states, d_memory, d_bytecode_slots, num_writes);
         catchError(cudaGetLastError());
         catchError(cudaDeviceSynchronize());
 
     } else if (mode == 2) {
         // preinit: launch 1 does init only
         sum_kernel_gpusnek<true, false, false><<<num_blocks, threads_per_block>>>(
-            d_data, (int)num_rows, NUM_THREADS, d_states, d_memory, d_bytecode_slots);
+            d_data, (int)num_rows, NUM_THREADS, d_states, d_memory, d_bytecode_slots, num_writes);
         catchError(cudaGetLastError());
         catchError(cudaDeviceSynchronize());
         // launch 2 does compile + run
         sum_kernel_gpusnek<false, true, true><<<num_blocks, threads_per_block>>>(
-            d_data, (int)num_rows, NUM_THREADS, d_states, d_memory, d_bytecode_slots);
+            d_data, (int)num_rows, NUM_THREADS, d_states, d_memory, d_bytecode_slots, num_writes);
         catchError(cudaGetLastError());
         catchError(cudaDeviceSynchronize());
 
     } else /* mode == 3 */ {
         // precompile: launch 1 does init + compile
         sum_kernel_gpusnek<true, true, false><<<num_blocks, threads_per_block>>>(
-            d_data, (int)num_rows, NUM_THREADS, d_states, d_memory, d_bytecode_slots);
+            d_data, (int)num_rows, NUM_THREADS, d_states, d_memory, d_bytecode_slots, num_writes);
         catchError(cudaGetLastError());
         catchError(cudaDeviceSynchronize());
         // launch 2 does run only
         sum_kernel_gpusnek<false, false, true><<<num_blocks, threads_per_block>>>(
-            d_data, (int)num_rows, NUM_THREADS, d_states, d_memory, d_bytecode_slots);
+            d_data, (int)num_rows, NUM_THREADS, d_states, d_memory, d_bytecode_slots, num_writes);
         catchError(cudaGetLastError());
         catchError(cudaDeviceSynchronize());
     }
