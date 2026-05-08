@@ -1,8 +1,11 @@
-# gpusnek
+<p align="center">
+  <img src="logo.png" width=500px>
+</p>
+
 
 Read the ["whitepaper"](https://josefdean.co.uk/gpusnek.pdf) here.
 
-gpusnek answers the question "What would it look like to be able to inline arbitrary Python code into your high-performance CUDA kernels, with no consideration for why that is a bad idea?".
+**gpusnek** answers the question "What would it look like to be able to inline arbitrary Python code into your high-performance CUDA kernels, with no consideration for why that is a bad idea?".
 
 This repository implements a full Python interpreter that can run on one GPU thread (or in parallel on many).
 It even includes the Python lexer, parser and bytecode compiler.
