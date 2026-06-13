@@ -53,8 +53,8 @@ else
 # Host Build Settings (G++)
 CC = g++
 LD = g++
-CFLAGS = $(INC) -Wall -Werror -x c++ -fPIC -fpermissive
-CFLAGS += -O1 -DNDEBUG
+CFLAGS = $(INC) -Wall -x c++ -fPIC -fpermissive
+CFLAGS += -O1 -DNDEBUG -DHOSTBUILD
 endif
 
 # Linker flags

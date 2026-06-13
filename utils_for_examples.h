@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifndef HOSTBUILD
 #include <cuda_runtime.h>
 
 static inline void _gpuCheckImpl(cudaError_t code,
@@ -17,3 +19,9 @@ static inline void _gpuCheckImpl(cudaError_t code,
 
 // Public macro: wraps the expression and passes its text as the label.
 #define catchError(expr) _gpuCheckImpl((expr), #expr, __FILE__, __LINE__)
+
+#else //HOSTBUILD
+
+#define catchError(expr)
+
+#endif //HOSTBUILD

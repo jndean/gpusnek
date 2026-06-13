@@ -31,6 +31,11 @@
 #include <string.h>
 #include <assert.h>
 
+#ifndef HOSTBUILD
+// Needed only on cuda builds for __half type
+#include <cuda_fp16.h>
+#endif //HOSTBUILD
+
 #include "py/binary.h"
 #include "py/smallint.h"
 #include "py/objint.h"
@@ -158,19 +163,27 @@ MAYBE_CUDA size_t mp_binary_get_size(char struct_type, char val_type, size_t *pa
 #if MICROPY_PY_BUILTINS_FLOAT && MICROPY_FLOAT_USE_NATIVE_FLT16
 
 static MAYBE_CUDA inline float mp_decode_half_float(uint16_t hf) {
+#ifdef HOSTBUILD
     union {
         uint16_t i;
         _Float16 f;
     } fpu = { .i = hf };
     return fpu.f;
+#else //HOSTBUILD
+    return *(__half*) &hf;
+#endif //HOSTBUILD
 }
 
 static MAYBE_CUDA inline uint16_t mp_encode_half_float(float x) {
+#ifdef HOSTBUILD
     union {
         uint16_t i;
         _Float16 f;
     } fp_sp = { .f = (_Float16)x };
     return fp_sp.i;
+#else //HOSTBUILD
+    return *(uint16_t*) &(__half)x;
+#endif //HOSTBUILD
 }
 
 #elif MICROPY_PY_BUILTINS_FLOAT

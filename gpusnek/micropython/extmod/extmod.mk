@@ -213,7 +213,6 @@ SRC_THIRDPARTY_C += $(addprefix $(LITTLEFS_DIR)/,\
 	lfs2_util.c \
 	)
 
-$(BUILD)/$(LITTLEFS_DIR)/lfs2.o: CFLAGS += -Xcompiler -Wno-shadow
 endif
 
 ################################################################################
