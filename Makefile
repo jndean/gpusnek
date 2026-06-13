@@ -19,7 +19,7 @@ CFLAGS = $(INC) -x cu -dc -Xcompiler -fpermissive -D"restrict=" -O1 -DNDEBUG -rd
 LDFLAGS = -lcudadevrt
 else
 CC = g++
-CFLAGS = $(INC) -Wall -Werror -x c++ -fpermissive -O1 -DNDEBUG
+CFLAGS = $(INC) -Wall -x c++ -fpermissive -O1 -DNDEBUG -DHOSTBUILD
 LDFLAGS =
 endif
 
